@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "outline": "#869397", "on-primary-fixed": "#001f26", "surface-dim": "#0e131e", "error": "#ffb4ab", "secondary-fixed-dim": "#adc6ff", "surface-container-low": "#171b27", "surface": "#0e131e", "on-surface-variant": "#bcc9cd", "secondary-container": "#0566d9", "on-primary-container": "#00424f", "on-error-container": "#ffdad6", "tertiary-container": "#1bbd85", "outline-variant": "#3d494c", "secondary-fixed": "#d8e2ff", "primary-fixed-dim": "#4cd7f6", "tertiary-fixed": "#6ffbbe", "secondary": "#adc6ff", "inverse-on-surface": "#2b303c", "background": "#0e131e", "surface-bright": "#343946", "on-tertiary-fixed": "#002113", "error-container": "#93000a", "on-surface": "#dee2f2", "on-background": "#dee2f2", "surface-variant": "#303541", "surface-container-lowest": "#090e19", "inverse-primary": "#00687a", "on-tertiary": "#003824", "on-tertiary-fixed-variant": "#005236", "on-secondary-fixed": "#001a42", "on-secondary-container": "#e6ecff", "surface-container-highest": "#303541", "on-tertiary-container": "#00452e", "on-error": "#690005", "surface-container": "#1b1f2b", "inverse-surface": "#dee2f2", "surface-tint": "#4cd7f6", "primary-fixed": "#acedff", "surface-container-high": "#252a36", "on-primary-fixed-variant": "#004e5c", "tertiary": "#4edea3", "primary": "#4cd7f6", "on-primary": "#003640", "tertiary-fixed-dim": "#4edea3", "on-secondary": "#002e6a", "primary-container": "#06b6d4", "on-secondary-fixed-variant": "#004395" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-md": "1rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "margin": "1rem", "space-sm": "0.5rem", "space-xl": "2rem", "gutter": "1rem" }, "fontFamily": { "body-lg": ["Plus Jakarta Sans"], "label-lg": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "stat-currency": ["Plus Jakarta Sans"], "headline-xl": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "stat-display": ["Plus Jakarta Sans"] }, "fontSize": { "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }], "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "stat-currency": ["20px", { "lineHeight": "28px", "fontWeight": "600" }], "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "700" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "headline-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "stat-display": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800" }] } } } }</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head><body class="bg-surface text-on-surface font-body-md text-body-md min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-xs"><button aria-label="Back" class="w-11 h-11 min-w-[44px] min-h-[44px] -ml-2 rounded-full flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors" onclick="history.back()" type="button"><span class="material-symbols-outlined text-[24px]">arrow_back</span></button><div class="flex flex-col justify-center"><span class="text-label-sm font-label-sm uppercase tracking-wider text-primary">Gaadi Manager</span><h1 class="text-headline-md font-headline-md text-on-surface line-clamp-1 leading-tight">Gaadi Manager   Daily / Monthly Report</h1></div></div><div class="flex items-center gap-space-xs"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 pb-safe bg-surface"><div class="flex flex-col w-full px-gutter pb-28 space-y-space-md">
+<!-- Top Segmented Period Switcher -->
+<div class="w-full bg-surface-container-low p-1 rounded-xl flex items-center justify-between shadow-sm">
+<button class="flex-1 py-2 px-space-sm rounded-lg text-label-md font-label-md transition-all flex items-center justify-center gap-1.5 bg-primary text-on-primary shadow-md" id="toggle-daily" type="button">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+<span>Daily Report</span>
+</button>
+<button class="flex-1 py-2 px-space-sm rounded-lg text-label-md font-label-md text-on-surface-variant hover:text-on-surface transition-all flex items-center justify-center gap-1.5" id="toggle-monthly" type="button">
+<span class="material-symbols-outlined text-[16px]">calendar_month</span>
+<span>Monthly Report</span>
+</button>
+</div>
+<!-- Interactive Date Navigator Bar -->
+<div class="w-full bg-surface-container rounded-xl p-space-sm flex items-center justify-between shadow-sm">
+<button aria-label="Previous day" class="w-10 h-10 rounded-lg bg-surface-container-high hover:bg-surface-bright active:scale-95 flex items-center justify-center text-on-surface transition-all" type="button">
+<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+</button>
+<div class="flex items-center gap-2 cursor-pointer py-1 px-3 rounded-lg hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-primary text-[20px]">event</span>
+<span class="text-label-lg font-label-lg text-on-surface tracking-tight">Thursday, 24 Oct 2024</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">expand_more</span>
+</div>
+<button aria-label="Next day" class="w-10 h-10 rounded-lg bg-surface-container-high hover:bg-surface-bright active:scale-95 flex items-center justify-center text-on-surface transition-all" type="button">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</button>
+</div>
+<!-- 4-Card Strategic Financial Metric Grid -->
+<div class="grid grid-cols-2 gap-space-sm">
+<!-- Card 1: Total Bookings -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col justify-between shadow-sm relative overflow-hidden">
+<div class="flex items-center justify-between mb-2">
+<span class="text-label-sm font-label-sm uppercase tracking-wider text-on-surface-variant">Fleet Activity</span>
+<div class="w-7 h-7 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[16px]">directions_car</span>
+</div>
+</div>
+<div>
+<div class="text-stat-currency font-stat-currency text-on-surface">8 Trips</div>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="text-body-sm font-body-sm text-tertiary font-medium">6 Done</span>
+<span class="text-body-sm font-body-sm text-outline">•</span>
+<span class="text-body-sm font-body-sm text-primary">2 Active</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Total Revenue -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col justify-between shadow-sm relative overflow-hidden">
+<div class="flex items-center justify-between mb-2">
+<span class="text-label-sm font-label-sm uppercase tracking-wider text-on-surface-variant">Net Inflow</span>
+<div class="w-7 h-7 rounded-lg bg-tertiary/15 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+</div>
+</div>
+<div>
+<div class="text-stat-currency font-stat-currency text-on-surface">₹24,850</div>
+<div class="flex items-center gap-1 mt-1 text-tertiary">
+<span class="material-symbols-outlined text-[14px]">north_east</span>
+<span class="text-body-sm font-body-sm font-semibold">+18%</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">vs y'day</span>
+</div>
+</div>
+</div>
+<!-- Card 3: UPI vs Cash Breakdown (Spans 2 cols) -->
+<div class="col-span-2 bg-surface-container-low p-space-md rounded-xl shadow-sm space-y-space-sm">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm uppercase tracking-wider text-on-surface-variant">Settlement Ingestion</span>
+<span class="text-label-md font-label-md text-on-surface">₹24,850 Total</span>
+</div>
+<!-- Segmented Track Bar -->
+<div class="w-full h-3 bg-surface-container-highest rounded-full overflow-hidden flex">
+<div class="h-full bg-primary transition-all duration-500" style="width: 75%"></div>
+<div class="h-full bg-tertiary transition-all duration-500" style="width: 25%"></div>
+</div>
+<!-- Detail Badges -->
+<div class="flex items-center justify-between pt-1 text-label-md font-label-md">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-sm bg-primary"></span>
+<span class="text-on-surface">UPI: <span class="font-bold">₹18,650</span></span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">(75%)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-sm bg-tertiary"></span>
+<span class="text-on-surface">Cash: <span class="font-bold">₹6,200</span></span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">(25%)</span>
+</div>
+</div>
+</div>
+<!-- Card 4: Outstanding Recoveries (Spans 2 cols) -->
+<div class="col-span-2 bg-surface-container-low p-space-md rounded-xl shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-error/15 flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[22px]">pending_actions</span>
+</div>
+<div>
+<div class="text-label-sm font-label-sm uppercase tracking-wider text-on-surface-variant">Pending Collection</div>
+<div class="text-headline-sm font-headline-sm text-error">₹2,918</div>
+</div>
+</div>
+<div class="bg-surface-container-high px-3 py-1.5 rounded-full flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+<span class="text-label-sm font-label-sm text-on-surface">2 balances overdue</span>
+</div>
+</div>
+</div>
+<!-- Weekly Performance Horizon Bar Chart -->
+<div class="w-full bg-surface-container-low p-space-md rounded-xl shadow-sm space-y-space-md">
+<div class="flex items-center justify-between">
+<div>
+<h3 class="text-headline-sm font-headline-sm text-on-surface">Daily Collection Trend</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Week 43 • Oct 21 - Oct 27</p>
+</div>
+<div class="text-right">
+<span class="text-label-sm font-label-sm uppercase tracking-wider text-primary">Peak Sat</span>
+<div class="text-label-lg font-label-lg text-on-surface">₹31,000</div>
+</div>
+</div>
+<!-- Inline Accessible SVG Bar Chart Visualizer -->
+<div class="w-full pt-2">
+<div class="h-40 flex items-end justify-between gap-2 px-1 relative">
+<!-- Background Baseline Guidelines -->
+<div class="absolute inset-x-0 top-0 h-[1px] bg-surface-container-highest"></div>
+<div class="absolute inset-x-0 top-1/2 h-[1px] bg-surface-container-highest"></div>
+<div class="absolute inset-x-0 bottom-0 h-[1px] bg-surface-container-highest"></div>
+<!-- Monday -->
+<div class="flex-1 flex flex-col items-center gap-2 h-full justify-end z-10">
+<span class="text-label-sm font-label-sm text-on-surface-variant">16k</span>
+<div class="w-full max-w-[28px] bg-surface-container-high hover:bg-surface-bright rounded-t-lg transition-all" style="height: 51%"></div>
+<span class="text-label-sm font-label-sm text-on-surface-variant">M</span>
+</div>
+<!-- Tuesday -->
+<div class="flex-1 flex flex-col items-center gap-2 h-full justify-end z-10">
+<span class="text-label-sm font-label-sm text-on-surface-variant">19k</span>
+<div class="w-full max-w-[28px] bg-surface-container-high hover:bg-surface-bright rounded-t-lg transition-all" style="height: 61%"></div>
+<span class="text-label-sm font-label-sm text-on-surface-variant">T</span>
+</div>
+<!-- Wednesday -->
+<div class="flex-1 flex flex-col items-center gap-2 h-full justify-end z-10">
+<span class="text-label-sm font-label-sm text-on-surface-variant">22k</span>
+<div class="w-full max-w-[28px] bg-surface-container-high hover:bg-surface-bright rounded-t-lg transition-all" style="height: 70%"></div>
+<span class="text-label-sm font-label-sm text-on-surface-variant">W</span>
+</div>
+<!-- Thursday (Current Active Day - Highlighted Glow) -->
+<div class="flex-1 flex flex-col items-center gap-2 h-full justify-end z-10">
+<span class="text-label-sm font-label-sm text-primary font-bold">24.8k</span>
+<div class="w-full max-w-[28px] bg-primary rounded-t-lg shadow-[0_0_16px_rgba(6,182,212,0.45)] transition-all" style="height: 80%"></div>
+<span class="text-label-sm font-label-sm text-primary font-bold">T</span>
+</div>
+<!-- Friday -->
+<div class="flex-1 flex flex-col items-center gap-2 h-full justify-end z-10">
+<span class="text-label-sm font-label-sm text-on-surface-variant">18k</span>
+<div class="w-full max-w-[28px] bg-surface-container-high hover:bg-surface-bright rounded-t-lg transition-all" style="height: 58%"></div>
+<span class="text-label-sm font-label-sm text-on-surface-variant">F</span>
+</div>
+<!-- Saturday -->
+<div class="flex-1 flex flex-col items-center gap-2 h-full justify-end z-10">
+<span class="text-label-sm font-label-sm text-on-surface-variant">31k</span>
+<div class="w-full max-w-[28px] bg-surface-container-high hover:bg-surface-bright rounded-t-lg transition-all" style="height: 100%"></div>
+<span class="text-label-sm font-label-sm text-on-surface-variant">S</span>
+</div>
+<!-- Sunday -->
+<div class="flex-1 flex flex-col items-center gap-2 h-full justify-end z-10">
+<span class="text-label-sm font-label-sm text-on-surface-variant">28k</span>
+<div class="w-full max-w-[28px] bg-surface-container-high hover:bg-surface-bright rounded-t-lg transition-all" style="height: 90%"></div>
+<span class="text-label-sm font-label-sm text-on-surface-variant">S</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Operational Dispatch List Section -->
+<div class="w-full space-y-space-sm pt-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<h2 class="text-headline-sm font-headline-sm text-on-surface">Today's Booking Entries</h2>
+<span class="bg-primary/20 text-primary text-label-sm font-label-sm px-2 py-0.5 rounded-full">8</span>
+</div>
+<button class="text-label-sm font-label-sm text-primary flex items-center gap-1 hover:underline" type="button">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+<span>Filter</span>
+</button>
+</div>
+<!-- Booking Entry 1 -->
+<div class="w-full bg-surface-container-low p-space-md rounded-xl shadow-sm flex items-center justify-between hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">directions_car</span>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-2">
+<span class="text-label-sm font-label-sm text-on-surface-variant">#GM-8492</span>
+<span class="text-label-sm font-label-sm text-outline">•</span>
+<span class="text-body-sm font-body-sm text-on-surface font-semibold truncate">Mahindra Thar 4x4</span>
+</div>
+<div class="text-body-sm font-body-sm text-on-surface-variant truncate">Rahul Verma</div>
+</div>
+</div>
+<div class="text-right flex-shrink-0 pl-2">
+<div class="text-label-lg font-label-lg text-on-surface">₹3,800</div>
+<div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tertiary/15 text-tertiary text-label-sm font-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>Paid via UPI</span>
+</div>
+</div>
+</div>
+<!-- Booking Entry 2 -->
+<div class="w-full bg-surface-container-low p-space-md rounded-xl shadow-sm flex items-center justify-between hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">directions_car</span>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-2">
+<span class="text-label-sm font-label-sm text-on-surface-variant">#GM-8495</span>
+<span class="text-label-sm font-label-sm text-outline">•</span>
+<span class="text-body-sm font-body-sm text-on-surface font-semibold truncate">Hyundai Creta SX</span>
+</div>
+<div class="text-body-sm font-body-sm text-on-surface-variant truncate">Amit Patel</div>
+</div>
+</div>
+<div class="text-right flex-shrink-0 pl-2">
+<div class="text-label-lg font-label-lg text-on-surface">₹3,200</div>
+<div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tertiary/15 text-tertiary text-label-sm font-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>Paid via Cash</span>
+</div>
+</div>
+</div>
+<!-- Booking Entry 3 -->
+<div class="w-full bg-surface-container-low p-space-md rounded-xl shadow-sm flex items-center justify-between hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">two_wheeler</span>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-2">
+<span class="text-label-sm font-label-sm text-on-surface-variant">#GM-8501</span>
+<span class="text-label-sm font-label-sm text-outline">•</span>
+<span class="text-body-sm font-body-sm text-on-surface font-semibold truncate">Royal Enfield 350</span>
+</div>
+<div class="text-body-sm font-body-sm text-on-surface-variant truncate">Priya Sharma</div>
+</div>
+</div>
+<div class="text-right flex-shrink-0 pl-2">
+<div class="text-label-lg font-label-lg text-on-surface">₹1,200</div>
+<div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-container/20 text-secondary-fixed text-label-sm font-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span>₹400 Pending</span>
+</div>
+</div>
+</div>
+<!-- Booking Entry 4 -->
+<div class="w-full bg-surface-container-low p-space-md rounded-xl shadow-sm flex items-center justify-between hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">directions_car</span>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-2">
+<span class="text-label-sm font-label-sm text-on-surface-variant">#GM-8504</span>
+<span class="text-label-sm font-label-sm text-outline">•</span>
+<span class="text-body-sm font-body-sm text-on-surface font-semibold truncate">Swift Dzire</span>
+</div>
+<div class="text-body-sm font-body-sm text-on-surface-variant truncate">Rohan D.</div>
+</div>
+</div>
+<div class="text-right flex-shrink-0 pl-2">
+<div class="text-label-lg font-label-lg text-on-surface">₹2,750</div>
+<div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tertiary/15 text-tertiary text-label-sm font-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>Settled</span>
+</div>
+</div>
+</div>
+<!-- Booking Entry 5 -->
+<div class="w-full bg-surface-container-low p-space-md rounded-xl shadow-sm flex items-center justify-between hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">electric_car</span>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-2">
+<span class="text-label-sm font-label-sm text-on-surface-variant">#GM-8510</span>
+<span class="text-label-sm font-label-sm text-outline">•</span>
+<span class="text-body-sm font-body-sm text-on-surface font-semibold truncate">Tata Nexon EV</span>
+</div>
+<div class="text-body-sm font-body-sm text-on-surface-variant truncate">Vikram K.</div>
+</div>
+</div>
+<div class="text-right flex-shrink-0 pl-2">
+<div class="text-label-lg font-label-lg text-on-surface">₹4,100</div>
+<div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-error/15 text-error text-label-sm font-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+<span>Late +₹350</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Operational Audit & Export Dock -->
+<div class="fixed bottom-4 inset-x-gutter z-40 max-w-[calc(100vw-2rem)]">
+<div class="bg-surface-container-high/95 backdrop-blur-xl p-2 rounded-2xl shadow-xl flex flex-col gap-1">
+<button class="w-full py-3 px-4 rounded-xl bg-primary text-on-primary hover:bg-primary-fixed-dim transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-md" type="button">
+<span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
+<span class="text-label-lg font-label-lg">Download PDF Statement</span>
+</button>
+<div class="text-center py-0.5">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Includes GST breakdown &amp; cryptographically signed receipt hashes</span>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    const dailyBtn = document.getElementById('toggle-daily');
+    const monthlyBtn = document.getElementById('toggle-monthly');
+
+    if (dailyBtn && monthlyBtn) {
+      dailyBtn.addEventListener('click', function() {
+        dailyBtn.className = 'flex-1 py-2 px-space-sm rounded-lg text-label-md font-label-md transition-all flex items-center justify-center gap-1.5 bg-primary text-on-primary shadow-md';
+        monthlyBtn.className = 'flex-1 py-2 px-space-sm rounded-lg text-label-md font-label-md text-on-surface-variant hover:text-on-surface transition-all flex items-center justify-center gap-1.5';
+      });
+
+      monthlyBtn.addEventListener('click', function() {
+        monthlyBtn.className = 'flex-1 py-2 px-space-sm rounded-lg text-label-md font-label-md transition-all flex items-center justify-center gap-1.5 bg-primary text-on-primary shadow-md';
+        dailyBtn.className = 'flex-1 py-2 px-space-sm rounded-lg text-label-md font-label-md text-on-surface-variant hover:text-on-surface transition-all flex items-center justify-center gap-1.5';
+      });
+    }
+  })();
+</script></main></body></html>

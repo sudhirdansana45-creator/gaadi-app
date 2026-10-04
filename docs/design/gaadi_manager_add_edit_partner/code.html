@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "outline": "#869397", "on-primary-fixed": "#001f26", "surface-dim": "#0e131e", "error": "#ffb4ab", "secondary-fixed-dim": "#adc6ff", "surface-container-low": "#171b27", "surface": "#0e131e", "on-surface-variant": "#bcc9cd", "secondary-container": "#0566d9", "on-primary-container": "#00424f", "on-error-container": "#ffdad6", "tertiary-container": "#1bbd85", "outline-variant": "#3d494c", "secondary-fixed": "#d8e2ff", "primary-fixed-dim": "#4cd7f6", "tertiary-fixed": "#6ffbbe", "secondary": "#adc6ff", "inverse-on-surface": "#2b303c", "background": "#0e131e", "surface-bright": "#343946", "on-tertiary-fixed": "#002113", "error-container": "#93000a", "on-surface": "#dee2f2", "on-background": "#dee2f2", "surface-variant": "#303541", "surface-container-lowest": "#090e19", "inverse-primary": "#00687a", "on-tertiary": "#003824", "on-tertiary-fixed-variant": "#005236", "on-secondary-fixed": "#001a42", "on-secondary-container": "#e6ecff", "surface-container-highest": "#303541", "on-tertiary-container": "#00452e", "on-error": "#690005", "surface-container": "#1b1f2b", "inverse-surface": "#dee2f2", "surface-tint": "#4cd7f6", "primary-fixed": "#acedff", "surface-container-high": "#252a36", "on-primary-fixed-variant": "#004e5c", "tertiary": "#4edea3", "primary": "#4cd7f6", "on-primary": "#003640", "tertiary-fixed-dim": "#4edea3", "on-secondary": "#002e6a", "primary-container": "#06b6d4", "on-secondary-fixed-variant": "#004395" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-md": "1rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "margin": "1rem", "space-sm": "0.5rem", "space-xl": "2rem", "gutter": "1rem" }, "fontFamily": { "body-lg": ["Plus Jakarta Sans"], "label-lg": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "stat-currency": ["Plus Jakarta Sans"], "headline-xl": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "stat-display": ["Plus Jakarta Sans"] }, "fontSize": { "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }], "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "stat-currency": ["20px", { "lineHeight": "28px", "fontWeight": "600" }], "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "700" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "headline-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "stat-display": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800" }] } } } }</script></head><body class="bg-surface text-on-surface font-body-md text-body-md min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-xs"><button aria-label="Back" class="w-11 h-11 min-w-[44px] min-h-[44px] -ml-2 rounded-full flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors" onclick="history.back()" type="button"><span class="material-symbols-outlined text-[24px]">arrow_back</span></button><h1 class="text-headline-md font-headline-md text-on-surface line-clamp-1">Add Edit Partner</h1></div><div class="flex items-center gap-space-xs"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 pb-safe bg-surface"><div class="flex flex-col w-full pb-32">
+<!-- Top Operator Meta & Partner Photo Upload -->
+<div class="px-gutter pt-space-md flex items-center justify-between">
+<div class="flex items-center gap-space-md">
+<div class="relative w-16 h-16 rounded-xl bg-surface-container-high overflow-hidden shadow-md flex items-center justify-center group">
+<img class="w-full h-full object-cover" data-alt="Close-up professional portrait of an Indian automotive fleet manager wearing a crisp navy polo shirt in an ambient modern garage with subtle electric cyan highlights and soft industrial workshop lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJGomgwqsdBuFqbds5qxUIQRBhc3fnhGwfbSRtafdPj9MFYxvZPTsPh3hegM9KRvC7OHJHOH-w7tIbbGO1kiSTy-pxPkyulLGLQDddAlKlOvDKiMZ4UBRLpDs_OndN-h0GqwOwAFRJXcMTpMimZjO5j8eg5UT0iiS7Y4WCqovZ6R_tE6zdXH_1hvxsf-M5FGAcCPQlj0ZveiYaG1jqIYmEXdVtLrW4imDre5KOj0KNenCsiwx0y0vK4Q"/>
+<button aria-label="Upload partner photo" class="absolute inset-0 bg-surface-dim/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" type="button">
+<span class="material-symbols-outlined text-primary text-[20px]">photo_camera</span>
+<span class="font-label-sm text-label-sm text-primary uppercase mt-0.5">Edit</span>
+</button>
+</div>
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface">Partner Record</span>
+<span class="bg-tertiary/15 text-tertiary font-label-sm text-label-sm px-2 py-0.5 rounded-full flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+            ACTIVE FLEET
+          </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Operator ID: <span class="font-label-md text-label-md text-on-surface">PTR-88219-PN</span></p>
+</div>
+</div>
+<div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">badge</span>
+</div>
+</div>
+<!-- Form Wrapper -->
+<div class="px-gutter flex flex-col gap-space-lg mt-space-lg">
+<!-- 1. Basic Partner Information Card -->
+<section class="bg-surface-container-low rounded-xl p-space-md shadow-md flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[22px]">person_pin</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Partner Details</h2>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-high px-2 py-1 rounded-full">Primary KYC</span>
+</div>
+<!-- Field 1: Partner Full Name -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant" for="partnerName">Partner Full Name</label>
+<div class="relative flex items-center bg-surface-container-highest rounded-xl px-space-md h-12 shadow-inner">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] mr-2.5">badge</span>
+<input class="w-full bg-transparent text-on-surface font-body-md text-body-md focus:outline-none placeholder:text-outline" id="partnerName" placeholder="Enter full legal name" type="text" value="Rakesh Sharma"/>
+</div>
+</div>
+<!-- Field 2: Phone / Mobile Number -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-on-surface-variant" for="partnerPhone">Phone / Mobile Number</label>
+<div class="flex items-center gap-1.5 bg-tertiary/15 text-tertiary px-2 py-0.5 rounded-full font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span>OTP Verified</span>
+</div>
+</div>
+<div class="relative flex items-center bg-surface-container-highest rounded-xl px-space-md h-12 shadow-inner">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] mr-2">phone_iphone</span>
+<span class="font-label-md text-label-md text-on-surface mr-2">+91</span>
+<input class="w-full bg-transparent text-on-surface font-body-md text-body-md focus:outline-none placeholder:text-outline" id="partnerPhone" placeholder="10-digit mobile number" type="tel" value="98204 11920"/>
+<span class="material-symbols-outlined text-tertiary text-[20px] ml-1.5" title="WhatsApp reachable">chat</span>
+</div>
+</div>
+<!-- Field 3: Registered Address -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant" for="partnerAddress">Registered Commercial Address</label>
+<div class="relative flex items-start bg-surface-container-highest rounded-xl p-space-md min-h-[84px] shadow-inner">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] mr-2.5 mt-0.5">storefront</span>
+<textarea class="w-full bg-transparent text-on-surface font-body-md text-body-md focus:outline-none resize-none placeholder:text-outline" id="partnerAddress" placeholder="Complete garage or office address" rows="2">Shop 12, Auto Hub, Senapati Bapat Road, Pune, Maharashtra 411016</textarea>
+</div>
+</div>
+</section>
+<!-- 2. Optional Banking & Payout Section -->
+<section class="bg-surface-container-low rounded-xl p-space-md shadow-md flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[22px]">account_balance</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Bank &amp; UPI Details</h2>
+</div>
+<span class="font-label-sm text-label-sm text-secondary bg-secondary-container/20 px-2.5 py-0.5 rounded-full">Optional</span>
+</div>
+<!-- Bank Account & IFSC Grid -->
+<div class="grid grid-cols-1 gap-space-md">
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant" for="bankAcc">Bank Account Number</label>
+<div class="relative flex items-center bg-surface-container-highest rounded-xl px-space-md h-12 shadow-inner">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] mr-2.5">credit_card</span>
+<input class="w-full bg-transparent text-on-surface font-body-md text-body-md focus:outline-none tracking-wider placeholder:text-outline" id="bankAcc" placeholder="Enter bank account number" type="text" value="•••• •••• 9841"/>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">lock</span>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant" for="ifscCode">IFSC Code (RTGS / NEFT)</label>
+<div class="relative flex items-center bg-surface-container-highest rounded-xl px-space-md h-12 shadow-inner">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] mr-2.5">domain</span>
+<input class="w-full bg-transparent text-on-surface font-body-md text-body-md uppercase font-label-lg focus:outline-none placeholder:text-outline" id="ifscCode" placeholder="HDFC0001245" type="text" value="HDFC0001245"/>
+<span class="font-label-sm text-label-sm text-tertiary bg-tertiary/15 px-2 py-0.5 rounded">HDFC Pune</span>
+</div>
+</div>
+</div>
+<!-- UPI ID Field -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant" for="upiId">Instant UPI VPA</label>
+<div class="relative flex items-center bg-surface-container-highest rounded-xl px-space-md h-12 shadow-inner">
+<span class="font-label-lg text-label-lg text-primary mr-2.5">₹</span>
+<input class="w-full bg-transparent text-on-surface font-body-md text-body-md focus:outline-none placeholder:text-outline" id="upiId" placeholder="name@upi" type="text" value="rakesh.sharma@okhdfcbank"/>
+<div class="flex items-center gap-1 text-tertiary font-label-sm text-label-sm bg-tertiary/15 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span>Verified</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. Vehicles Assigned to Partner -->
+<section class="bg-surface-container-low rounded-xl p-space-md shadow-md flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[22px]">garage_home</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Assign Fleet Vehicles</h2>
+</div>
+<span class="font-label-sm text-label-sm text-primary-fixed bg-primary-container/30 px-2.5 py-0.5 rounded-full font-label-lg" id="selectedCountBadge">2 Selected</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant -mt-2">Select motorized assets owned by this partner or placed under management contract.</p>
+<!-- Multi-select list -->
+<div class="flex flex-col gap-space-sm" id="vehicleAssignList">
+<!-- Item 1: Selected Thar -->
+<div class="vehicle-card flex items-center justify-between p-space-md rounded-xl bg-surface-container-high transition-colors cursor-pointer shadow-sm select-none" data-selected="true" onclick="toggleVehicle(this)">
+<div class="flex items-center gap-space-md min-w-0">
+<div class="w-11 h-11 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[24px]">directions_car</span>
+</div>
+<div class="min-w-0">
+<div class="font-label-lg text-label-lg text-on-surface truncate">Mahindra Thar 4x4</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-lowest px-2 py-0.5 rounded font-label-md tracking-wider">MH 12 RN 8844</span>
+<span class="font-body-sm text-body-sm text-tertiary">Diesel MT</span>
+</div>
+</div>
+</div>
+<div class="checkbox-indicator w-7 h-7 rounded-lg bg-primary-container text-on-primary-container flex items-center justify-center shrink-0 shadow-sm ml-2">
+<span class="material-symbols-outlined text-[18px] font-bold">check</span>
+</div>
+</div>
+<!-- Item 2: Selected Swift Dzire -->
+<div class="vehicle-card flex items-center justify-between p-space-md rounded-xl bg-surface-container-high transition-colors cursor-pointer shadow-sm select-none" data-selected="true" onclick="toggleVehicle(this)">
+<div class="flex items-center gap-space-md min-w-0">
+<div class="w-11 h-11 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[24px]">directions_car</span>
+</div>
+<div class="min-w-0">
+<div class="font-label-lg text-label-lg text-on-surface truncate">Maruti Swift Dzire</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-lowest px-2 py-0.5 rounded font-label-md tracking-wider">MH 02 CD 9911</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Petrol AMT</span>
+</div>
+</div>
+</div>
+<div class="checkbox-indicator w-7 h-7 rounded-lg bg-primary-container text-on-primary-container flex items-center justify-center shrink-0 shadow-sm ml-2">
+<span class="material-symbols-outlined text-[18px] font-bold">check</span>
+</div>
+</div>
+<!-- Item 3: Unselected Royal Enfield -->
+<div class="vehicle-card flex items-center justify-between p-space-md rounded-xl bg-surface-container opacity-80 hover:opacity-100 transition-colors cursor-pointer shadow-sm select-none" data-selected="false" onclick="toggleVehicle(this)">
+<div class="flex items-center gap-space-md min-w-0">
+<div class="w-11 h-11 rounded-lg bg-surface-container-highest flex items-center justify-center text-on-surface-variant shrink-0">
+<span class="material-symbols-outlined text-[24px]">two_wheeler</span>
+</div>
+<div class="min-w-0">
+<div class="font-label-lg text-label-lg text-on-surface truncate">Royal Enfield Classic 350</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-lowest px-2 py-0.5 rounded font-label-md tracking-wider">DL 04 AB 9021</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Gunmetal Grey</span>
+</div>
+</div>
+</div>
+<div class="checkbox-indicator w-7 h-7 rounded-lg bg-surface-container-highest text-transparent flex items-center justify-center shrink-0 shadow-inner ml-2">
+<span class="material-symbols-outlined text-[18px] font-bold">check</span>
+</div>
+</div>
+<!-- Item 4: Unselected Creta -->
+<div class="vehicle-card flex items-center justify-between p-space-md rounded-xl bg-surface-container opacity-80 hover:opacity-100 transition-colors cursor-pointer shadow-sm select-none" data-selected="false" onclick="toggleVehicle(this)">
+<div class="flex items-center gap-space-md min-w-0">
+<div class="w-11 h-11 rounded-lg bg-surface-container-highest flex items-center justify-center text-on-surface-variant shrink-0">
+<span class="material-symbols-outlined text-[24px]">directions_car</span>
+</div>
+<div class="min-w-0">
+<div class="font-label-lg text-label-lg text-on-surface truncate">Hyundai Creta SX</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-lowest px-2 py-0.5 rounded font-label-md tracking-wider">MH 14 GH 2020</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Turbo DCT</span>
+</div>
+</div>
+</div>
+<div class="checkbox-indicator w-7 h-7 rounded-lg bg-surface-container-highest text-transparent flex items-center justify-center shrink-0 shadow-inner ml-2">
+<span class="material-symbols-outlined text-[18px] font-bold">check</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. Payout Rule per Vehicle -->
+<section class="bg-surface-container-low rounded-xl p-space-md shadow-md flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[22px]">payments</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Payout Rule Configuration</h2>
+</div>
+<span class="font-label-sm text-label-sm text-tertiary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">tune</span>
+          Fleet Auto-Split
+        </span>
+</div>
+<!-- Segmented Tab Selector -->
+<div class="grid grid-cols-2 p-1 bg-surface-container-lowest rounded-xl shadow-inner">
+<button class="h-11 rounded-lg flex items-center justify-center gap-1.5 font-label-lg text-label-lg transition-all bg-primary-container text-on-primary-container shadow-md" id="tabPercentage" onclick="selectPayoutMode('percentage')" type="button">
+<span class="material-symbols-outlined text-[18px]">percent</span>
+<span>Percentage Share</span>
+</button>
+<button class="h-11 rounded-lg flex items-center justify-center gap-1.5 font-label-lg text-label-lg transition-all text-on-surface-variant hover:text-on-surface" id="tabFixed" onclick="selectPayoutMode('fixed')" type="button">
+<span class="material-symbols-outlined text-[18px]">currency_rupee</span>
+<span>Fixed Retainer</span>
+</button>
+</div>
+<!-- Sub-panel 1: Percentage Configuration -->
+<div class="flex flex-col gap-space-md" id="panelPercentage">
+<div class="bg-surface-container-high rounded-xl p-space-md flex flex-col gap-space-sm shadow-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant">Contract Split Ratio</span>
+<span class="font-label-sm text-label-sm text-primary">Live Calculation</span>
+</div>
+<div class="flex items-center gap-space-md">
+<div class="flex-1 flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-primary" for="partnerPercentInput">Partner Share</label>
+<div class="h-12 bg-surface-container-highest rounded-xl px-space-md flex items-center justify-between shadow-inner">
+<input class="w-16 bg-transparent text-headline-sm font-headline-sm text-primary focus:outline-none" id="partnerPercentInput" max="100" min="0" oninput="updateSplit(this.value)" type="number" value="60"/>
+<span class="font-headline-sm text-headline-sm text-primary">%</span>
+</div>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-lowest flex items-center justify-center shrink-0 text-on-surface-variant shadow-inner mt-4">
+<span class="material-symbols-outlined text-[18px]">sync_alt</span>
+</div>
+<div class="flex-1 flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Shop Retention</span>
+<div class="h-12 bg-surface-container-highest rounded-xl px-space-md flex items-center justify-between shadow-inner">
+<span class="font-headline-sm text-headline-sm text-on-surface" id="shopPercentDisplay">40</span>
+<span class="font-headline-sm text-headline-sm text-on-surface-variant">%</span>
+</div>
+</div>
+</div>
+<!-- Split Visualizer Bar -->
+<div class="w-full h-2.5 bg-surface-container-lowest rounded-full overflow-hidden flex mt-2">
+<div class="h-full bg-primary-container transition-all" id="barPartner" style="width: 60%;"></div>
+<div class="h-full bg-surface-bright transition-all" id="barShop" style="width: 40%;"></div>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant pt-0.5">
+<span>Partner: <strong class="text-primary font-label-lg" id="lblPartnerSplit">60%</strong></span>
+<span>Garage: <strong class="text-on-surface font-label-lg" id="lblShopSplit">40%</strong></span>
+</div>
+</div>
+</div>
+<!-- Sub-panel 2: Fixed Amount Configuration (Hidden by default) -->
+<div class="hidden flex-col gap-space-md" id="panelFixed">
+<!-- Frequency Pills -->
+<div class="flex items-center gap-space-xs bg-surface-container-highest p-1 rounded-xl">
+<button class="freq-btn flex-1 py-2 rounded-lg font-label-md text-label-md transition-colors bg-surface-container text-on-surface shadow-sm" onclick="selectFrequency(this)" type="button">Per Day</button>
+<button class="freq-btn flex-1 py-2 rounded-lg font-label-md text-label-md transition-colors text-on-surface-variant" onclick="selectFrequency(this)" type="button">Per Week</button>
+<button class="freq-btn flex-1 py-2 rounded-lg font-label-md text-label-md transition-colors bg-primary-container text-on-primary-container font-label-lg shadow-sm" onclick="selectFrequency(this)" type="button">Per Month</button>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant" for="fixedAmount">Fixed Payout Amount</label>
+<div class="relative flex items-center bg-surface-container-highest rounded-xl px-space-md h-12 shadow-inner">
+<span class="font-stat-currency text-stat-currency text-primary mr-2">₹</span>
+<input class="w-full bg-transparent text-headline-sm font-headline-sm text-on-surface focus:outline-none placeholder:text-outline" id="fixedAmount" placeholder="e.g. 18,000" type="text" value="18,000"/>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-low px-2 py-1 rounded">Pre-tax</span>
+</div>
+</div>
+</div>
+<!-- Critical Info Note Box (Mandatory text verbatim) -->
+<div class="bg-surface-container-high rounded-xl p-space-md flex items-start gap-space-sm shadow-sm">
+<span class="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">info</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+          Percentage is calculated on vehicle rent only. Deposit, late fee, extra km, damage, challan and GST are excluded.
+        </p>
+</div>
+</section>
+</div>
+<!-- 5. Fixed Bottom Action Container -->
+<div class="fixed bottom-0 left-0 right-0 z-40 bg-surface/90 backdrop-blur-xl px-gutter py-space-md pb-safe shadow-[0_-8px_24px_rgba(0,0,0,0.5)] flex items-center justify-between gap-space-md">
+<button class="w-12 h-12 rounded-xl bg-surface-container-high text-on-surface flex items-center justify-center shrink-0 hover:bg-surface-container-highest transition-colors" onclick="history.back()" type="button">
+<span class="material-symbols-outlined text-[22px]">close</span>
+</button>
+<button class="flex-1 h-12 bg-primary-container text-on-primary-container rounded-xl font-label-lg text-label-lg flex items-center justify-center gap-space-xs shadow-lg transition-transform active:scale-[0.98]" id="btnSavePartner" onclick="handleSavePartner()" type="button">
+<span class="material-symbols-outlined text-[20px] font-bold">save</span>
+<span>Save Partner</span>
+</button>
+</div>
+</div>
+<script>
+  function updateSplit(partnerVal) {
+    const val = Math.min(100, Math.max(0, Number(partnerVal) || 0));
+    const shopVal = 100 - val;
+    const shopEl = document.getElementById('shopPercentDisplay');
+    const barPartner = document.getElementById('barPartner');
+    const barShop = document.getElementById('barShop');
+    const lblPartner = document.getElementById('lblPartnerSplit');
+    const lblShop = document.getElementById('lblShopSplit');
+
+    if (shopEl) shopEl.textContent = shopVal;
+    if (barPartner) barPartner.style.width = val + '%';
+    if (barShop) barShop.style.width = shopVal + '%';
+    if (lblPartner) lblPartner.textContent = val + '%';
+    if (lblShop) lblShop.textContent = shopVal + '%';
+  }
+
+  function selectPayoutMode(mode) {
+    const tabPct = document.getElementById('tabPercentage');
+    const tabFixed = document.getElementById('tabFixed');
+    const panelPct = document.getElementById('panelPercentage');
+    const panelFixed = document.getElementById('panelFixed');
+
+    if (mode === 'percentage') {
+      tabPct.className = 'h-11 rounded-lg flex items-center justify-center gap-1.5 font-label-lg text-label-lg transition-all bg-primary-container text-on-primary-container shadow-md';
+      tabFixed.className = 'h-11 rounded-lg flex items-center justify-center gap-1.5 font-label-lg text-label-lg transition-all text-on-surface-variant hover:text-on-surface';
+      panelPct.classList.remove('hidden');
+      panelPct.classList.add('flex');
+      panelFixed.classList.add('hidden');
+      panelFixed.classList.remove('flex');
+    } else {
+      tabFixed.className = 'h-11 rounded-lg flex items-center justify-center gap-1.5 font-label-lg text-label-lg transition-all bg-primary-container text-on-primary-container shadow-md';
+      tabPct.className = 'h-11 rounded-lg flex items-center justify-center gap-1.5 font-label-lg text-label-lg transition-all text-on-surface-variant hover:text-on-surface';
+      panelFixed.classList.remove('hidden');
+      panelFixed.classList.add('flex');
+      panelPct.classList.add('hidden');
+      panelPct.classList.remove('flex');
+    }
+  }
+
+  function selectFrequency(btn) {
+    document.querySelectorAll('.freq-btn').forEach(b => {
+      b.className = 'freq-btn flex-1 py-2 rounded-lg font-label-md text-label-md transition-colors text-on-surface-variant';
+    });
+    btn.className = 'freq-btn flex-1 py-2 rounded-lg font-label-md text-label-md transition-colors bg-primary-container text-on-primary-container font-label-lg shadow-sm';
+  }
+
+  function toggleVehicle(card) {
+    const isSelected = card.getAttribute('data-selected') === 'true';
+    const nextState = !isSelected;
+    card.setAttribute('data-selected', nextState ? 'true' : 'false');
+
+    const indicator = card.querySelector('.checkbox-indicator');
+    const iconContainer = card.querySelector('.w-11.h-11');
+
+    if (nextState) {
+      card.className = 'vehicle-card flex items-center justify-between p-space-md rounded-xl bg-surface-container-high transition-colors cursor-pointer shadow-sm select-none';
+      indicator.className = 'checkbox-indicator w-7 h-7 rounded-lg bg-primary-container text-on-primary-container flex items-center justify-center shrink-0 shadow-sm ml-2';
+      if (iconContainer) iconContainer.classList.replace('text-on-surface-variant', 'text-primary');
+    } else {
+      card.className = 'vehicle-card flex items-center justify-between p-space-md rounded-xl bg-surface-container opacity-80 hover:opacity-100 transition-colors cursor-pointer shadow-sm select-none';
+      indicator.className = 'checkbox-indicator w-7 h-7 rounded-lg bg-surface-container-highest text-transparent flex items-center justify-center shrink-0 shadow-inner ml-2';
+      if (iconContainer) iconContainer.classList.replace('text-primary', 'text-on-surface-variant');
+    }
+
+    const totalSelected = document.querySelectorAll('.vehicle-card[data-selected="true"]').length;
+    const badge = document.getElementById('selectedCountBadge');
+    if (badge) badge.textContent = totalSelected + ' Selected';
+  }
+
+  function handleSavePartner() {
+    const saveBtn = document.getElementById('btnSavePartner');
+    if (!saveBtn) return;
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="material-symbols-outlined text-[20px] animate-spin">progress_activity</span><span>Saving Ledger...</span>';
+    setTimeout(() => {
+      saveBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">check_circle</span><span>Saved Successfully</span>';
+      setTimeout(() => {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<span class="material-symbols-outlined text-[20px] font-bold">save</span><span>Save Partner</span>';
+      }, 1500);
+    }, 700);
+  }
+</script></main></body></html>

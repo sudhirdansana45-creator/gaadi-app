@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "outline": "#869397", "on-primary-fixed": "#001f26", "surface-dim": "#0e131e", "error": "#ffb4ab", "secondary-fixed-dim": "#adc6ff", "surface-container-low": "#171b27", "surface": "#0e131e", "on-surface-variant": "#bcc9cd", "secondary-container": "#0566d9", "on-primary-container": "#00424f", "on-error-container": "#ffdad6", "tertiary-container": "#1bbd85", "outline-variant": "#3d494c", "secondary-fixed": "#d8e2ff", "primary-fixed-dim": "#4cd7f6", "tertiary-fixed": "#6ffbbe", "secondary": "#adc6ff", "inverse-on-surface": "#2b303c", "background": "#0e131e", "surface-bright": "#343946", "on-tertiary-fixed": "#002113", "error-container": "#93000a", "on-surface": "#dee2f2", "on-background": "#dee2f2", "surface-variant": "#303541", "surface-container-lowest": "#090e19", "inverse-primary": "#00687a", "on-tertiary": "#003824", "on-tertiary-fixed-variant": "#005236", "on-secondary-fixed": "#001a42", "on-secondary-container": "#e6ecff", "surface-container-highest": "#303541", "on-tertiary-container": "#00452e", "on-error": "#690005", "surface-container": "#1b1f2b", "inverse-surface": "#dee2f2", "surface-tint": "#4cd7f6", "primary-fixed": "#acedff", "surface-container-high": "#252a36", "on-primary-fixed-variant": "#004e5c", "tertiary": "#4edea3", "primary": "#4cd7f6", "on-primary": "#003640", "tertiary-fixed-dim": "#4edea3", "on-secondary": "#002e6a", "primary-container": "#06b6d4", "on-secondary-fixed-variant": "#004395" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-md": "1rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "margin": "1rem", "space-sm": "0.5rem", "space-xl": "2rem", "gutter": "1rem" }, "fontFamily": { "body-lg": ["Plus Jakarta Sans"], "label-lg": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "stat-currency": ["Plus Jakarta Sans"], "headline-xl": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "stat-display": ["Plus Jakarta Sans"] }, "fontSize": { "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }], "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "stat-currency": ["20px", { "lineHeight": "28px", "fontWeight": "600" }], "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "700" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "headline-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "stat-display": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800" }] } } } }</script></head><body class="bg-surface text-on-surface font-body-md text-body-md min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-xs"><button aria-label="Back" class="w-11 h-11 min-w-[44px] min-h-[44px] -ml-2 rounded-full flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors" onclick="history.back()" type="button"><span class="material-symbols-outlined text-[24px]">arrow_back</span></button><h1 class="text-headline-md font-headline-md text-on-surface line-clamp-1">Operator Profile</h1></div><div class="flex items-center gap-space-xs"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 pb-safe bg-surface"><div class="flex flex-col w-full pb-32">
+<!-- Top Ambient Glow -->
+<div class="relative w-full overflow-hidden">
+<div class="absolute -top-12 left-1/2 -translate-x-1/2 w-72 h-36 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+</div>
+<div class="px-gutter flex flex-col gap-space-md pt-space-sm">
+<!-- 1. Header Card: Profile & Metrics -->
+<div class="w-full bg-surface-container-low rounded-xl p-space-md shadow-xl flex flex-col gap-space-md relative overflow-hidden">
+<!-- Top profile row -->
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="relative flex-shrink-0">
+<div class="w-14 h-14 rounded-full bg-surface-container-high flex items-center justify-center font-headline-md text-headline-md text-primary font-bold shadow-inner">
+              RV
+            </div>
+<div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-tertiary flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-on-tertiary text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">Rahul Verma</h2>
+<span class="px-1.5 py-0.5 rounded-full bg-tertiary-container/30 text-tertiary font-label-sm text-label-sm uppercase tracking-wider font-semibold">Tier 1</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">+91 98201 44521</p>
+</div>
+</div>
+<!-- Quick contact actions -->
+<div class="flex items-center gap-2 flex-shrink-0">
+<a aria-label="Call Customer" class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-surface-container-high hover:bg-surface-bright active:scale-95 flex items-center justify-center text-primary transition-all shadow-sm" href="tel:+919820144521">
+<span class="material-symbols-outlined text-[20px]">call</span>
+</a>
+<a aria-label="WhatsApp Message" class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-tertiary-container/20 hover:bg-tertiary-container/30 active:scale-95 flex items-center justify-center text-tertiary transition-all shadow-sm" href="https://wa.me/919820144521" rel="noopener noreferrer" target="_blank">
+<span class="material-symbols-outlined text-[20px]">chat</span>
+</a>
+</div>
+</div>
+<!-- Address Snippet -->
+<div class="flex items-start gap-2 bg-surface-container/70 rounded-lg p-2.5">
+<span class="material-symbols-outlined text-primary text-[18px] mt-0.5 flex-shrink-0">location_on</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+          Flat 402, Sunshine Heights, Baner Road, Pune, Maharashtra 411045
+        </p>
+</div>
+<!-- Fintech Key Stats Grid -->
+<div class="grid grid-cols-3 gap-2 pt-1">
+<div class="bg-surface-container-high/60 rounded-lg p-2.5 flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Bookings</span>
+<div class="mt-1">
+<p class="font-label-lg text-label-lg text-on-surface font-bold">6</p>
+<p class="font-body-sm text-body-sm text-tertiary flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">check_circle</span> All Clear
+            </p>
+</div>
+</div>
+<div class="bg-surface-container-high/60 rounded-lg p-2.5 flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total Paid</span>
+<div class="mt-1">
+<p class="font-stat-currency text-stat-currency text-primary font-bold tracking-tight">₹48,250</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Avg ₹8.0k</p>
+</div>
+</div>
+<div class="bg-surface-container-high/60 rounded-lg p-2.5 flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Trust Score</span>
+<div class="mt-1">
+<div class="flex items-center gap-1">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">4.9</span>
+<span class="material-symbols-outlined text-amber-400 text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="font-body-sm text-body-sm text-tertiary truncate">Safe Driver</p>
+</div>
+</div>
+</div>
+</div>
+<!-- 2. KYC & Document Verification Section -->
+<div class="flex flex-col gap-space-sm mt-1">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">verified_user</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">KYC &amp; Identity Documents</h3>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-tertiary/15 text-tertiary font-label-sm text-label-sm font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+          2 of 2 Verified
+        </span>
+</div>
+<!-- Card A: Driving Licence -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex flex-col gap-3 shadow-md">
+<div class="flex items-start gap-3">
+<!-- Thumbnail preview with modal trigger simulation -->
+<div class="relative w-20 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-high group cursor-pointer" onclick="toggleModal('modal-dl')">
+<img class="w-full h-full object-cover" data-alt="High quality macro close up photograph of an Indian government smart card driving licence DL issued in Maharashtra with golden chip holograms and formal portrait photo on navy texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDabUV2ML5udcUYx-kt4E6eD151-oX3m5h-itsN0WESS5jQaQ0SGu7VUbGm21X2amZ9vxs6-AolE-1hafCPl-6tO_iDDxG7UpXO1QrsDDvJPLDpVii64pwkNh9GMO0deLOZpEjOBtYnWgFRISTpr4y4jBbWXuTQ54QFqTpJ-0QoTXDsVO7kH3ghnikqDVQ5_N8FuGX2-HFjArK77-hSn3EBV-ZW72R5EZ-WSToRmqLWqvlwrGCAYu6JBg"/>
+<div class="absolute inset-0 bg-surface-dim/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-on-surface text-[18px]">zoom_in</span>
+</div>
+</div>
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-center justify-between gap-1">
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold tracking-wider">Driving Licence</span>
+<span class="px-1.5 py-0.5 rounded bg-tertiary-container/20 text-tertiary font-label-sm text-label-sm font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[11px]" style="font-variation-settings: 'FILL' 1;">check</span> mParivahan
+              </span>
+</div>
+<p class="font-label-md text-label-md text-on-surface font-bold tracking-wide mt-0.5 truncate">DL-0420190034921</p>
+<div class="flex items-center gap-2 mt-1 text-on-surface-variant font-body-sm text-body-sm">
+<span>LMV + MCWG</span>
+<span>•</span>
+<span>Exp: 14 Aug 2038</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2 pt-2 bg-surface-container/40 -mx-4 -mb-4 px-4 py-2.5 rounded-b-xl">
+<button class="flex-1 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright active:scale-95 text-on-surface font-label-md text-label-md flex items-center justify-center gap-1.5 transition-all" onclick="toggleModal('modal-dl')" type="button">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+            View Full
+          </button>
+<button class="h-9 px-3 rounded-lg bg-surface-container-high hover:bg-surface-bright active:scale-95 text-on-surface-variant font-label-md text-label-md flex items-center justify-center gap-1.5 transition-all" onclick="alert('Open file selector to replace DL document')" type="button">
+<span class="material-symbols-outlined text-[16px]">cached</span>
+            Replace
+          </button>
+</div>
+</div>
+<!-- Card B: Aadhaar Identity Card -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex flex-col gap-3 shadow-md">
+<div class="flex items-start gap-3">
+<div class="relative w-20 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-high group cursor-pointer" onclick="toggleModal('modal-aadhaar')">
+<img class="w-full h-full object-cover" data-alt="Official Indian national identity smart card Aadhaar with Ashoka emblem watermark QR code strip and secure biometric emblem in official dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSX2m7X-eEF9x8qTaMq-mqc4VJXU5brW4iqVsOZoOxs7b84gek7dYhpNz2RLUQb7Rr0iwe7Kp3GQnTs_TKx-COPeSnEIBnU15sSxzHwdynQ2DMvzXC98EetH4AtvVtWp3gerOLIgLvAq0XtIr09l8-ObTytIB_IC7AK3SQSdAJAw-706_4C-yTY5mnpXbJGgllENI1lX_52_M3xzyPf-2-CQ32jTMVr8MefsCFHbmSz5OGE6HHCCPdSw"/>
+<div class="absolute inset-0 bg-surface-dim/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-on-surface text-[18px]">zoom_in</span>
+</div>
+</div>
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-center justify-between gap-1">
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold tracking-wider">Aadhaar ID</span>
+<span class="px-1.5 py-0.5 rounded bg-tertiary-container/20 text-tertiary font-label-sm text-label-sm font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[11px]" style="font-variation-settings: 'FILL' 1;">check</span> DigiLocker
+              </span>
+</div>
+<p class="font-label-md text-label-md text-on-surface font-bold tracking-wide mt-0.5 truncate">XXXX XXXX 8942</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Verified via DigiLocker UIDAI</p>
+</div>
+</div>
+<div class="flex items-center gap-2 pt-2 bg-surface-container/40 -mx-4 -mb-4 px-4 py-2.5 rounded-b-xl">
+<button class="flex-1 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright active:scale-95 text-on-surface font-label-md text-label-md flex items-center justify-center gap-1.5 transition-all" onclick="toggleModal('modal-aadhaar')" type="button">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+            View Full
+          </button>
+<button class="h-9 px-3 rounded-lg bg-surface-container-high hover:bg-surface-bright active:scale-95 text-on-surface-variant font-label-md text-label-md flex items-center justify-center gap-1.5 transition-all" onclick="alert('Open file selector to replace Aadhaar document')" type="button">
+<span class="material-symbols-outlined text-[16px]">cached</span>
+            Replace
+          </button>
+</div>
+</div>
+</div>
+<!-- 3. Blacklist Control Card -->
+<div class="w-full bg-surface-container-low rounded-xl p-space-md shadow-md flex flex-col gap-3 relative overflow-hidden">
+<!-- Amber/Red Warning top accent bar -->
+<div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-600/40 via-error/60 to-transparent"></div>
+<div class="flex items-center justify-between gap-3">
+<div class="flex items-start gap-2.5 min-w-0">
+<div class="w-9 h-9 rounded-full bg-error-container/40 flex items-center justify-center flex-shrink-0 text-error">
+<span class="material-symbols-outlined text-[20px]">block</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">Blacklist Customer</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant leading-tight">Prevents new bookings across all fleet vehicles</span>
+</div>
+</div>
+<!-- Custom Accessible Toggle -->
+<label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+<input class="sr-only peer" id="blacklistToggle" onchange="toggleBlacklistReason(this.checked)" type="checkbox"/>
+<div class="w-12 h-7 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-error"></div>
+</label>
+</div>
+<!-- Blacklist Reason Box (Interactive expandable) -->
+<div class="flex flex-col gap-1.5 transition-all duration-300" id="blacklistReasonContainer">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="blacklistReason">Operator Incident Notes (Optional):</label>
+<div class="relative">
+<textarea class="w-full bg-surface-container rounded-lg p-2.5 text-on-surface font-body-sm text-body-sm placeholder:text-outline focus:outline-none focus:bg-surface-container-high transition-colors resize-none" id="blacklistReason" placeholder="Specify reason (e.g., rash driving, delayed return, payment default)..." rows="2"></textarea>
+</div>
+</div>
+</div>
+<!-- 4. Booking History List -->
+<div class="flex flex-col gap-space-sm mt-1">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">history</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Recent Booking History</h3>
+</div>
+<span class="font-label-md text-label-md text-primary font-semibold">6 Total</span>
+</div>
+<!-- Item 1: Running Booking -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex flex-col gap-2.5 shadow-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">#GM-8492</span>
+<h4 class="font-label-lg text-label-lg text-on-surface font-bold">Mahindra Thar 4x4</h4>
+</div>
+<span class="px-2.5 py-0.5 rounded-full bg-primary/15 text-primary font-label-sm text-label-sm font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+            Running
+          </span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+<span>24 Oct 2024 - 25 Oct 2024</span>
+</div>
+<span class="text-on-surface font-semibold">₹3,800 Total</span>
+</div>
+<div class="flex items-center justify-between pt-2 bg-surface-container/40 -mx-4 -mb-4 px-4 py-2 rounded-b-xl font-label-sm text-label-sm">
+<span class="text-tertiary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">done</span> Paid: ₹2,000
+          </span>
+<span class="text-error flex items-center gap-1 font-bold">
+<span class="material-symbols-outlined text-[14px]">pending_actions</span> Due: ₹1,800
+          </span>
+</div>
+</div>
+<!-- Item 2: Completed Booking -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex flex-col gap-2.5 shadow-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm font-bold text-on-surface-variant bg-surface-container px-2 py-0.5 rounded">#GM-7921</span>
+<h4 class="font-label-lg text-label-lg text-on-surface font-bold">Hyundai Creta SX</h4>
+</div>
+<span class="px-2.5 py-0.5 rounded-full bg-tertiary/15 text-tertiary font-label-sm text-label-sm font-semibold">
+            Completed
+          </span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">event_available</span>
+<span>12 Oct 2024 (2 Days)</span>
+</div>
+<span class="text-primary font-bold">₹6,400</span>
+</div>
+<div class="flex items-center justify-between pt-2 bg-surface-container/40 -mx-4 -mb-4 px-4 py-2 rounded-b-xl font-label-sm text-label-sm">
+<span class="text-on-surface-variant">Security Deposit: ₹5,000 (Refunded)</span>
+<span class="text-tertiary font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Fully Settled
+          </span>
+</div>
+</div>
+<!-- Item 3: Completed Two-Wheeler Booking -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex flex-col gap-2.5 shadow-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm font-bold text-on-surface-variant bg-surface-container px-2 py-0.5 rounded">#GM-6810</span>
+<h4 class="font-label-lg text-label-lg text-on-surface font-bold">Royal Enfield Classic 350</h4>
+</div>
+<span class="px-2.5 py-0.5 rounded-full bg-tertiary/15 text-tertiary font-label-sm text-label-sm font-semibold">
+            Completed
+          </span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">event_available</span>
+<span>28 Sep 2024 (1 Day)</span>
+</div>
+<span class="text-primary font-bold">₹1,200</span>
+</div>
+<div class="flex items-center justify-between pt-2 bg-surface-container/40 -mx-4 -mb-4 px-4 py-2 rounded-b-xl font-label-sm text-label-sm">
+<span class="text-on-surface-variant">UPI Ref: IDFC-9024190</span>
+<span class="text-tertiary font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Fully Settled
+          </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Document Lightbox Modal DL (Hidden by default) -->
+<div class="fixed inset-0 z-50 bg-surface-dim/80 backdrop-blur-md hidden flex-col justify-end transition-opacity" id="modal-dl">
+<div class="w-full bg-surface-container rounded-t-xl p-space-md max-w-md mx-auto shadow-2xl flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">badge</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Driving Licence</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface" onclick="toggleModal('modal-dl')" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<div class="w-full h-56 rounded-lg overflow-hidden bg-surface-container-lowest">
+<img class="w-full h-full object-contain" data-alt="Clear high resolution front scan of Indian driving licence card showing photograph of Rahul Verma, badge DL number, validity date and transport authority stamp" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvPYAHXQ2aS46Pqad_EknnOKjw8L_jKouYcesuyGygd8RiSRXuapDIciwjCdaX9J2i9WcuEDdVDDxcg4GREytkoyMZWSWlbJ64xHrbCGlLmkYF0o0jIKxGUitScSj1tpgVY9ntcnYXt-KjXWRCPTTfiXhTKJ3plvHyiVTSCnuenikq9kFimDlup4797bltpSxzFFoJWPmzOGEHwsQjh2jH2MF_UZ_L6nv_D-K_h35_tvELt0vVjgkD-A"/>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 h-11 rounded-lg bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center justify-center gap-2" onclick="alert('Downloading high-res scan...')" type="button">
+<span class="material-symbols-outlined text-[18px]">download</span> Download
+        </button>
+<button class="flex-1 h-11 rounded-lg bg-primary text-on-primary font-label-md text-label-md font-bold" onclick="toggleModal('modal-dl')" type="button">
+          Done
+        </button>
+</div>
+</div>
+</div>
+<!-- Document Lightbox Modal Aadhaar (Hidden by default) -->
+<div class="fixed inset-0 z-50 bg-surface-dim/80 backdrop-blur-md hidden flex-col justify-end transition-opacity" id="modal-aadhaar">
+<div class="w-full bg-surface-container rounded-t-xl p-space-md max-w-md mx-auto shadow-2xl flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">fingerprint</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Aadhaar Card (DigiLocker)</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface" onclick="toggleModal('modal-aadhaar')" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<div class="w-full h-56 rounded-lg overflow-hidden bg-surface-container-lowest">
+<img class="w-full h-full object-contain" data-alt="Clear DigiLocker verified digital copy of Aadhaar identity card with UIDAI security seals and QR verification badge" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvtrJ_JLCzSFHXkyQwOVaD-tDwLLpoC0FzkeFe-gMZcbCGPbWySuRldN8Y9zcOqUH1qpLabjKlztXVkAx4HKiMDfhCbXp4knz9h2q7W862YnUWsmuoSPAzWqpZXitrNwgWU7XY5KzRqjq8zb4wBlypUUVJpJoeQAY3a-oGvZLT80cxTizlQz0r8P278TKWzw6MCtLlwogf0YSzpcY2jBzn7LP4OTuGDk0oM9MiESjhXFmouPUjewwxOA"/>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 h-11 rounded-lg bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center justify-center gap-2" onclick="alert('Downloading high-res scan...')" type="button">
+<span class="material-symbols-outlined text-[18px]">download</span> Download
+        </button>
+<button class="flex-1 h-11 rounded-lg bg-primary text-on-primary font-label-md text-label-md font-bold" onclick="toggleModal('modal-aadhaar')" type="button">
+          Done
+        </button>
+</div>
+</div>
+</div>
+<!-- 5. Fixed Bottom Action Buttons -->
+<div class="fixed bottom-0 left-0 right-0 z-40 bg-surface/90 backdrop-blur-xl p-gutter pb-safe">
+<div class="max-w-md mx-auto flex items-center gap-3">
+<!-- Edit Profile -->
+<button class="flex-1 min-h-[48px] h-12 rounded-xl bg-surface-container-high hover:bg-surface-bright active:scale-95 text-on-surface font-label-lg text-label-lg flex items-center justify-center gap-2 transition-all shadow-md" onclick="alert('Open edit profile sheet')" type="button">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+<span>Edit Profile</span>
+</button>
+<!-- New Booking Primary Button -->
+<button class="flex-[1.4] min-h-[48px] h-12 rounded-xl bg-primary-container hover:bg-primary active:scale-95 text-on-primary-container font-label-lg text-label-lg font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary-container/20" onclick="alert('Proceeding to vehicle selection for Rahul Verma')" type="button">
+<span class="material-symbols-outlined text-[22px]">add_circle</span>
+<span>New Booking</span>
+</button>
+</div>
+</div>
+</div>
+<script>
+  function toggleBlacklistReason(isBlacklisted) {
+    const reasonBox = document.getElementById('blacklistReason');
+    if (isBlacklisted) {
+      reasonBox.classList.add('bg-error-container/30', 'text-error');
+      reasonBox.placeholder = 'URGENT: Specify reason for blacklisting this customer immediately.';
+      reasonBox.focus();
+    } else {
+      reasonBox.classList.remove('bg-error-container/30', 'text-error');
+      reasonBox.placeholder = 'Specify reason (e.g., rash driving, delayed return, payment default)...';
+    }
+  }
+
+  function toggleModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    if (modal.classList.contains('hidden')) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    } else {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+  }
+</script></main></body></html>

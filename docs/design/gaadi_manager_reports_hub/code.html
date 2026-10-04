@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "outline": "#869397", "on-primary-fixed": "#001f26", "surface-dim": "#0e131e", "error": "#ffb4ab", "secondary-fixed-dim": "#adc6ff", "surface-container-low": "#171b27", "surface": "#0e131e", "on-surface-variant": "#bcc9cd", "secondary-container": "#0566d9", "on-primary-container": "#00424f", "on-error-container": "#ffdad6", "tertiary-container": "#1bbd85", "outline-variant": "#3d494c", "secondary-fixed": "#d8e2ff", "primary-fixed-dim": "#4cd7f6", "tertiary-fixed": "#6ffbbe", "secondary": "#adc6ff", "inverse-on-surface": "#2b303c", "background": "#0e131e", "surface-bright": "#343946", "on-tertiary-fixed": "#002113", "error-container": "#93000a", "on-surface": "#dee2f2", "on-background": "#dee2f2", "surface-variant": "#303541", "surface-container-lowest": "#090e19", "inverse-primary": "#00687a", "on-tertiary": "#003824", "on-tertiary-fixed-variant": "#005236", "on-secondary-fixed": "#001a42", "on-secondary-container": "#e6ecff", "surface-container-highest": "#303541", "on-tertiary-container": "#00452e", "on-error": "#690005", "surface-container": "#1b1f2b", "inverse-surface": "#dee2f2", "surface-tint": "#4cd7f6", "primary-fixed": "#acedff", "surface-container-high": "#252a36", "on-primary-fixed-variant": "#004e5c", "tertiary": "#4edea3", "primary": "#4cd7f6", "on-primary": "#003640", "tertiary-fixed-dim": "#4edea3", "on-secondary": "#002e6a", "primary-container": "#06b6d4", "on-secondary-fixed-variant": "#004395" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-md": "1rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "margin": "1rem", "space-sm": "0.5rem", "space-xl": "2rem", "gutter": "1rem" }, "fontFamily": { "body-lg": ["Plus Jakarta Sans"], "label-lg": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "stat-currency": ["Plus Jakarta Sans"], "headline-xl": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "stat-display": ["Plus Jakarta Sans"] }, "fontSize": { "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }], "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "stat-currency": ["20px", { "lineHeight": "28px", "fontWeight": "600" }], "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "700" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "headline-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "stat-display": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800" }] } } } }</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head><body class="bg-surface text-on-surface font-body-md text-body-md min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-9 h-9 rounded-xl bg-surface-container-high flex items-center justify-center"><span class="material-symbols-outlined text-primary text-[22px]">local_shipping</span></div><div class="flex flex-col justify-center"><span class="text-label-sm font-label-sm uppercase tracking-wider text-primary">Gaadi Manager</span><span class="text-headline-sm font-headline-sm text-on-surface line-clamp-1 leading-tight">Gaadi Manager   Reports Hub</span></div></div><div class="flex items-center gap-space-xs"><button aria-label="Notifications" class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors relative" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-primary"></span></button><a aria-label="Operator Profile" class="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center" data-path="gaadi-manager-plans-and-usage" href="#"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></a></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 pb-28 bg-surface"><div class="flex flex-col w-full px-margin pb-6 gap-space-lg">
+<!-- Plan Status Hero Card (Fintech Ambient Glow) -->
+<section class="relative overflow-hidden rounded-xl bg-surface-container-high p-space-md shadow-xl">
+<div class="absolute -top-12 -right-12 w-36 h-36 bg-primary/10 rounded-full blur-2xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-label-sm font-label-sm bg-surface-container-lowest text-on-surface-variant">
+            Current Tier
+          </span>
+<span class="flex h-2 w-2 relative">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary"></span>
+</span>
+</div>
+<span class="text-label-md font-label-md text-on-surface-variant">Billing cycle: Free</span>
+</div>
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div>
+<h2 class="text-headline-sm font-headline-sm text-on-surface flex items-center gap-space-xs">
+            Free Plan Active
+            <span class="material-symbols-outlined text-primary text-[18px]">verified</span>
+</h2>
+<div class="flex items-center gap-space-xs mt-1">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-label-sm font-label-sm bg-surface-container text-primary">
+<span class="material-symbols-outlined text-[12px]">directions_car</span>
+              5/5 Vehicles
+            </span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-label-sm font-label-sm bg-surface-container text-secondary">
+<span class="material-symbols-outlined text-[12px]">handshake</span>
+              2/2 Partners
+            </span>
+</div>
+</div>
+<a class="inline-flex items-center justify-center gap-space-xs min-h-[44px] px-space-md rounded-xl bg-gradient-to-r from-primary-container to-secondary-container text-on-primary font-label-lg text-label-lg active:scale-95 transition-transform shadow-md" data-path="gaadi-manager-plans-and-usage" href="#">
+<span>Upgrade to Pro</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+<!-- Free Plan Metric Snapshot sparkline -->
+<div class="grid grid-cols-2 gap-space-xs pt-space-xs">
+<div class="bg-surface-container-low rounded-lg p-2 flex flex-col justify-between">
+<span class="text-label-sm font-label-sm text-on-surface-variant">This Month Net</span>
+<span class="text-headline-sm font-headline-sm text-on-surface">₹78,450</span>
+</div>
+<div class="bg-surface-container-low rounded-lg p-2 flex flex-col justify-between">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Reports Available</span>
+<span class="text-headline-sm font-headline-sm text-tertiary">2 Unlocked <span class="text-body-sm font-body-sm text-on-surface-variant">/ 6</span></span>
+</div>
+</div>
+</div>
+</section>
+<!-- Section Header -->
+<section class="flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<h1 class="text-headline-md font-headline-md text-on-surface">Business Reports</h1>
+<span class="material-symbols-outlined text-primary text-[20px]">analytics</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant">
+      Exportable P&amp;L, fleet performance, and settlement audits ready for instant download &amp; sharing.
+    </p>
+</section>
+<!-- Reports Stack -->
+<div class="flex flex-col gap-space-sm" id="reports-container">
+<!-- 1. Daily Report (Ready / Free) -->
+<article class="group relative overflow-hidden bg-surface-container rounded-xl p-space-md shadow-md active:bg-surface-container-high transition-colors cursor-pointer" onclick="handleReportOpen('Daily Report')">
+<div class="flex items-start gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-tertiary-container/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-tertiary text-[26px]">receipt_long</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-space-xs mb-1">
+<h3 class="text-label-lg font-label-lg text-on-surface truncate">Daily Report</h3>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-label-sm font-label-sm bg-tertiary/10 text-tertiary shrink-0">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+              Ready / Free
+            </span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-2 mb-space-sm">
+            Today's bookings, collections, UPI vs cash split &amp; handover logs.
+          </p>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-space-xs text-label-sm font-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px] text-tertiary">cloud_done</span>
+<span>Updated 8m ago</span>
+</div>
+<div class="flex items-center gap-1 text-primary text-label-sm font-label-sm group-hover:translate-x-0.5 transition-transform">
+<span>View &amp; Export</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+</article>
+<!-- 2. Monthly Report (Ready / Free) -->
+<article class="group relative overflow-hidden bg-surface-container rounded-xl p-space-md shadow-md active:bg-surface-container-high transition-colors cursor-pointer" onclick="handleReportOpen('Monthly Overview &amp; P&amp;L')">
+<div class="flex items-start gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-primary-container/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-[26px]">query_stats</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-space-xs mb-1">
+<h3 class="text-label-lg font-label-lg text-on-surface truncate">Monthly Overview &amp; P&amp;L</h3>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-label-sm font-label-sm bg-tertiary/10 text-tertiary shrink-0">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+              Ready / Free
+            </span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-2 mb-space-sm">
+            Gross rental revenue, average trip duration, and monthly trends.
+          </p>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-space-xs text-label-sm font-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px] text-primary">download</span>
+<span>PDF &amp; Excel</span>
+</div>
+<div class="flex items-center gap-1 text-primary text-label-sm font-label-sm group-hover:translate-x-0.5 transition-transform">
+<span>View &amp; Export</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+</article>
+<!-- 3. Vehicle-wise Report (Locked ₹99) -->
+<article class="group relative overflow-hidden bg-surface-container/70 rounded-xl p-space-md shadow-sm active:bg-surface-container transition-all cursor-pointer" onclick="triggerUnlockSheet('Vehicle-wise Performance', '₹99 Starter')">
+<div class="flex items-start gap-space-md">
+<div class="relative w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant text-[24px]">directions_car</span>
+<span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-surface-container-lowest flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[12px]">lock</span>
+</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-space-xs mb-1">
+<h3 class="text-label-lg font-label-lg text-on-surface truncate">Vehicle-wise Performance</h3>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-surface-container-lowest text-secondary-fixed shrink-0">
+<span class="material-symbols-outlined text-[12px]">lock</span>
+              ₹99 Starter
+            </span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-2 mb-space-sm">
+            Individual car/bike ROI, maintenance expenses &amp; net profit breakdown.
+          </p>
+<div class="flex items-center justify-between pt-1">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Track per-chassis yields</span>
+<div class="flex items-center gap-1 text-secondary text-label-sm font-label-sm">
+<span>Unlock Feature</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+</article>
+<!-- 4. Ledger-wise Report (Locked ₹99) -->
+<article class="group relative overflow-hidden bg-surface-container/70 rounded-xl p-space-md shadow-sm active:bg-surface-container transition-all cursor-pointer" onclick="triggerUnlockSheet('Ledger &amp; Cashbook Audit', '₹99 Starter')">
+<div class="flex items-start gap-space-md">
+<div class="relative w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant text-[24px]">account_balance_wallet</span>
+<span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-surface-container-lowest flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[12px]">lock</span>
+</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-space-xs mb-1">
+<h3 class="text-label-lg font-label-lg text-on-surface truncate">Ledger &amp; Cashbook Audit</h3>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-surface-container-lowest text-secondary-fixed shrink-0">
+<span class="material-symbols-outlined text-[12px]">lock</span>
+              ₹99 Starter
+            </span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-2 mb-space-sm">
+            Detailed customer deposits, refunds, damages &amp; penalty audits.
+          </p>
+<div class="flex items-center justify-between pt-1">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Zero-loss security ledger</span>
+<div class="flex items-center gap-1 text-secondary text-label-sm font-label-sm">
+<span>Unlock Feature</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+</article>
+<!-- 5. Maintenance & Garage Expenses (Locked ₹99) -->
+<article class="group relative overflow-hidden bg-surface-container/70 rounded-xl p-space-md shadow-sm active:bg-surface-container transition-all cursor-pointer" onclick="triggerUnlockSheet('Maintenance &amp; Servicing', '₹99 Starter')">
+<div class="flex items-start gap-space-md">
+<div class="relative w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant text-[24px]">home_repair_service</span>
+<span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-surface-container-lowest flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[12px]">lock</span>
+</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-space-xs mb-1">
+<h3 class="text-label-lg font-label-lg text-on-surface truncate">Maintenance &amp; Servicing</h3>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-surface-container-lowest text-secondary-fixed shrink-0">
+<span class="material-symbols-outlined text-[12px]">lock</span>
+              ₹99 Starter
+            </span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-2 mb-space-sm">
+            Part replacements, mechanic bills, oil changes per vehicle.
+          </p>
+<div class="flex items-center justify-between pt-1">
+<span class="text-label-sm font-label-sm text-on-surface-variant">GST garage bill reconciliation</span>
+<div class="flex items-center gap-1 text-secondary text-label-sm font-label-sm">
+<span>Unlock Feature</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+</article>
+<!-- 6. Partner Payout & Fleet Split (Locked ₹999 Pro) -->
+<article class="group relative overflow-hidden bg-surface-container/70 rounded-xl p-space-md shadow-sm active:bg-surface-container transition-all cursor-pointer" onclick="triggerUnlockSheet('Partner Payout Ledger', '₹999 Pro')">
+<div class="flex items-start gap-space-md">
+<div class="relative w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant text-[24px]">hub</span>
+<span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[12px]">lock</span>
+</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-space-xs mb-1">
+<h3 class="text-label-lg font-label-lg text-on-surface truncate">Partner Payout Ledger</h3>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-surface-container-lowest text-primary shrink-0">
+<span class="material-symbols-outlined text-[12px]">lock</span>
+              ₹999 Pro
+            </span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-2 mb-space-sm">
+            Investor vehicle commissions, pending balances &amp; automated split.
+          </p>
+<div class="flex items-center justify-between pt-1">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Auto WhatsApp settlement slips</span>
+<div class="flex items-center gap-1 text-primary text-label-sm font-label-sm">
+<span>Upgrade Tier</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+</article>
+</div>
+<!-- Automation & Accounting Teaser Banner -->
+<section class="relative overflow-hidden rounded-xl bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-low p-space-md shadow-lg">
+<div class="flex flex-col gap-space-md">
+<div class="flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-[22px]">integration_instructions</span>
+</div>
+<div class="flex-1 min-w-0">
+<span class="text-label-sm font-label-sm uppercase tracking-wide text-primary">Accounting Integration</span>
+<h4 class="text-headline-sm font-headline-sm text-on-surface mt-0.5">Automate Tally &amp; GST E-Invoicing</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1">
+            Need custom automated accounting exports? Unlock Tally Prime XML &amp; GST e-Invoice integration with Gaadi Manager Pro.
+          </p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<div class="flex -space-x-2 overflow-hidden items-center">
+<div class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-surface-container-highest text-label-sm font-label-sm text-on-surface">XML</div>
+<div class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-surface-container text-label-sm font-label-sm text-primary">GST</div>
+<div class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-surface-container-lowest text-label-sm font-label-sm text-tertiary">UPI</div>
+</div>
+<a class="inline-flex items-center justify-center gap-1 min-h-[44px] px-space-md rounded-xl bg-surface-bright text-on-surface text-label-lg font-label-lg hover:bg-surface-container-highest active:scale-95 transition-all" data-path="gaadi-manager-plans-and-usage" href="#">
+<span>Explore Plans</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</div>
+</section>
+<!-- Interactive Modal Bottom Sheet for Upgrades (Hidden by Default) -->
+<div class="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200" id="unlock-modal">
+<div class="w-full max-w-lg bg-surface-container-high rounded-t-2xl p-space-lg flex flex-col gap-space-md transform translate-y-full transition-transform duration-300" id="modal-card">
+<div class="w-12 h-1.5 rounded-full bg-surface-bright mx-auto"></div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[24px]">lock_open</span>
+<h3 class="text-headline-sm font-headline-sm text-on-surface" id="modal-title">Unlock Report</h3>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface" onclick="closeUnlockSheet()">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant" id="modal-desc">
+        This executive ledger is part of our premium tier. Instantly get automated P&amp;L calculation, vehicle tax schedules, and partner audit trails.
+      </p>
+<div class="bg-surface-container rounded-xl p-space-md flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Starting from</span>
+<span class="text-headline-md font-headline-md text-primary font-bold" id="modal-price">₹99 / month</span>
+</div>
+<span class="text-label-sm font-label-sm bg-tertiary/10 text-tertiary px-2 py-1 rounded-full">Instant Activation</span>
+</div>
+<div class="flex flex-col gap-space-xs pt-space-xs">
+<a class="w-full min-h-[48px] rounded-xl bg-gradient-to-r from-primary-container to-secondary-container text-on-primary font-label-lg text-label-lg flex items-center justify-center gap-space-xs shadow-lg active:scale-98 transition-transform" data-path="gaadi-manager-plans-and-usage" href="#">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+<span>View Upgrade Options</span>
+</a>
+<button class="w-full min-h-[44px] rounded-xl bg-transparent text-on-surface-variant font-label-md text-label-md flex items-center justify-center" onclick="closeUnlockSheet()">
+          Maybe Later
+        </button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  function handleReportOpen(title) {
+    // Micro-toast or notification for unlocked reports
+    const el = document.createElement('div');
+    el.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 bg-surface-bright text-on-surface px-4 py-2 rounded-full text-label-md font-label-md shadow-2xl flex items-center gap-2 z-50 animate-bounce';
+    el.innerHTML = '<span class="material-symbols-outlined text-primary text-[18px]">download_for_offline</span> Generating ' + title + '...';
+    document.body.appendChild(el);
+    setTimeout(() => {
+      el.remove();
+    }, 2200);
+  }
+
+  function triggerUnlockSheet(reportName, planBadge) {
+    const modal = document.getElementById('unlock-modal');
+    const card = document.getElementById('modal-card');
+    const titleEl = document.getElementById('modal-title');
+    const priceEl = document.getElementById('modal-price');
+
+    if (titleEl) titleEl.textContent = 'Unlock ' + reportName;
+    if (priceEl) priceEl.textContent = planBadge.includes('999') ? '₹999 / month (Pro)' : '₹99 / month (Starter)';
+
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    card.classList.remove('translate-y-full');
+  }
+
+  function closeUnlockSheet() {
+    const modal = document.getElementById('unlock-modal');
+    const card = document.getElementById('modal-card');
+
+    card.classList.add('translate-y-full');
+    modal.classList.add('opacity-0', 'pointer-events-none');
+  }
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]" data-active-classes="text-primary font-bold"><div class="flex items-center justify-around h-16 px-space-xs"><a class="flex-1 min-w-[44px] min-h-[44px] flex flex-col items-center justify-center gap-space-xs text-on-surface-variant hover:text-on-surface transition-colors" data-path="home-dashboard" href="#"><span class="material-symbols-outlined text-[22px]">dashboard</span><span class="text-label-sm font-label-sm">Home</span></a><a class="flex-1 min-w-[44px] min-h-[44px] flex flex-col items-center justify-center gap-space-xs text-on-surface-variant hover:text-on-surface transition-colors" data-path="bookings-hub" href="#"><span class="material-symbols-outlined text-[22px]">calendar_month</span><span class="text-label-sm font-label-sm">Bookings</span></a><a class="flex-1 min-w-[44px] min-h-[44px] flex flex-col items-center justify-center gap-space-xs text-on-surface-variant hover:text-on-surface transition-colors" data-path="fleet-vehicles" href="#"><span class="material-symbols-outlined text-[22px]">directions_car</span><span class="text-label-sm font-label-sm">Vehicles</span></a><a class="flex-1 min-w-[44px] min-h-[44px] flex flex-col items-center justify-center gap-space-xs text-on-surface-variant hover:text-on-surface transition-colors" data-path="gaadi-manager-reports-hub" href="#"><span class="material-symbols-outlined text-[22px]">bar_chart</span><span class="text-label-sm font-label-sm">Reports</span></a><a class="flex-1 min-w-[44px] min-h-[44px] flex flex-col items-center justify-center gap-space-xs text-on-surface-variant hover:text-on-surface transition-colors" data-path="gaadi-manager-partners-list" href="#"><span class="material-symbols-outlined text-[22px]">menu</span><span class="text-label-sm font-label-sm">More</span></a></div></nav></body></html>

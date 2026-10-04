@@ -1,0 +1,57 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+/build/
+/coverage/
+
+# Android related
+.gradle/
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
+**/android/key.properties
+local.properties
+key.properties
+*.jks
+*.keystore
+
+# iOS CocoaPods
+Pods/
+**/ios/Pods/
+**/ios/Runner.xcworkspace
+
+# Secrets & Configs
+.env
+.env.*
+google-services.json
+GoogleService-Info.plist
+
+# Symbolication / Obfuscation related
+app.*.symbols
+app.*.map.json

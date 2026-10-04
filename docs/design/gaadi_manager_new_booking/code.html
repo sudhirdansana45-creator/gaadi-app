@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;background-color:#0e131e;}body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "tertiary-container": "#1bbd85", "surface-container-lowest": "#090e19", "on-secondary-container": "#e6ecff", "primary-fixed": "#acedff", "on-surface": "#dee2f2", "surface-variant": "#303541", "on-tertiary-container": "#00452e", "primary-container": "#06b6d4", "on-tertiary": "#003824", "surface-container-high": "#252a36", "secondary-container": "#0566d9", "secondary-fixed": "#d8e2ff", "inverse-surface": "#dee2f2", "on-background": "#dee2f2", "surface-bright": "#343946", "surface-container-highest": "#303541", "on-secondary-fixed-variant": "#004395", "secondary-fixed-dim": "#adc6ff", "tertiary-fixed": "#6ffbbe", "surface-dim": "#0e131e", "on-primary-container": "#00424f", "surface-tint": "#4cd7f6", "on-error-container": "#ffdad6", "outline-variant": "#3d494c", "primary": "#4cd7f6", "on-primary-fixed-variant": "#004e5c", "on-secondary-fixed": "#001a42", "surface-container-low": "#171b27", "secondary": "#adc6ff", "outline": "#869397", "on-secondary": "#002e6a", "on-surface-variant": "#bcc9cd", "tertiary": "#4edea3", "error-container": "#93000a", "on-primary-fixed": "#001f26", "error": "#ffb4ab", "surface": "#0e131e", "inverse-primary": "#00687a", "on-primary": "#003640", "primary-fixed-dim": "#4cd7f6", "on-tertiary-fixed-variant": "#005236", "on-tertiary-fixed": "#002113", "on-error": "#690005", "inverse-on-surface": "#2b303c", "tertiary-fixed-dim": "#4edea3", "background": "#0e131e", "surface-container": "#1b1f2b" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-lg": "1.5rem", "gutter": "1rem", "space-md": "1rem", "space-xl": "2rem", "space-xs": "0.25rem", "space-sm": "0.5rem", "margin": "1rem" }, "fontFamily": { "headline-md": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "stat-display": ["Plus Jakarta Sans"], "headline-xl": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"], "label-lg": ["Plus Jakarta Sans"], "stat-currency": ["Plus Jakarta Sans"] }, "fontSize": { "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "stat-display": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800" }], "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "700" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "headline-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }], "stat-currency": ["20px", { "lineHeight": "28px", "fontWeight": "600" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-on-surface antialiased flex flex-col min-h-screen"><header class="fixed top-0 inset-x-0 z-50 bg-surface-dim/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.4)] pt-safe"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="Gaadi Manager Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzIXcGyxe7Mia_s821qt9u3cV8HpVVMGajezz-HP9_-JUprgc8s6sAniA6vj3WepG83rpEqzyustfxZEjT1XLUa9ZL2Gvl7YVl1f8UY8I-fZX8iVMc05StNyZ5OZrBDSsUudwR-WAENUwHGXg7wR5vso6Zs4Gx740i_pHGdHNm49pL9Gl5SpZv1Fxmt0Sg7QkqxHLvMiczcgZFTvpNRqaWzP3FNGL8c5ZdyWjqGpLYTXGzGak6BPMZeg"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">Gaadi Manager</span><span class="font-label-sm text-label-sm text-primary tracking-wider uppercase mt-0.5">Fleet &amp; Bookings</span></div></div><div class="flex items-center gap-space-sm"><button aria-label="Notifications" class="relative w-11 h-11 rounded-full flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-primary ring-2 ring-surface-dim"></span></button><div class="relative w-11 h-11 flex items-center justify-center"><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-1 ring-primary/40" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDNHCWpNhnIlevE2GZRObqgkb5jZOrLfqC1dM9LlzKmmZGLiyHzrjBxH5E6QtztONmg6nERxmYrzcfFyN4gGzJBLgT23modVMztiJe_F9hTOqh1XFsjyBeAElh5ns1kegXyH930xrZ3__Iceysx5EfO97zYwinsUabBZYry5fFDiqrbLRU6YNoPSiEFmnqC3YyNikevdSR3VNnaYjsIrZPH5_-U3yDomLlGtYCY9Q9OkyqX5WkbSEOEg"/></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 pb-28 bg-surface px-gutter"><div class="flex flex-col w-full pb-8 space-y-4">
+<!-- Quota / Bill Tracker Micro-Header -->
+<div class="flex items-center justify-between px-1">
+<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container-high shadow-sm">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+<span class="font-label-md text-label-md text-on-surface">8/10 bills used today</span>
+</div>
+<a class="inline-flex items-center gap-1 font-label-md text-label-md text-primary hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+<span>Upgrade Plan</span>
+</a>
+</div>
+<!-- Customer Selector Panel -->
+<div class="flex flex-col p-4 rounded-xl bg-surface-container shadow-md space-y-3">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">person</span>
+        Customer Details
+      </span>
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container-high text-primary hover:bg-surface-bright font-label-md text-label-md transition-all">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>New Customer</span>
+</button>
+</div>
+<!-- Live Selected Customer Badge / Chip -->
+<div class="flex items-center justify-between p-3 rounded-lg bg-surface-container-high">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center text-primary font-bold">
+          AV
+        </div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5 flex-wrap">
+<span class="font-label-lg text-label-lg text-on-surface truncate">Amit Verma</span>
+<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-tertiary-container/20 text-tertiary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[12px]">verified</span>
+              DL Verified
+            </span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">+91 98765 43210</span>
+</div>
+</div>
+<button aria-label="Change customer" class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+</div>
+</div>
+<!-- Vehicle Category & Selector -->
+<div class="flex flex-col space-y-3">
+<div class="flex items-center justify-between px-1">
+<span class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">directions_car</span>
+        Select Vehicle
+      </span>
+<!-- Segmented Pill Tabs -->
+<div class="flex items-center p-1 rounded-full bg-surface-container-high" role="tablist">
+<button aria-selected="true" class="px-3.5 py-1 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md transition-all shadow-sm" role="tab">
+          Cars (14)
+        </button>
+<button aria-selected="false" class="px-3.5 py-1 rounded-full text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-all" role="tab">
+          Bikes (8)
+        </button>
+</div>
+</div>
+<!-- Vehicle Cards List -->
+<div class="flex flex-col space-y-3">
+<!-- 1. Mahindra Thar (Selected Card) -->
+<div class="relative flex flex-col p-4 rounded-xl bg-surface-container shadow-md transition-all ring-2 ring-primary">
+<div class="flex items-start justify-between gap-3">
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h3 class="font-label-lg text-label-lg text-on-surface font-bold truncate">Mahindra Thar 4x4</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant">(Black)</span>
+</div>
+<div class="inline-flex items-center gap-1.5 mt-1">
+<span class="px-2 py-0.5 rounded bg-surface-container-lowest font-mono font-bold text-on-surface text-[11px] tracking-wider shadow-inner">
+                IND MH 12 RN 8844
+              </span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tertiary-container/20 text-tertiary font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-ping"></span>
+                Available
+              </span>
+</div>
+</div>
+<!-- Selection indicator -->
+<div class="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-sm shrink-0">
+<span class="material-symbols-outlined text-[16px] font-bold">check</span>
+</div>
+</div>
+<div class="mt-3 pt-3 border-t-0 bg-surface-container-high/40 -mx-4 -mb-4 px-4 py-2.5 rounded-b-xl flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Rate:</span>
+<span class="font-label-md text-label-md text-on-surface font-semibold">₹400<span class="text-on-surface-variant font-normal">/hr</span></span>
+<span class="text-on-surface-variant">•</span>
+<span class="font-label-md text-label-md text-primary font-bold">₹3,800<span class="text-on-surface-variant font-normal">/day</span></span>
+</div>
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold tracking-wider">Active</span>
+</div>
+</div>
+<!-- 2. Royal Enfield Classic 350 -->
+<div class="flex flex-col p-4 rounded-xl bg-surface-container hover:bg-surface-container-high/60 transition-all shadow-sm cursor-pointer">
+<div class="flex items-start justify-between gap-3">
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h3 class="font-label-lg text-label-lg text-on-surface truncate">Royal Enfield Classic 350</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant">(Gunmetal)</span>
+</div>
+<div class="inline-flex items-center gap-1.5 mt-1">
+<span class="px-2 py-0.5 rounded bg-surface-container-lowest font-mono font-bold text-on-surface text-[11px] tracking-wider shadow-inner">
+                IND DL 04 AB 9021
+              </span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tertiary-container/20 text-tertiary font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                Available
+              </span>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant shrink-0">
+<span class="material-symbols-outlined text-[16px]">radio_button_unchecked</span>
+</div>
+</div>
+<div class="mt-3 pt-3 bg-surface-container-low/40 -mx-4 -mb-4 px-4 py-2.5 rounded-b-xl flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Rate:</span>
+<span class="font-label-md text-label-md text-on-surface font-semibold">₹120<span class="text-on-surface-variant font-normal">/hr</span></span>
+<span class="text-on-surface-variant">•</span>
+<span class="font-label-md text-label-md text-on-surface font-semibold">₹1,200<span class="text-on-surface-variant font-normal">/day</span></span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Select</span>
+</div>
+</div>
+<!-- 3. Maruti Swift Dzire (Disabled) -->
+<div class="flex flex-col p-4 rounded-xl bg-surface-container-low opacity-60 pointer-events-none select-none shadow-none">
+<div class="flex items-start justify-between gap-3">
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h3 class="font-label-lg text-label-lg text-on-surface-variant truncate">Maruti Swift Dzire</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant">(Silver)</span>
+</div>
+<div class="inline-flex items-center gap-1.5 mt-1">
+<span class="px-2 py-0.5 rounded bg-surface-container-lowest font-mono text-on-surface-variant text-[11px] tracking-wider">
+                IND MH 02 CD 9911
+              </span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-error-container/20 text-error font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[12px]">lock</span>
+                Disabled
+              </span>
+</div>
+</div>
+<span class="material-symbols-outlined text-error text-[20px]">lock_clock</span>
+</div>
+<div class="mt-2.5 flex items-center gap-1.5 text-error font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[14px]">info</span>
+<span>Locked for RTO / Insurance (Not Selectable)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Pickup & Return Schedule Panel -->
+<div class="flex flex-col space-y-2">
+<div class="flex items-center justify-between px-1">
+<span class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">schedule</span>
+        Duration &amp; Timings
+      </span>
+<span class="font-label-md text-label-md text-primary font-bold">28 hrs duration</span>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<!-- Pickup Card -->
+<div class="flex flex-col p-3.5 rounded-xl bg-surface-container shadow-sm space-y-2">
+<div class="flex items-center gap-1.5 text-primary">
+<span class="material-symbols-outlined text-[18px]">outbox</span>
+<span class="font-label-sm text-label-sm uppercase font-bold tracking-wider">Pickup</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5 text-on-surface">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">calendar_today</span>
+<span class="font-label-md text-label-md font-bold">Today, 24 Oct</span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant mt-0.5">
+<span class="material-symbols-outlined text-[15px]">schedule</span>
+<span class="font-body-sm text-body-sm">10:00 AM</span>
+</div>
+</div>
+</div>
+<!-- Return Card -->
+<div class="flex flex-col p-3.5 rounded-xl bg-surface-container shadow-sm space-y-2">
+<div class="flex items-center gap-1.5 text-tertiary">
+<span class="material-symbols-outlined text-[18px]">move_to_inbox</span>
+<span class="font-label-sm text-label-sm uppercase font-bold tracking-wider">Return</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5 text-on-surface">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">calendar_today</span>
+<span class="font-label-md text-label-md font-bold">Tomorrow, 25 Oct</span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant mt-0.5">
+<span class="material-symbols-outlined text-[15px]">schedule</span>
+<span class="font-body-sm text-body-sm">02:00 PM</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Pricing Model Rate Selector -->
+<div class="flex flex-col p-4 rounded-xl bg-surface-container shadow-sm space-y-3">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Tariff Billing Type</span>
+<!-- Daily / Hourly Switcher -->
+<div class="flex items-center p-1 rounded-full bg-surface-container-high">
+<button class="px-3 py-1 rounded-full text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-all">
+          Hourly
+        </button>
+<button class="px-3.5 py-1 rounded-full bg-primary text-on-primary font-label-md text-label-md font-bold shadow-sm transition-all">
+          Daily
+        </button>
+</div>
+</div>
+<div class="flex items-center justify-between p-2.5 rounded-lg bg-surface-container-low text-on-surface">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Applied Base Rate:</span>
+<span class="font-label-md text-label-md font-bold text-on-surface">₹3,800 / day + ₹400/extra hr</span>
+</div>
+</div>
+<!-- Price Breakdown / Financial Summary Card -->
+<div class="flex flex-col p-4 rounded-xl bg-surface-container shadow-lg space-y-3.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">receipt_long</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Fare &amp; Ledger</span>
+</div>
+<span class="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-label-sm text-label-sm font-semibold">
+        1 Day 4 Hours (28 hrs)
+      </span>
+</div>
+<!-- Line items -->
+<div class="space-y-2.5 pt-1">
+<div class="flex items-center justify-between font-body-md text-body-md">
+<span class="text-on-surface-variant">Base Rental Tariff</span>
+<span class="text-on-surface font-semibold">₹4,400</span>
+</div>
+<!-- Applied Coupon / Discount -->
+<div class="flex items-center justify-between font-body-md text-body-md">
+<div class="flex items-center gap-1.5 text-tertiary">
+<span class="material-symbols-outlined text-[16px]">local_offer</span>
+<span>Promo (FESTIVE10)</span>
+</div>
+<span class="text-tertiary font-semibold">-₹400</span>
+</div>
+<!-- Caution Deposit -->
+<div class="flex items-center justify-between font-body-md text-body-md">
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span>Security Deposit</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">(Refundable)</span>
+</div>
+<span class="text-on-surface font-semibold">₹3,000</span>
+</div>
+<div class="h-px bg-surface-container-high w-full my-2"></div>
+<!-- Advance Input Row -->
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Advance Paid</span>
+<span class="font-body-sm text-body-sm text-tertiary flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">payments</span>
+            UPI Verified
+          </span>
+</div>
+<div class="w-32 flex items-center px-3 py-1.5 rounded-lg bg-surface-container-low text-primary font-label-lg text-label-lg font-bold">
+<span>₹</span>
+<input class="w-full bg-transparent text-right font-bold text-primary focus:outline-none" type="text" value="2,000"/>
+</div>
+</div>
+<!-- Balance Payable -->
+<div class="flex items-center justify-between font-body-md text-body-md">
+<span class="text-on-surface-variant">Balance at Vehicle Return</span>
+<span class="text-secondary font-bold font-label-lg text-label-lg">₹5,000</span>
+</div>
+</div>
+<!-- Total Gross Section -->
+<div class="p-3 rounded-lg bg-surface-container-high flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">Total Gross Booking</span>
+<span class="font-stat-display text-stat-display text-primary leading-none">₹7,000</span>
+</div>
+</div>
+<!-- Bottom Floating Execution Bar -->
+<div class="pt-2 flex items-center gap-3">
+<!-- Save Quote -->
+<button class="w-1/3 h-12 flex items-center justify-center gap-1.5 rounded-xl bg-surface-container-high text-on-surface hover:bg-surface-bright font-label-lg text-label-lg transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">bookmark_border</span>
+<span>Save Quote</span>
+</button>
+<!-- Create Booking CTA -->
+<button class="w-2/3 h-12 flex items-center justify-center gap-2 rounded-xl bg-primary-container text-on-primary-container hover:bg-primary font-label-lg text-label-lg font-bold shadow-lg shadow-primary-container/20 transition-all active:scale-[0.99]" type="button">
+<span>Create Booking</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</div>
+</div></main><nav class="fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface-container-low/90 backdrop-blur-xl rounded-t-xl shadow-[0_-4px_24px_rgba(0,0,0,0.6)]" data-active-classes="text-primary font-bold [&amp;_.nav-indicator]:opacity-100"><div class="flex items-center justify-around h-16 px-space-xs"><a class="flex flex-col items-center justify-center min-w-[54px] h-12 text-on-surface-variant hover:text-on-surface transition-all" data-path="gaadi-manager-home-dashboard" href="#"><span class="material-symbols-outlined text-[22px]">dashboard</span><span class="font-label-sm text-label-sm mt-0.5">Home</span><span class="nav-indicator opacity-0 w-1.5 h-1.5 mt-0.5 rounded-full bg-primary shadow-[0_0_8px_#06b6d4] transition-opacity"></span></a><a class="flex flex-col items-center justify-center min-w-[54px] h-12 text-on-surface-variant hover:text-on-surface transition-all" data-path="gaadi-manager-new-booking" href="#"><span class="material-symbols-outlined text-[22px]">confirmation_number</span><span class="font-label-sm text-label-sm mt-0.5">Bookings</span><span class="nav-indicator opacity-0 w-1.5 h-1.5 mt-0.5 rounded-full bg-primary shadow-[0_0_8px_#06b6d4] transition-opacity"></span></a><a class="flex flex-col items-center justify-center min-w-[54px] h-12 text-on-surface-variant hover:text-on-surface transition-all" data-path="gaadi-manager-vehicles-list" href="#"><span class="material-symbols-outlined text-[22px]">directions_car</span><span class="font-label-sm text-label-sm mt-0.5">Vehicles</span><span class="nav-indicator opacity-0 w-1.5 h-1.5 mt-0.5 rounded-full bg-primary shadow-[0_0_8px_#06b6d4] transition-opacity"></span></a><a class="flex flex-col items-center justify-center min-w-[54px] h-12 text-on-surface-variant hover:text-on-surface transition-all" data-path="reports" href="#"><span class="material-symbols-outlined text-[22px]">bar_chart</span><span class="font-label-sm text-label-sm mt-0.5">Reports</span><span class="nav-indicator opacity-0 w-1.5 h-1.5 mt-0.5 rounded-full bg-primary shadow-[0_0_8px_#06b6d4] transition-opacity"></span></a><a class="flex flex-col items-center justify-center min-w-[54px] h-12 text-on-surface-variant hover:text-on-surface transition-all" data-path="more" href="#"><span class="material-symbols-outlined text-[22px]">account_circle</span><span class="font-label-sm text-label-sm mt-0.5">More</span><span class="nav-indicator opacity-0 w-1.5 h-1.5 mt-0.5 rounded-full bg-primary shadow-[0_0_8px_#06b6d4] transition-opacity"></span></a></div></nav></body></html>

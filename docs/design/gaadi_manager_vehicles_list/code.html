@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;background-color:#0e131e;}body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "tertiary-container": "#1bbd85", "surface-container-lowest": "#090e19", "on-secondary-container": "#e6ecff", "primary-fixed": "#acedff", "on-surface": "#dee2f2", "surface-variant": "#303541", "on-tertiary-container": "#00452e", "primary-container": "#06b6d4", "on-tertiary": "#003824", "surface-container-high": "#252a36", "secondary-container": "#0566d9", "secondary-fixed": "#d8e2ff", "inverse-surface": "#dee2f2", "on-background": "#dee2f2", "surface-bright": "#343946", "surface-container-highest": "#303541", "on-secondary-fixed-variant": "#004395", "secondary-fixed-dim": "#adc6ff", "tertiary-fixed": "#6ffbbe", "surface-dim": "#0e131e", "on-primary-container": "#00424f", "surface-tint": "#4cd7f6", "on-error-container": "#ffdad6", "outline-variant": "#3d494c", "primary": "#4cd7f6", "on-primary-fixed-variant": "#004e5c", "on-secondary-fixed": "#001a42", "surface-container-low": "#171b27", "secondary": "#adc6ff", "outline": "#869397", "on-secondary": "#002e6a", "on-surface-variant": "#bcc9cd", "tertiary": "#4edea3", "error-container": "#93000a", "on-primary-fixed": "#001f26", "error": "#ffb4ab", "surface": "#0e131e", "inverse-primary": "#00687a", "on-primary": "#003640", "primary-fixed-dim": "#4cd7f6", "on-tertiary-fixed-variant": "#005236", "on-tertiary-fixed": "#002113", "on-error": "#690005", "inverse-on-surface": "#2b303c", "tertiary-fixed-dim": "#4edea3", "background": "#0e131e", "surface-container": "#1b1f2b" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-lg": "1.5rem", "gutter": "1rem", "space-md": "1rem", "space-xl": "2rem", "space-xs": "0.25rem", "space-sm": "0.5rem", "margin": "1rem" }, "fontFamily": { "headline-md": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "stat-display": ["Plus Jakarta Sans"], "headline-xl": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"], "label-lg": ["Plus Jakarta Sans"], "stat-currency": ["Plus Jakarta Sans"] }, "fontSize": { "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "stat-display": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800" }], "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "700" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "headline-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }], "stat-currency": ["20px", { "lineHeight": "28px", "fontWeight": "600" }] } } } };</script></head><body class="bg-surface font-body-md text-on-surface antialiased flex flex-col min-h-screen"><header class="fixed top-0 inset-x-0 z-50 bg-surface-dim/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.4)] pt-safe"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="Gaadi Manager Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzIXcGyxe7Mia_s821qt9u3cV8HpVVMGajezz-HP9_-JUprgc8s6sAniA6vj3WepG83rpEqzyustfxZEjT1XLUa9ZL2Gvl7YVl1f8UY8I-fZX8iVMc05StNyZ5OZrBDSsUudwR-WAENUwHGXg7wR5vso6Zs4Gx740i_pHGdHNm49pL9Gl5SpZv1Fxmt0Sg7QkqxHLvMiczcgZFTvpNRqaWzP3FNGL8c5ZdyWjqGpLYTXGzGak6BPMZeg"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">Gaadi Manager</span><span class="font-label-sm text-label-sm text-primary tracking-wider uppercase mt-0.5">Vehicles</span></div></div><div class="flex items-center gap-space-sm"><button aria-label="Notifications" class="relative w-11 h-11 rounded-full flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-primary ring-2 ring-surface-dim"></span></button><div class="relative w-11 h-11 flex items-center justify-center"><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-1 ring-primary/40" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDNHCWpNhnIlevE2GZRObqgkb5jZOrLfqC1dM9LlzKmmZGLiyHzrjBxH5E6QtztONmg6nERxmYrzcfFyN4gGzJBLgT23modVMztiJe_F9hTOqh1XFsjyBeAElh5ns1kegXyH930xrZ3__Iceysx5EfO97zYwinsUabBZYry5fFDiqrbLRU6YNoPSiEFmnqC3YyNikevdSR3VNnaYjsIrZPH5_-U3yDomLlGtYCY9Q9OkyqX5WkbSEOEg"/></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 pb-28 bg-surface px-gutter"><div class="flex flex-col w-full gap-space-md">
+<!-- Top Fleet Micro-Pulse Strip -->
+<div class="flex items-center justify-between px-space-md py-space-sm bg-surface-container rounded-xl shadow-md">
+<div class="flex items-center gap-space-sm">
+<div class="relative flex items-center justify-center w-7 h-7 rounded-full bg-surface-container-high">
+<span class="material-symbols-outlined text-[16px] text-tertiary">speed</span>
+<span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-tertiary animate-ping opacity-75"></span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface leading-none">Fleet Status</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Live Dispatch Telemetry</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-high px-space-sm py-1 rounded-full">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="font-label-md text-label-md text-on-surface font-semibold">28 Total • 11 Ready</span>
+</div>
+</div>
+<!-- Search & Quick Dispatch Launcher -->
+<div class="flex items-center gap-space-sm">
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-outline">search</span>
+<input class="w-full h-[48px] pl-11 pr-10 bg-surface-container rounded-xl font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-high transition-colors" id="vehicleSearchInput" placeholder="Search model, plate, or owner..." type="text"/>
+<button aria-label="Clear search" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface" id="clearSearchBtn">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<button aria-label="Filter fleet" class="flex items-center justify-center w-12 h-12 bg-surface-container-high rounded-xl text-on-surface hover:text-primary active:scale-95 transition-all shadow-sm" id="openFilterBtn">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+</button>
+<button class="flex items-center justify-center gap-1.5 h-12 px-space-md bg-gradient-to-r from-primary-container to-secondary-container rounded-xl text-on-primary font-label-lg text-label-lg active:scale-95 shadow-lg shadow-primary-container/20 transition-all whitespace-nowrap" id="addVehicleBtn">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+<span>Add Vehicle</span>
+</button>
+</div>
+<!-- Segmented Category Tabs -->
+<div class="flex items-center p-1 bg-surface-container-lowest rounded-xl shadow-inner gap-1">
+<button class="category-tab flex-1 py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all text-center" data-tab="all">
+      All (28)
+    </button>
+<button class="category-tab flex-1 py-2 rounded-lg font-label-md text-label-md bg-secondary-container text-on-secondary-container shadow-md transition-all text-center font-bold" data-tab="cars">
+      Cars (16)
+    </button>
+<button class="category-tab flex-1 py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all text-center" data-tab="bikes">
+      Bikes &amp; Scooters (12)
+    </button>
+</div>
+<!-- Status Chips Horizontal Scroll Bar -->
+<div class="flex items-center gap-space-xs overflow-x-auto pb-1 -mx-gutter px-gutter scrollbar-none">
+<button class="status-chip flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-high text-on-surface text-label-md font-label-md shrink-0 active:scale-95 transition-all" data-status="all">
+<span>All Fleet</span>
+</button>
+<button class="status-chip flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-low text-tertiary hover:bg-surface-container-high text-label-md font-label-md shrink-0 active:scale-95 transition-all" data-status="available">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary"></span>
+</span>
+<span>Available</span>
+<span class="ml-0.5 px-1.5 py-0.2 rounded-full bg-surface-container font-label-sm text-label-sm text-on-surface">11</span>
+</button>
+<button class="status-chip flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-low text-primary hover:bg-surface-container-high text-label-md font-label-md shrink-0 active:scale-95 transition-all" data-status="booked">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span>Booked</span>
+<span class="ml-0.5 px-1.5 py-0.2 rounded-full bg-surface-container font-label-sm text-label-sm text-on-surface">12</span>
+</button>
+<button class="status-chip flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-low text-secondary hover:bg-surface-container-high text-label-md font-label-md shrink-0 active:scale-95 transition-all" data-status="service">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span>In Service</span>
+<span class="ml-0.5 px-1.5 py-0.2 rounded-full bg-surface-container font-label-sm text-label-sm text-on-surface">3</span>
+</button>
+<button class="status-chip flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-low text-error hover:bg-surface-container-high text-label-md font-label-md shrink-0 active:scale-95 transition-all" data-status="disabled">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<span>Disabled</span>
+<span class="ml-0.5 px-1.5 py-0.2 rounded-full bg-surface-container font-label-sm text-label-sm text-on-surface">2</span>
+</button>
+</div>
+<!-- Vehicle Cards List -->
+<div class="flex flex-col gap-space-md" id="fleetCardsContainer">
+<!-- CARD 1: Mahindra Thar 4x4 (Black) - Available -->
+<div class="vehicle-card flex flex-col bg-surface-container rounded-xl overflow-hidden shadow-lg transition-transform active:scale-[0.99] group" data-category="cars" data-search="mahindra thar mh 12 rn 8844 own fleet black 4x4" data-status="available">
+<div class="relative w-full h-36 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A muscular deep black Mahindra Thar 4x4 rugged SUV parked in a modern dimly lit garage studio with subtle electric cyan underglow reflecting on glossy tarmac, high contrast dark-mode fleet photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQcZyDebGPNeCm3JKxvrwT1oBbgMgMT7vJqbXFsU68v_z7GMJoLEA1l4qaQYzC0ykj3gqvfXFvNvSS2G9lNYvz5Q0YYN1lXLCXSBS7vSc5LV78rGWHrz_eaxyIS5nTh1onA0ICLZSA7dmbwrwWGLwG3T6qQQqwGC4ATot9LyDegRw4OaYSEqrx2nkhfUg2DbICmPIMlDUEkJEAL9EeCfBRXDa0wDK_AKGpH3K06rNB5mtWpzC-pd0zAw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-surface-container/30 to-transparent"></div>
+<!-- Registration Badge Overlay -->
+<div class="absolute top-3 left-3 flex items-center gap-1 bg-surface-container-lowest/90 backdrop-blur-md px-2.5 py-1 rounded-md shadow-md">
+<span class="font-label-sm text-label-sm text-primary tracking-widest font-extrabold uppercase">IND</span>
+<span class="font-label-md text-label-md text-on-surface font-bold tracking-wider">MH 12 RN 8844</span>
+</div>
+<!-- Status Chip Overlay -->
+<div class="absolute top-3 right-3 flex items-center gap-1.5 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1 rounded-full shadow-md">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary"></span>
+</span>
+<span class="font-label-sm text-label-sm text-tertiary uppercase tracking-wide">Available</span>
+</div>
+<!-- Vehicle Name Pill -->
+<div class="absolute bottom-2 left-3 flex items-baseline gap-2">
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold drop-shadow">Mahindra Thar 4x4</h2>
+<span class="font-body-sm text-body-sm text-on-surface-variant font-medium">(Black)</span>
+</div>
+</div>
+<!-- Card Core Information -->
+<div class="p-space-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-primary">verified_user</span>
+<span class="font-body-md text-body-md text-on-surface font-medium">Own Fleet</span>
+</div>
+<div class="flex items-center gap-2 font-body-sm text-body-sm text-on-surface-variant">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-outline">local_gas_station</span>
+              Diesel
+            </span>
+<span>•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-outline">pin_drop</span>
+              24,150 km
+            </span>
+</div>
+</div>
+<!-- Rate Ledger Band -->
+<div class="flex items-center justify-between p-2.5 bg-surface-container-low rounded-lg">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Tariff Structure</span>
+<div class="flex items-center gap-1 font-label-lg text-label-lg text-on-surface font-bold">
+<span class="text-primary font-stat-currency">₹400</span><span class="text-on-surface-variant text-body-sm font-normal">/hr</span>
+<span class="text-outline-variant mx-1">•</span>
+<span class="text-tertiary font-stat-currency">₹3,800</span><span class="text-on-surface-variant text-body-sm font-normal">/day</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px] text-tertiary">check_circle</span>
+<span class="font-label-sm text-label-sm text-tertiary">Fast Track UPI</span>
+</div>
+</div>
+<!-- Actions Deck -->
+<div class="flex items-center gap-space-sm pt-1">
+<button aria-label="Vehicle quick actions" class="flex items-center justify-center w-11 h-11 rounded-lg bg-surface-container-high text-on-surface hover:text-primary active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+<button class="flex-1 flex items-center justify-center gap-2 h-11 bg-primary text-on-primary-fixed rounded-lg font-label-lg text-label-lg active:scale-95 shadow-md shadow-primary/20 transition-all font-bold">
+<span class="material-symbols-outlined text-[18px]">add_task</span>
+<span>Create Booking</span>
+</button>
+</div>
+</div>
+</div>
+<!-- CARD 2: Hyundai Creta SX (White) - Booked -->
+<div class="vehicle-card flex flex-col bg-surface-container rounded-xl overflow-hidden shadow-lg transition-transform active:scale-[0.99] group" data-category="cars" data-search="hyundai creta sx mh 14 gh 2020 amit patel partner rahul v booked white" data-status="booked">
+<div class="relative w-full h-36 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A pristine white Hyundai Creta SX compact SUV under urban neon streetlights at twilight, cinematic dark reflection on modern asphalt, sleek fleet styling." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdb7jdb99EBR3wF-3kgCJMkMUwgKP9SLNaYPIluIpfxIUwYm-etbQ_5Cth4oTnub_o_HPA5g5S9NpB3lB7atIVQRwTftEsys83Djquidf-MG_BXulpY7SVxa0FsJqyzIe91Z-1qqlP8bfDvA88nURDhbzgDWNo2-wYYdBiS7Np9hertWKHPd40bwm_Qi2UM5mESIkXl2mTMbZy9yGpPRHlEjMEdChmZL7RZeJmjxG7a4gOMnsOJg7h5A"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-surface-container/30 to-transparent"></div>
+<!-- Registration Badge Overlay -->
+<div class="absolute top-3 left-3 flex items-center gap-1 bg-surface-container-lowest/90 backdrop-blur-md px-2.5 py-1 rounded-md shadow-md">
+<span class="font-label-sm text-label-sm text-primary tracking-widest font-extrabold uppercase">IND</span>
+<span class="font-label-md text-label-md text-on-surface font-bold tracking-wider">MH 14 GH 2020</span>
+</div>
+<!-- Status Chip Overlay -->
+<div class="absolute top-3 right-3 flex items-center gap-1.5 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1 rounded-full shadow-md">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span class="font-label-sm text-label-sm text-primary-container uppercase tracking-wide">Booked</span>
+</div>
+<!-- Vehicle Name Pill -->
+<div class="absolute bottom-2 left-3 flex items-baseline gap-2">
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold drop-shadow">Hyundai Creta SX</h2>
+<span class="font-body-sm text-body-sm text-on-surface-variant font-medium">(White)</span>
+</div>
+</div>
+<!-- Card Core Information -->
+<div class="p-space-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-secondary">handshake</span>
+<span class="font-body-md text-body-md text-on-surface font-medium truncate max-w-[190px]">Partner: Amit Patel</span>
+</div>
+<span class="px-2 py-0.5 bg-secondary-container/40 text-on-secondary-container font-label-sm text-label-sm rounded-md">70/30 share</span>
+</div>
+<!-- Active Dispatch Ribbon -->
+<div class="flex items-center justify-between p-2.5 bg-surface-container-low rounded-lg">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-primary font-bold font-label-md text-label-md">
+              RV
+            </div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-bold">Rahul V.</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary">schedule</span>
+                Returns today 6:30 PM
+              </span>
+</div>
+</div>
+<button aria-label="Contact Customer" class="w-9 h-9 rounded-full bg-surface-container-high text-primary flex items-center justify-center active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[18px]">call</span>
+</button>
+</div>
+<!-- Rate Ledger Band -->
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-1 font-label-md text-label-md text-on-surface">
+<span class="text-on-surface-variant">Rate:</span>
+<span class="text-primary font-semibold">₹300</span><span class="text-on-surface-variant text-body-sm">/hr</span>
+<span class="text-outline-variant mx-1">•</span>
+<span class="text-on-surface font-semibold">₹3,200</span><span class="text-on-surface-variant text-body-sm">/day</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Trip In-Progress</span>
+</div>
+<!-- Actions Deck -->
+<div class="flex items-center gap-space-sm pt-1">
+<button class="flex-1 flex items-center justify-center gap-1.5 h-11 bg-surface-container-high text-on-surface rounded-lg font-label-md text-label-md active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[18px]">alt_route</span>
+<span>Live GPS</span>
+</button>
+<button class="flex-1 flex items-center justify-center gap-1.5 h-11 bg-surface-container-high text-primary rounded-lg font-label-md text-label-md active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[18px]">assignment_turned_in</span>
+<span>Check-In</span>
+</button>
+</div>
+</div>
+</div>
+<!-- CARD 3: Royal Enfield Himalayan 450 - In Service -->
+<div class="vehicle-card flex flex-col bg-surface-container rounded-xl overflow-hidden shadow-lg transition-transform active:scale-[0.99] group" data-category="bikes" data-search="royal enfield himalayan 450 mh 12 tr 4519 service workshop brake pad bike" data-status="service">
+<div class="relative w-full h-36 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A rugged adventure motorcycle Royal Enfield Himalayan 450 placed in a technical service garage bay with warm tungsten diagnostic lighting, dark industrial ambiance." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfFBuuCw5svA0_TfTvmpM0sMCSuvZBV79HjXoWiwBC8aQ1rF6_lKgKw7YcwxtvxDPy3hB3K_0LfPNA7YCzCvkmkUMt4fOmgbLd-CELGL8bQ871WtUcDX_XSNZVi3Pkv8bZRZ5zMvkRmagMae7RWC8M3q185TTKxNs5jNAJXZsGny-OIderA11YKvfsN15gJwZYqOmb-9T9en_qjRY3Ow5h1G3yrF0K1B3BV3caVju3QLGOaYkqbe_Ngw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-surface-container/30 to-transparent"></div>
+<!-- Registration Badge Overlay -->
+<div class="absolute top-3 left-3 flex items-center gap-1 bg-surface-container-lowest/90 backdrop-blur-md px-2.5 py-1 rounded-md shadow-md">
+<span class="font-label-sm text-label-sm text-primary tracking-widest font-extrabold uppercase">IND</span>
+<span class="font-label-md text-label-md text-on-surface font-bold tracking-wider">MH 12 TR 4519</span>
+</div>
+<!-- Status Chip Overlay -->
+<div class="absolute top-3 right-3 flex items-center gap-1.5 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1 rounded-full shadow-md">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wide">In Service</span>
+</div>
+<!-- Vehicle Name Pill -->
+<div class="absolute bottom-2 left-3 flex items-baseline gap-2">
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold drop-shadow">Himalayan 450</h2>
+<span class="font-body-sm text-body-sm text-on-surface-variant font-medium">(Royal Enfield)</span>
+</div>
+</div>
+<!-- Card Core Information -->
+<div class="p-space-md flex flex-col gap-space-sm">
+<!-- Service Diagnostics Banner -->
+<div class="flex items-start gap-2 p-2.5 bg-secondary-container/20 rounded-lg">
+<span class="material-symbols-outlined text-[20px] text-secondary shrink-0 mt-0.5">build_circle</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-secondary-container font-semibold">Scheduled brake pad replacement</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Assigned: City Central Workshop • Due 4:00 PM</span>
+</div>
+</div>
+<!-- Rate Ledger Band -->
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-1 font-label-md text-label-md text-on-surface">
+<span class="text-on-surface-variant">Standard Rate:</span>
+<span class="text-primary font-semibold">₹150</span><span class="text-on-surface-variant text-body-sm">/hr</span>
+<span class="text-outline-variant mx-1">•</span>
+<span class="text-on-surface font-semibold">₹1,600</span><span class="text-on-surface-variant text-body-sm">/day</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Bay 04</span>
+</div>
+<!-- Actions Deck -->
+<div class="flex items-center gap-space-sm pt-1">
+<button class="flex-1 flex items-center justify-center gap-1.5 h-11 bg-surface-container-high text-on-surface rounded-lg font-label-md text-label-md active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+<span>Job Card</span>
+</button>
+<button class="flex-1 flex items-center justify-center gap-1.5 h-11 bg-surface-container-high text-secondary rounded-lg font-label-md text-label-md active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[18px]">task_alt</span>
+<span>Mark Ready</span>
+</button>
+</div>
+</div>
+</div>
+<!-- CARD 4: Maruti Swift Dzire (Silver) - Disabled -->
+<div class="vehicle-card flex flex-col bg-surface-container rounded-xl overflow-hidden shadow-lg transition-transform active:scale-[0.99] group opacity-85 hover:opacity-100" data-category="cars" data-search="maruti swift dzire mh 02 cd 9911 disabled silver insurance renewal" data-status="disabled">
+<div class="relative w-full h-36 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A clean silver Maruti Swift Dzire sedan parked in a twilight commercial staging area with subtle amber alert reflections on high-finish dark paving, executive fleet style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzPksawP9rRxpchi_LjpGwycO_RUF2jved-i99hblCXGhM63mIwbae7lOZS3yC3NXBcDT9_Kbn2Dp8FXCCitjcrV3POPvYDoZ-fwaIe8-PZAPNREummN44nLcjHjybbDMWvHxWf7036r-JdePiGOTecxTaKMthX7CgF7UDm5dj7e31_4yoI3rYgrycT3fxvBgujJMf_keicK8UjVhjo2LDhkZeLHcr4ok6bb8pdi4uNnjqP_ePHCrVEQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-surface-container/30 to-transparent"></div>
+<!-- Registration Badge Overlay -->
+<div class="absolute top-3 left-3 flex items-center gap-1 bg-surface-container-lowest/90 backdrop-blur-md px-2.5 py-1 rounded-md shadow-md">
+<span class="font-label-sm text-label-sm text-primary tracking-widest font-extrabold uppercase">IND</span>
+<span class="font-label-md text-label-md text-on-surface font-bold tracking-wider">MH 02 CD 9911</span>
+</div>
+<!-- Status Chip Overlay -->
+<div class="absolute top-3 right-3 flex items-center gap-1.5 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1 rounded-full shadow-md">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<span class="font-label-sm text-label-sm text-error uppercase tracking-wide">Disabled</span>
+</div>
+<!-- Vehicle Name Pill -->
+<div class="absolute bottom-2 left-3 flex items-baseline gap-2">
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold drop-shadow">Maruti Swift Dzire</h2>
+<span class="font-body-sm text-body-sm text-on-surface-variant font-medium">(Silver)</span>
+</div>
+</div>
+<!-- Card Core Information -->
+<div class="p-space-md flex flex-col gap-space-sm">
+<!-- Disabled Reason Banner -->
+<div class="flex items-start gap-2 p-2.5 bg-error-container/30 rounded-lg">
+<span class="material-symbols-outlined text-[20px] text-error shrink-0 mt-0.5">policy</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-error font-semibold">Insurance renewal pending</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Expired 3 days ago • Dispatch locked for RTO safety</span>
+</div>
+</div>
+<!-- Actions Deck -->
+<div class="flex items-center gap-space-sm pt-1">
+<button aria-label="Vehicle settings" class="flex items-center justify-center w-11 h-11 rounded-lg bg-surface-container-high text-on-surface hover:text-primary active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[20px]">manage_history</span>
+</button>
+<button class="flex-1 flex items-center justify-center gap-2 h-11 bg-surface-container-high text-error hover:bg-error-container/40 rounded-lg font-label-md text-label-md active:scale-95 transition-all font-semibold">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span>Renew Insurance Policy</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Empty Search Results State (Hidden by default) -->
+<div class="hidden flex-col items-center justify-center py-10 px-gutter bg-surface-container rounded-xl text-center gap-space-sm" id="emptyFleetState">
+<div class="w-14 h-14 rounded-full bg-surface-container-high flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-[28px]">directions_car_filled</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-headline-sm text-headline-sm text-on-surface">No vehicles match filter</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant max-w-[240px]">Try clearing search keywords or switching status categories.</span>
+</div>
+<button class="mt-2 px-space-md py-2 bg-surface-container-high text-primary rounded-lg font-label-md text-label-md active:scale-95 transition-all" id="resetFiltersBtn">
+      Reset All Filters
+    </button>
+</div>
+<!-- Operational Floating Micro-Summary Float -->
+<div class="flex items-center justify-between px-space-md py-2.5 bg-surface-container-lowest/80 backdrop-blur-md rounded-xl shadow-lg mt-1">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+<span class="font-label-md text-label-md text-on-surface font-medium">Auto-Sync GPS Active</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Updated 1 min ago</span>
+</div>
+</div>
+<script>
+  (function () {
+    const searchInput = document.getElementById('vehicleSearchInput');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    const cards = Array.from(document.querySelectorAll('.vehicle-card'));
+    const categoryTabs = Array.from(document.querySelectorAll('.category-tab'));
+    const statusChips = Array.from(document.querySelectorAll('.status-chip'));
+    const emptyState = document.getElementById('emptyFleetState');
+    const resetBtn = document.getElementById('resetFiltersBtn');
+
+    let currentCategory = 'cars'; // default per requirement
+    let currentStatus = 'all';
+    let searchQuery = '';
+
+    function filterFleet() {
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const cardCategory = card.getAttribute('data-category');
+        const cardStatus = card.getAttribute('data-status');
+        const cardSearch = card.getAttribute('data-search').toLowerCase();
+
+        const matchesCat = (currentCategory === 'all') || (cardCategory === currentCategory);
+        const matchesStatus = (currentStatus === 'all') || (cardStatus === currentStatus);
+        const matchesQuery = !searchQuery || cardSearch.includes(searchQuery);
+
+        if (matchesCat && matchesStatus && matchesQuery) {
+          card.classList.remove('hidden');
+          visibleCount++;
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+
+      if (visibleCount === 0) {
+        emptyState.classList.remove('hidden');
+        emptyState.classList.add('flex');
+      } else {
+        emptyState.classList.add('hidden');
+        emptyState.classList.remove('flex');
+      }
+    }
+
+    // Search Handlers
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value.trim().toLowerCase();
+      if (searchQuery.length > 0) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+      }
+      filterFleet();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      searchQuery = '';
+      clearBtn.classList.add('hidden');
+      searchInput.focus();
+      filterFleet();
+    });
+
+    // Category Tabs Switching
+    categoryTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        categoryTabs.forEach(t => {
+          t.classList.remove('bg-secondary-container', 'text-on-secondary-container', 'shadow-md', 'font-bold');
+          t.classList.add('text-on-surface-variant');
+        });
+        tab.classList.add('bg-secondary-container', 'text-on-secondary-container', 'shadow-md', 'font-bold');
+        tab.classList.remove('text-on-surface-variant');
+        
+        currentCategory = tab.getAttribute('data-tab');
+        filterFleet();
+      });
+    });
+
+    // Status Chips Filtering
+    statusChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        statusChips.forEach(c => {
+          c.classList.remove('bg-surface-container-high', 'shadow-sm');
+          c.classList.add('bg-surface-container-low');
+        });
+        chip.classList.add('bg-surface-container-high', 'shadow-sm');
+        chip.classList.remove('bg-surface-container-low');
+
+        currentStatus = chip.getAttribute('data-status');
+        filterFleet();
+      });
+    });
+
+    // Reset handler
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchQuery = '';
+        clearBtn.classList.add('hidden');
+        currentCategory = 'all';
+        currentStatus = 'all';
+
+        categoryTabs.forEach(t => {
+          const isAll = t.getAttribute('data-tab') === 'all';
+          t.classList.toggle('bg-secondary-container', isAll);
+          t.classList.toggle('text-on-secondary-container', isAll);
+          t.classList.toggle('shadow-md', isAll);
+          t.classList.toggle('font-bold', isAll);
+          t.classList.toggle('text-on-surface-variant', !isAll);
+        });
+
+        statusChips.forEach(c => {
+          const isAll = c.getAttribute('data-status') === 'all';
+          c.classList.toggle('bg-surface-container-high', isAll);
+          c.classList.toggle('bg-surface-container-low', !isAll);
+        });
+
+        filterFleet();
+      });
+    }
+
+    // Initial Filter pass
+    filterFleet();
+  })();
+</script></main><nav class="fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface-container-low/90 backdrop-blur-xl rounded-t-xl shadow-[0_-4px_24px_rgba(0,0,0,0.6)]" data-active-classes="text-primary font-bold [&amp;_.nav-indicator]:opacity-100"><div class="flex items-center justify-around h-16 px-space-xs"><a class="flex flex-col items-center justify-center min-w-[54px] h-12 text-on-surface-variant hover:text-on-surface transition-all" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[22px]">dashboard</span><span class="font-label-sm text-label-sm mt-0.5">Home</span><span class="nav-indicator opacity-0 w-1.5 h-1.5 mt-0.5 rounded-full bg-primary shadow-[0_0_8px_#06b6d4] transition-opacity"></span></a><a class="flex flex-col items-center justify-center min-w-[54px] h-12 text-on-surface-variant hover:text-on-surface transition-all" data-path="bookings" href="#"><span class="material-symbols-outlined text-[22px]">confirmation_number</span><span class="font-label-sm text-label-sm mt-0.5">Bookings</span><span class="nav-indicator opacity-0 w-1.5 h-1.5 mt-0.5 rounded-full bg-primary shadow-[0_0_8px_#06b6d4] transition-opacity"></span></a><a aria-current="page" class="flex flex-col items-center justify-center min-w-[54px] h-12 transition-all text-primary font-bold [&amp;_.nav-indicator]:opacity-100" data-path="vehicles" href="#"><span class="material-symbols-outlined text-[22px]">directions_car</span><span class="font-label-sm text-label-sm mt-0.5">Vehicles</span><span class="nav-indicator opacity-0 w-1.5 h-1.5 mt-0.5 rounded-full bg-primary shadow-[0_0_8px_#06b6d4] transition-opacity"></span></a><a class="flex flex-col items-center justify-center min-w-[54px] h-12 text-on-surface-variant hover:text-on-surface transition-all" data-path="reports" href="#"><span class="material-symbols-outlined text-[22px]">bar_chart</span><span class="font-label-sm text-label-sm mt-0.5">Reports</span><span class="nav-indicator opacity-0 w-1.5 h-1.5 mt-0.5 rounded-full bg-primary shadow-[0_0_8px_#06b6d4] transition-opacity"></span></a><a class="flex flex-col items-center justify-center min-w-[54px] h-12 text-on-surface-variant hover:text-on-surface transition-all" data-path="more" href="#"><span class="material-symbols-outlined text-[22px]">account_circle</span><span class="font-label-sm text-label-sm mt-0.5">More</span><span class="nav-indicator opacity-0 w-1.5 h-1.5 mt-0.5 rounded-full bg-primary shadow-[0_0_8px_#06b6d4] transition-opacity"></span></a></div></nav></body></html>
