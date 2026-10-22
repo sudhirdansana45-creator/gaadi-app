@@ -3,8 +3,11 @@ import 'theme/app_theme.dart';
 import 'theme/theme_controller.dart';
 import 'core/router.dart';
 
-void main() {
+import 'services/api_client.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await ApiClient().init();
   runApp(const GaadiManagerApp());
 }
 
