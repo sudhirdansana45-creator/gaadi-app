@@ -213,7 +213,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: _isBlacklisted
-                  ? AppColors.criticalBg.withOpacity(0.3)
+                  ? AppColors.criticalBg.withValues(alpha: 0.3)
                   : AppColors.surfaceCard,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
@@ -457,7 +457,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: _isBlacklisted ? AppColors.criticalBg.withOpacity(0.5) : AppColors.surfaceCard,
+              color: _isBlacklisted ? AppColors.criticalBg.withValues(alpha: 0.5) : AppColors.surfaceCard,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: _isBlacklisted ? AppColors.criticalBorder : AppColors.borderSubtle),
             ),
@@ -493,7 +493,8 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                     ),
                     Switch.adaptive(
                       value: _isBlacklisted,
-                      activeColor: AppColors.criticalRed,
+                      activeTrackColor: AppColors.criticalRed,
+                      activeThumbColor: Colors.white,
                       onChanged: (val) {
                         setState(() {
                           _isBlacklisted = val;

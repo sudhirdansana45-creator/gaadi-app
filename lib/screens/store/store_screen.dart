@@ -30,7 +30,7 @@ class StoreScreen extends StatelessWidget {
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(color: AppColors.primaryCyan.withOpacity(0.12), borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.primaryCyan)),
+                decoration: BoxDecoration(color: AppColors.primaryCyan.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.primaryCyan)),
                 child: const Row(
                   children: [
                     Icon(Icons.local_shipping_rounded, color: AppColors.primaryCyan, size: 14),

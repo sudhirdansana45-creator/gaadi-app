@@ -148,7 +148,8 @@ class _ReturnFinalBillScreenState extends State<ReturnFinalBillScreen> {
                     const Text('2. Return Damage & Penalty Inspection', style: TextStyle(color: AppColors.primaryCyan, fontWeight: FontWeight.bold, fontSize: 14)),
                     Switch(
                       value: _isDamaged,
-                      activeColor: AppColors.warningAmber,
+                      activeTrackColor: AppColors.warningAmber,
+                      activeThumbColor: Colors.white,
                       onChanged: (val) => setState(() => _isDamaged = val),
                     ),
                   ],

@@ -90,7 +90,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                 ],
               ),
             ),
-            if (actions != null) ...actions!,
+            ...?actions,
             GestureDetector(
               onTap: onNotificationTap,
               child: Container(

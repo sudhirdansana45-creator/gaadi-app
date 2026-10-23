@@ -111,7 +111,7 @@ class AppSidebar extends StatelessWidget {
                         color: isSelected ? AppColors.surfaceCard : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                         border: isSelected
-                            ? Border.all(color: AppColors.primaryCyan.withOpacity(0.3), width: 1)
+                            ? Border.all(color: AppColors.primaryCyan.withValues(alpha: 0.3), width: 1)
                             : null,
                       ),
                       child: Row(

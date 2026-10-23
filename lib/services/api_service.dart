@@ -157,7 +157,7 @@ class ApiService {
     return await _client.post(ApiConfig.bookingPayment(id), body: {
       'amount': amount,
       'payment_mode': paymentMode,
-      if (transactionRef != null) 'reference_id': transactionRef,
+      'reference_id': ?transactionRef,
     });
   }
 
@@ -192,7 +192,7 @@ class ApiService {
   Future<dynamic> toggleCustomerBlacklist(String id, {required bool isBlacklisted, String? reason}) async {
     return await _client.patch(ApiConfig.customerBlacklist(id), body: {
       'is_blacklisted': isBlacklisted,
-      if (reason != null) 'reason': reason,
+      'reason': ?reason,
     });
   }
 
@@ -225,7 +225,7 @@ class ApiService {
     return await _client.post(ApiConfig.partnerPayout(id), body: {
       'amount': amount,
       'payout_mode': mode,
-      if (note != null) 'note': note,
+      'note': ?note,
     });
   }
 
@@ -306,7 +306,7 @@ class ApiService {
 
   Future<dynamic> getReportsSummary({String? period}) async {
     return await _client.get(ApiConfig.reportsSummary, queryParams: {
-      if (period != null) 'period': period,
+      'period': ?period,
     });
   }
 }

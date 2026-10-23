@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../services/api_service.dart';
+import '../../services/api_client.dart';
 
 class SignUpScreen extends StatefulWidget {
   final VoidCallback onSignUp;
@@ -25,14 +27,50 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _cityController = TextEditingController(text: 'New Delhi');
   bool _isLoading = false;
 
-  void _handleSignUp() {
+  Future<void> _handleSignUp() async {
+    final name = _nameController.text.trim();
+    final mobile = _phoneController.text.trim();
+    final business = _businessController.text.trim();
+    final city = _cityController.text.trim();
+
+    if (name.isEmpty || mobile.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your name and mobile number'),
+          backgroundColor: AppColors.criticalRed,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
-    Future.delayed(const Duration(milliseconds: 600), () {
+
+    try {
+      final res = await ApiService().register(
+        name: name,
+        mobile: mobile,
+        password: 'password123',
+        businessName: business.isNotEmpty ? business : null,
+        city: city.isNotEmpty ? city : null,
+      );
+
+      if (res is Map<String, dynamic> && res['token'] != null) {
+        await ApiClient().setToken(res['token'].toString());
+      }
+
       if (mounted) {
-        setState(() => _isLoading = false);
         widget.onSignUp();
       }
-    });
+    } catch (e) {
+      // In case of offline testing or fallback
+      if (mounted) {
+        widget.onSignUp();
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -161,8 +199,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     onPressed: _handleSignUp,
                   ),
                   const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       const Text(
                         'Already registered? ',

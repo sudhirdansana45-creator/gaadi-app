@@ -87,7 +87,7 @@ class CustomButton extends StatelessWidget {
       textCol = AppColors.textPrimary;
     } else if (variant == ButtonVariant.outline) {
       bgColor = Colors.transparent;
-      borderCol = AppColors.primaryCyan.withOpacity(0.5);
+      borderCol = AppColors.primaryCyan.withValues(alpha: 0.5);
       textCol = AppColors.primaryCyan;
     } else if (variant == ButtonVariant.destructive) {
       bgColor = AppColors.criticalBg;

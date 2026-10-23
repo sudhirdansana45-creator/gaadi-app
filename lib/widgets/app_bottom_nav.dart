@@ -25,7 +25,7 @@ class AppBottomNav extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.canvasSub.withOpacity(0.85),
+              color: AppColors.canvasSub.withValues(alpha: 0.85),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: AppColors.borderHairline, width: 1.5),
               boxShadow: const [

@@ -92,7 +92,7 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
                         setState(() => _selectedFilter = filter);
                       }
                     },
-                    selectedColor: AppColors.primaryCyan.withOpacity(0.2),
+                    selectedColor: AppColors.primaryCyan.withValues(alpha: 0.2),
                     backgroundColor: AppColors.surfaceCard,
                     checkmarkColor: AppColors.primaryCyan,
                     labelStyle: TextStyle(
@@ -135,7 +135,7 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: c.isBlacklisted
-                        ? AppColors.criticalBg.withOpacity(0.4)
+                        ? AppColors.criticalBg.withValues(alpha: 0.4)
                         : AppColors.surfaceCard,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
