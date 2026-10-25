@@ -1,7 +1,7 @@
 import '../models/mock_models.dart';
 
 class MockData {
-  static final List<Vehicle> vehicles = [
+  static List<Vehicle> vehicles = [
     Vehicle(
       id: 'V001',
       name: 'Mahindra Thar 4x4',
@@ -116,7 +116,7 @@ class MockData {
     ),
   ];
 
-  static final List<Booking> bookings = [
+  static List<Booking> bookings = [
     Booking(
       id: 'BK-1089',
       customerName: 'Rahul Verma',
@@ -192,7 +192,7 @@ class MockData {
     ),
   ];
 
-  static final List<Customer> customers = [
+  static List<Customer> customers = [
     Customer(
       id: 'CUST-01',
       name: 'Rahul Verma',
@@ -248,7 +248,7 @@ class MockData {
     ),
   ];
 
-  static final List<Partner> partners = [
+  static List<Partner> partners = [
     Partner(
       id: 'PTR-01',
       name: 'Suresh Kumar',
@@ -291,7 +291,7 @@ class MockData {
     ),
   ];
 
-  static final List<StoreProduct> storeProducts = [
+  static List<StoreProduct> storeProducts = [
     StoreProduct(
       id: 'PRD-01',
       title: 'Fleet 4G Live GPS Tracker',
@@ -330,7 +330,7 @@ class MockData {
     ),
   ];
 
-  static final List<StaffUser> staffUsers = [
+  static List<StaffUser> staffUsers = [
     StaffUser(
       id: 'USR-01',
       name: 'Rajesh Sharma',

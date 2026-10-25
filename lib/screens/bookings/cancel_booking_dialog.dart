@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
+import '../../services/api_service.dart';
 
 class CancelBookingDialog extends StatelessWidget {
   final String bookingId;
@@ -49,8 +50,14 @@ class CancelBookingDialog extends StatelessWidget {
                 text: 'Confirm Cancel',
                 variant: ButtonVariant.destructive,
                 height: 40,
-                onPressed: () {
+                onPressed: () async {
                   Navigator.pop(context);
+                  try {
+                    await ApiService().cancelBooking(
+                      bookingId,
+                      reason: 'Cancelled by operator via booking desk.',
+                    );
+                  } catch (_) {}
                   onCancelledConfirmed();
                 },
               ),

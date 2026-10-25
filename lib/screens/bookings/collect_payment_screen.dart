@@ -5,6 +5,7 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/lock_badge.dart';
 import '../../screens/modals/locked_feature_sheet.dart';
 import '../../models/mock_models.dart';
+import '../../services/api_service.dart';
 
 class CollectPaymentScreen extends StatefulWidget {
   final Booking? booking;
@@ -281,14 +282,22 @@ class _CollectPaymentScreenState extends State<CollectPaymentScreen> {
                   text: 'Confirm & Record Payment',
                   icon: Icons.check_circle_rounded,
                   isLoading: _isLoading,
-                  onPressed: () {
+                  onPressed: () async {
                     setState(() => _isLoading = true);
-                    Future.delayed(const Duration(milliseconds: 600), () {
-                      if (mounted) {
-                        setState(() => _isLoading = false);
-                        _showSuccessState(enteredAmount, remainingBalance);
-                      }
-                    });
+                    if (widget.booking != null) {
+                      try {
+                        await ApiService().recordBookingPayment(
+                          widget.booking!.id,
+                          amount: enteredAmount,
+                          paymentMode: _selectedMode,
+                          transactionRef: _refController.text.trim(),
+                        );
+                      } catch (_) {}
+                    }
+                    if (mounted) {
+                      setState(() => _isLoading = false);
+                      _showSuccessState(enteredAmount, remainingBalance);
+                    }
                   },
                 ),
               ],

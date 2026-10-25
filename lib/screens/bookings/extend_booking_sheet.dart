@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_bottom_sheet.dart';
+import '../../services/api_service.dart';
 
 class ExtendBookingSheet extends StatefulWidget {
   final String bookingId;
@@ -36,9 +37,16 @@ class _ExtendBookingSheetState extends State<ExtendBookingSheet> {
       title: 'Extend Trip Duration',
       subtitle: 'Booking ${widget.bookingId} • ${widget.vehicleName}',
       primaryActionText: 'Confirm Extension (₹${_additionalAmount.toInt()})',
-      onPrimaryAction: () {
+      onPrimaryAction: () async {
         Navigator.pop(context);
         final newEndDate = DateTime.now().add(Duration(days: _extraDays + 1));
+        try {
+          await ApiService().extendBooking(
+            widget.bookingId,
+            newEndDate: newEndDate.toIso8601String(),
+            extraAmount: _additionalAmount,
+          );
+        } catch (_) {}
         widget.onExtendConfirmed(_additionalAmount, newEndDate);
       },
       content: Column(

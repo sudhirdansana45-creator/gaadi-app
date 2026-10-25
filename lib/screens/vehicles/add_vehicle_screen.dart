@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
+import '../../models/mock_models.dart';
+import '../../data/mock_data.dart';
+import '../../services/api_service.dart';
 
 class AddVehicleScreen extends StatefulWidget {
   final VoidCallback onSaved;
@@ -35,21 +38,69 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 
   bool _isLoading = false;
 
-  void _handlePublish() {
+  Future<void> _handlePublish() async {
     setState(() => _isLoading = true);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('🚀 Vehicle DL 01 AB 7729 live on fleet!'),
-        backgroundColor: Color(0xFF06B6D4),
-        duration: Duration(seconds: 2),
-      ),
-    );
-    Future.delayed(const Duration(milliseconds: 800), () {
+    final regNo = _regController.text.trim();
+    final name = _nameController.text.trim();
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final res = await ApiService().createVehicle(
+        fields: {
+          'name': name.isNotEmpty ? name : 'New Fleet Vehicle',
+          'number': regNo.isNotEmpty ? regNo : 'DL 01 AB 7729',
+          'type': _selectedCategory,
+          'fuel_type': _selectedFuel,
+          'daily_rate': _dailyRateCtrl.text.trim(),
+          'hourly_rate': _hourlyRateCtrl.text.trim(),
+          'security_deposit': _depositCtrl.text.trim(),
+          'extra_km_rate': _extraKmCtrl.text.trim(),
+          'color': _colorController.text.trim(),
+          'year': _mfgYearController.text.trim(),
+        },
+      );
+      if (res != null && res['data'] != null) {
+        final newVehicle = Vehicle.fromJson(res['data'] as Map<String, dynamic>);
+        MockData.vehicles.insert(0, newVehicle);
+      } else {
+        _insertLocalVehicle();
+      }
+    } catch (_) {
+      _insertLocalVehicle();
+    } finally {
       if (mounted) {
         setState(() => _isLoading = false);
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('🚀 Vehicle $regNo live on fleet!'),
+            backgroundColor: const Color(0xFF06B6D4),
+            duration: const Duration(seconds: 2),
+          ),
+        );
         widget.onSaved();
       }
-    });
+    }
+  }
+
+  void _insertLocalVehicle() {
+    MockData.vehicles.insert(
+      0,
+      Vehicle(
+        id: 'V${DateTime.now().millisecondsSinceEpoch % 10000}',
+        name: _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : 'New Vehicle',
+        regNumber: _regController.text.trim().isNotEmpty ? _regController.text.trim() : 'DL 01 AB 7729',
+        category: _selectedCategory.toUpperCase(),
+        fuelType: _selectedFuel,
+        transmission: 'Manual',
+        dailyRate: double.tryParse(_dailyRateCtrl.text) ?? 2400.0,
+        hourlyRate: double.tryParse(_hourlyRateCtrl.text) ?? 250.0,
+        securityDeposit: double.tryParse(_depositCtrl.text) ?? 3000.0,
+        odometerKm: 0,
+        fuelLevelPercent: 100.0,
+        status: VehicleStatus.available,
+        imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800',
+        assignedPartner: _ownershipMode == 'partner' ? _partnerNameCtrl.text : 'Direct Fleet',
+      ),
+    );
   }
 
   @override

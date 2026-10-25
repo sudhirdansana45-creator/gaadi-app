@@ -4,6 +4,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/status_chip.dart';
 import '../../models/mock_models.dart';
+import '../../services/api_service.dart';
 
 class ReturnFinalBillScreen extends StatefulWidget {
   final Booking? booking;
@@ -229,14 +230,25 @@ class _ReturnFinalBillScreenState extends State<ReturnFinalBillScreen> {
                   text: 'Settle Bill & Close Booking',
                   icon: Icons.check_circle_outline_rounded,
                   isLoading: _isLoading,
-                  onPressed: () {
+                  onPressed: () async {
                     setState(() => _isLoading = true);
-                    Future.delayed(const Duration(milliseconds: 600), () {
-                      if (mounted) {
-                        setState(() => _isLoading = false);
-                        widget.onBillSettled();
-                      }
-                    });
+                    if (widget.booking != null) {
+                      try {
+                        await ApiService().returnSettlement(
+                          widget.booking!.id,
+                          endOdometer: endKm,
+                          extraKmCharge: _extraKmCharge,
+                          fuelCharge: 0.0,
+                          damageDeduction: damageCharge,
+                          finalSettlementAmount: netRefundToCustomer.abs(),
+                          paymentMode: 'Cash',
+                        );
+                      } catch (_) {}
+                    }
+                    if (mounted) {
+                      setState(() => _isLoading = false);
+                      widget.onBillSettled();
+                    }
                   },
                 ),
               ],

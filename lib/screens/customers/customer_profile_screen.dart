@@ -5,6 +5,7 @@ import '../../widgets/status_chip.dart';
 import '../../widgets/app_bottom_sheet.dart';
 import '../../models/mock_models.dart';
 import '../../data/mock_data.dart';
+import '../../services/api_service.dart';
 
 class CustomerProfileScreen extends StatefulWidget {
   final Customer customer;
@@ -188,6 +189,14 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
       widget.customer.isBlacklisted = _isBlacklisted;
       widget.customer.blacklistReason = _isBlacklisted ? _reasonController.text : null;
     });
+
+    try {
+      ApiService().toggleCustomerBlacklist(
+        widget.customer.id,
+        isBlacklisted: _isBlacklisted,
+        reason: _reasonController.text.trim(),
+      );
+    } catch (_) {}
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

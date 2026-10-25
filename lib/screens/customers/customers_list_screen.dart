@@ -3,6 +3,8 @@ import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/status_chip.dart';
 import '../../data/mock_data.dart';
+import '../../models/mock_models.dart';
+import '../../services/api_service.dart';
 
 class CustomersListScreen extends StatefulWidget {
   final Function(String route, {dynamic args}) onNavigate;
@@ -19,8 +21,38 @@ class CustomersListScreen extends StatefulWidget {
 class _CustomersListScreenState extends State<CustomersListScreen> {
   String _search = '';
   String _selectedFilter = 'All';
+  bool _isLoading = false;
 
   final List<String> _filters = ['All', 'Verified', 'Blacklisted', 'Due'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCustomers();
+  }
+
+  Future<void> _loadCustomers() async {
+    setState(() => _isLoading = true);
+    try {
+      final res = await ApiService().getCustomers();
+      if (res != null && res['data'] != null) {
+        final list = (res['data'] as List)
+            .map((item) => Customer.fromJson(item as Map<String, dynamic>))
+            .toList();
+        if (mounted && list.isNotEmpty) {
+          setState(() {
+            MockData.customers = list;
+          });
+        }
+      }
+    } catch (_) {
+      // Offline fallback
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,14 +72,28 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
       return true;
     }).toList();
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
+    return RefreshIndicator(
+      onRefresh: _loadCustomers,
+      color: AppColors.primaryCyan,
+      backgroundColor: AppColors.surfaceCard,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: LinearProgressIndicator(
+                  color: AppColors.primaryCyan,
+                  backgroundColor: AppColors.canvasLow,
+                  minHeight: 2,
+                ),
+              ),
+            Row(
+              children: [
+                Expanded(
                 child: TextField(
                   onChanged: (val) => setState(() => _search = val),
                   style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
@@ -277,6 +323,7 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
           const SizedBox(height: 110), // Gap to prevent overlap with bottom tab menu
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

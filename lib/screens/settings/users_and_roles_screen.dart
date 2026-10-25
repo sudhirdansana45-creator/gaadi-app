@@ -6,6 +6,7 @@ import '../../widgets/counter_chip.dart';
 import '../../widgets/info_note.dart';
 import '../../widgets/status_chip.dart';
 import '../../widgets/app_bottom_sheet.dart';
+import '../../services/api_service.dart';
 
 class UsersAndRolesScreen extends StatefulWidget {
   final VoidCallback onBack;
@@ -22,6 +23,7 @@ class UsersAndRolesScreen extends StatefulWidget {
 class _UsersAndRolesScreenState extends State<UsersAndRolesScreen> {
   // Local staff list state for demo toggle
   late List<_StaffModel> _staffList;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -52,9 +54,39 @@ class _UsersAndRolesScreenState extends State<UsersAndRolesScreen> {
         isDisabledByPlan: true,
       ),
     ];
+    _loadStaff();
+  }
+
+  Future<void> _loadStaff() async {
+    setState(() => _isLoading = true);
+    try {
+      final res = await ApiService().getStaffUsers();
+      if (res != null && res['data'] is List && mounted) {
+        final List list = res['data'];
+        if (list.isNotEmpty) {
+          final mapped = list.map((s) {
+            return _StaffModel(
+              id: s['id']?.toString() ?? '',
+              name: s['name']?.toString() ?? '',
+              phone: s['mobile']?.toString() ?? s['phone']?.toString() ?? '',
+              role: (s['role']?.toString() ?? 'Staff').toUpperCase().substring(0, 1) +
+                  (s['role']?.toString() ?? 'staff').substring(1),
+              isActive: s['is_active'] == true || s['is_active'] == 1,
+              isDisabledByPlan: false,
+            );
+          }).toList();
+          setState(() => _staffList = mapped);
+        }
+      }
+    } catch (_) {
+      // Fallback
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   void _showAddUserSheet() {
+    final messenger = ScaffoldMessenger.of(context);
     String name = '';
     String phone = '';
     String selectedRole = 'Manager';
@@ -79,22 +111,31 @@ class _UsersAndRolesScreenState extends State<UsersAndRolesScreen> {
               title: 'Add Staff Account',
               subtitle: 'Create login credentials & assign access role',
               primaryActionText: 'Save & Send Invite',
-              onPrimaryAction: () {
+              onPrimaryAction: () async {
                 if (name.trim().isEmpty) return;
-                setState(() {
-                  _staffList.add(
-                    _StaffModel(
-                      id: 'USR-0${_staffList.length + 1}',
-                      name: name,
-                      phone: phone.isEmpty ? '+91 98000 00000' : phone,
-                      role: selectedRole,
-                      isActive: true,
-                      isDisabledByPlan: false,
-                    ),
-                  );
-                });
                 Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
+                try {
+                  await ApiService().createStaffUser(
+                    name: name.trim(),
+                    phone: phone.trim().isNotEmpty ? phone.trim() : '9800000000',
+                    role: selectedRole.toLowerCase(),
+                  );
+                  _loadStaff();
+                } catch (_) {
+                  setState(() {
+                    _staffList.add(
+                      _StaffModel(
+                        id: 'USR-0${_staffList.length + 1}',
+                        name: name,
+                        phone: phone.isEmpty ? '+91 98000 00000' : phone,
+                        role: selectedRole,
+                        isActive: true,
+                        isDisabledByPlan: false,
+                      ),
+                    );
+                  });
+                }
+                messenger.showSnackBar(
                   SnackBar(
                     content: Text('Staff user "$name" created successfully.'),
                     backgroundColor: AppColors.successGreen,
@@ -191,17 +232,31 @@ class _UsersAndRolesScreenState extends State<UsersAndRolesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
-                onPressed: widget.onBack,
+    return RefreshIndicator(
+      onRefresh: _loadStaff,
+      color: AppColors.primaryCyan,
+      backgroundColor: AppColors.surfaceCard,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: LinearProgressIndicator(
+                  color: AppColors.primaryCyan,
+                  backgroundColor: AppColors.canvasLow,
+                  minHeight: 2,
+                ),
               ),
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
+                  onPressed: widget.onBack,
+                ),
               const SizedBox(width: 4),
               const Expanded(
                 child: Column(
@@ -323,6 +378,7 @@ class _UsersAndRolesScreenState extends State<UsersAndRolesScreen> {
                               setState(() {
                                 user.isActive = v;
                               });
+                              ApiService().toggleStaffStatus(user.id, v).catchError((_) => null);
                             },
                           ),
                       ],
@@ -362,8 +418,9 @@ class _UsersAndRolesScreenState extends State<UsersAndRolesScreen> {
           const SizedBox(height: 110),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _StaffModel {

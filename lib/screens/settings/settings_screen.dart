@@ -4,6 +4,7 @@ import '../../theme/theme_controller.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/lock_badge.dart';
 import '../../data/dummy_plan_data.dart';
+import '../../services/api_service.dart';
 import '../modals/locked_feature_sheet.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -216,7 +217,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             text: 'Logout from Operator Desk',
             variant: ButtonVariant.destructive,
             icon: Icons.power_settings_new_rounded,
-            onPressed: widget.onLogout,
+            onPressed: () async {
+              try {
+                await ApiService().logout();
+              } catch (_) {}
+              widget.onLogout();
+            },
           ),
           const SizedBox(height: 110),
         ],

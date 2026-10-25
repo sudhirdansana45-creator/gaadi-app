@@ -6,6 +6,7 @@ import '../../widgets/counter_chip.dart';
 import '../../data/mock_data.dart';
 import '../../data/dummy_plan_data.dart';
 import '../../models/mock_models.dart';
+import '../../services/api_service.dart';
 
 class NewBookingScreen extends StatefulWidget {
   final Vehicle? preselectedVehicle;
@@ -330,18 +331,67 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
             text: 'Confirm & Generate Booking',
             icon: Icons.check_circle_outline_rounded,
             isLoading: _isLoading,
-            onPressed: () {
+            onPressed: () async {
               setState(() => _isLoading = true);
-              Future.delayed(const Duration(milliseconds: 600), () {
+              try {
+                final now = DateTime.now();
+                final endAt = _isHourlyRate
+                    ? now.add(Duration(hours: _rentalDuration))
+                    : now.add(Duration(days: _rentalDuration));
+
+                final res = await ApiService().createBooking({
+                  'vehicle_id': _selectedVehicle.id,
+                  'customer_name': _selectedCustomer.name,
+                  'customer_mobile': _selectedCustomer.phone,
+                  'start_at': now.toIso8601String(),
+                  'end_at': endAt.toIso8601String(),
+                  'amount': totalRent,
+                  'advance_paid': _advancePaid,
+                  'security_deposit': securityDeposit,
+                  'payment_mode': _paymentMode,
+                });
+                if (res != null && res['data'] != null) {
+                  final newBooking = Booking.fromJson(res['data'] as Map<String, dynamic>);
+                  MockData.bookings.insert(0, newBooking);
+                } else {
+                  _insertLocalBooking(totalPayable, remainingBalance, securityDeposit);
+                }
+              } catch (_) {
+                _insertLocalBooking(totalPayable, remainingBalance, securityDeposit);
+              } finally {
                 if (mounted) {
                   setState(() => _isLoading = false);
                   widget.onBookingCreated();
                 }
-              });
+              }
             },
           ),
           const SizedBox(height: 110), // Gap to prevent overlap with bottom tab menu
         ],
+      ),
+    );
+  }
+
+  void _insertLocalBooking(double totalPayable, double remainingBalance, double securityDeposit) {
+    MockData.bookings.insert(
+      0,
+      Booking(
+        id: 'BK-${DateTime.now().millisecondsSinceEpoch % 10000}',
+        customerName: _selectedCustomer.name,
+        customerPhone: _selectedCustomer.phone,
+        vehicleName: _selectedVehicle.name,
+        vehicleRegNumber: _selectedVehicle.regNumber,
+        startDate: DateTime.now(),
+        endDate: DateTime.now().add(Duration(days: _rentalDuration)),
+        totalAmount: totalPayable,
+        advancePaid: _advancePaid,
+        pendingAmount: remainingBalance,
+        securityDeposit: securityDeposit,
+        status: BookingStatus.active,
+        startOdometer: _selectedVehicle.odometerKm,
+        paymentMode: _paymentMode,
+        kycDocType: 'Aadhaar Card',
+        kycDocNumber: 'Verified',
       ),
     );
   }

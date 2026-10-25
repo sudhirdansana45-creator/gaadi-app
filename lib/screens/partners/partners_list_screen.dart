@@ -7,15 +7,52 @@ import '../../widgets/lock_badge.dart';
 import '../../data/mock_data.dart';
 import '../../data/dummy_plan_data.dart';
 import '../../models/mock_models.dart';
+import '../../services/api_service.dart';
 import '../modals/locked_feature_sheet.dart';
 
-class PartnersListScreen extends StatelessWidget {
+class PartnersListScreen extends StatefulWidget {
   final Function(String route, {dynamic args}) onNavigate;
 
   const PartnersListScreen({
     super.key,
     required this.onNavigate,
   });
+
+  @override
+  State<PartnersListScreen> createState() => _PartnersListScreenState();
+}
+
+class _PartnersListScreenState extends State<PartnersListScreen> {
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPartners();
+  }
+
+  Future<void> _loadPartners() async {
+    setState(() => _isLoading = true);
+    try {
+      final res = await ApiService().getPartners();
+      if (res != null && res['data'] != null) {
+        final list = (res['data'] as List)
+            .map((item) => Partner.fromJson(item as Map<String, dynamic>))
+            .toList();
+        if (mounted && list.isNotEmpty) {
+          setState(() {
+            MockData.partners = list;
+          });
+        }
+      }
+    } catch (_) {
+      // Offline fallback
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   void _showLimitReachedSheet(BuildContext context) {
     showModalBottomSheet(
@@ -26,7 +63,7 @@ class PartnersListScreen extends StatelessWidget {
         onClose: () => Navigator.pop(ctx),
         onUpgrade: () {
           Navigator.pop(ctx);
-          onNavigate('plans');
+          widget.onNavigate('plans');
         },
       ),
     );
@@ -36,76 +73,90 @@ class PartnersListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isLimitReached = DummyPlanData().usage.isPartnerLimitReached;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Counter Chip at the top
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  CounterChip(
-                    count: DummyPlanData().usage.partnersUsed,
-                    limit: DummyPlanData().usage.partnerLimit,
-                    label: 'partners used',
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => onNavigate('plans'),
-                    child: const Text(
-                      'Upgrade',
-                      style: TextStyle(
-                        color: AppColors.primaryCyan,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        decoration: TextDecoration.underline,
-                        decorationColor: AppColors.primaryCyan,
+    return RefreshIndicator(
+      onRefresh: _loadPartners,
+      color: AppColors.primaryCyan,
+      backgroundColor: AppColors.surfaceCard,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: LinearProgressIndicator(
+                  color: AppColors.primaryCyan,
+                  backgroundColor: AppColors.canvasLow,
+                  minHeight: 2,
+                ),
+              ),
+            // Counter Chip at the top
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    CounterChip(
+                      count: DummyPlanData().usage.partnersUsed,
+                      limit: DummyPlanData().usage.partnerLimit,
+                      label: 'partners used',
+                    ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () => widget.onNavigate('plans'),
+                      child: const Text(
+                        'Upgrade',
+                        style: TextStyle(
+                          color: AppColors.primaryCyan,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColors.primaryCyan,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              if (isLimitReached)
-                InkWell(
-                  onTap: () => _showLimitReachedSheet(context),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.warningBg,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.warningBorder),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.lock_rounded, color: AppColors.warningAmber, size: 14),
-                        SizedBox(width: 6),
-                        Text(
-                          '+ Add Partner',
-                          style: TextStyle(
-                            color: AppColors.warningAmber,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(width: 6),
-                        LockBadge(planPrice: '₹99', isSmall: true),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                CustomButton(
-                  text: '+ Add Partner',
-                  width: 130,
-                  height: 40,
-                  onPressed: () => onNavigate('add_edit_partner'),
+                  ],
                 ),
-            ],
-          ),
+                if (isLimitReached)
+                  InkWell(
+                    onTap: () => _showLimitReachedSheet(context),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.warningBg,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.warningBorder),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.lock_rounded, color: AppColors.warningAmber, size: 14),
+                          SizedBox(width: 6),
+                          Text(
+                            '+ Add Partner',
+                            style: TextStyle(
+                              color: AppColors.warningAmber,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 6),
+                          LockBadge(planPrice: '₹99', isSmall: true),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  CustomButton(
+                    text: '+ Add Partner',
+                    width: 120,
+                    height: 38,
+                    onPressed: () => widget.onNavigate('add_edit_partner'),
+                  ),
+              ],
+            ),
           const SizedBox(height: 16),
 
           const Column(
@@ -222,7 +273,7 @@ class PartnersListScreen extends StatelessWidget {
                             text: 'View Ledger & Payout',
                             variant: ButtonVariant.secondary,
                             height: 38,
-                            onPressed: () => onNavigate('partner_ledger', args: p),
+                            onPressed: () => widget.onNavigate('partner_ledger', args: p),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -231,7 +282,7 @@ class PartnersListScreen extends StatelessWidget {
                           variant: ButtonVariant.outline,
                           width: 80,
                           height: 38,
-                          onPressed: () => onNavigate('add_edit_partner', args: p),
+                          onPressed: () => widget.onNavigate('add_edit_partner', args: p),
                         ),
                       ],
                     ),
@@ -243,8 +294,9 @@ class PartnersListScreen extends StatelessWidget {
           const SizedBox(height: 110), // Gap to prevent overlap with bottom tab menu
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _col(String title, String val, {bool isHigh = false}) {
     return Column(

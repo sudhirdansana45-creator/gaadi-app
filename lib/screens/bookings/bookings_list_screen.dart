@@ -6,6 +6,7 @@ import '../../widgets/custom_button.dart';
 import '../../data/mock_data.dart';
 import '../../models/mock_models.dart';
 import '../../core/plan_guard.dart';
+import '../../services/api_service.dart';
 import '../modals/daily_limit_modal.dart';
 
 class BookingsListScreen extends StatefulWidget {
@@ -23,11 +24,36 @@ class BookingsListScreen extends StatefulWidget {
 class _BookingsListScreenState extends State<BookingsListScreen> {
   late String _selectedFilter;
   String _searchQuery = '';
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _selectedFilter = widget.initialFilter ?? 'All';
+    _loadBookings();
+  }
+
+  Future<void> _loadBookings() async {
+    setState(() => _isLoading = true);
+    try {
+      final res = await ApiService().getBookings();
+      if (res != null && res['data'] != null) {
+        final list = (res['data'] as List)
+            .map((item) => Booking.fromJson(item as Map<String, dynamic>))
+            .toList();
+        if (mounted && list.isNotEmpty) {
+          setState(() {
+            MockData.bookings = list;
+          });
+        }
+      }
+    } catch (_) {
+      // Offline fallback
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   void _onNewBookingTap() {
@@ -74,11 +100,25 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: RefreshIndicator(
+          onRefresh: _loadBookings,
+          color: AppColors.primaryCyan,
+          backgroundColor: AppColors.surfaceCard,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (_isLoading)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 8),
+                    child: LinearProgressIndicator(
+                      color: AppColors.primaryCyan,
+                      backgroundColor: AppColors.canvasLow,
+                      minHeight: 2,
+                    ),
+                  ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -246,6 +286,7 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
           ),
         ),
       ),
+    ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primaryCyan,
         onPressed: _onNewBookingTap,

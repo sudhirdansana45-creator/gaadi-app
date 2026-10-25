@@ -5,6 +5,7 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/app_bottom_sheet.dart';
 import '../../widgets/success_dialog.dart';
 import '../../models/mock_models.dart';
+import '../../services/api_service.dart';
 
 class ProductDetailEnquiryScreen extends StatefulWidget {
   final StoreProduct product;
@@ -99,18 +100,30 @@ class _ProductDetailEnquiryScreenState extends State<ProductDetailEnquiryScreen>
         },
       ),
       primaryActionText: 'Send Enquiry',
-      onPrimaryAction: () {
+      onPrimaryAction: () async {
         Navigator.pop(context);
-        SuccessDialog.show(
-          context: context,
-          title: 'Enquiry Sent',
-          message: 'Enquiry sent. Our team will contact you soon.',
-          primaryButtonText: 'OK',
-          onPrimaryPressed: () {
-            Navigator.pop(context);
-            widget.onBack();
-          },
-        );
+        try {
+          await ApiService().placeStoreOrder(
+            productId: widget.product.id,
+            quantity: enquiryQty,
+            shippingAddress: noteCtrl.text.trim().isNotEmpty ? noteCtrl.text.trim() : 'Store Garage Delivery',
+            contactPhone: phoneCtrl.text.trim(),
+          );
+        } catch (_) {
+          // Offline fallback
+        }
+        if (mounted) {
+          SuccessDialog.show(
+            context: context,
+            title: 'Enquiry Sent',
+            message: 'Enquiry sent. Our team will contact you soon.',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () {
+              Navigator.pop(context);
+              widget.onBack();
+            },
+          );
+        }
       },
     );
   }

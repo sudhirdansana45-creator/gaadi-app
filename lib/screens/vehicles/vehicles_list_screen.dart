@@ -4,6 +4,7 @@ import '../../widgets/status_chip.dart';
 import '../../widgets/custom_button.dart';
 import '../../data/mock_data.dart';
 import '../../models/mock_models.dart';
+import '../../services/api_service.dart';
 
 class VehiclesListScreen extends StatefulWidget {
   final Function(String route, {dynamic args}) onNavigate;
@@ -21,6 +22,36 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
   String _selectedCategory = 'All'; // 'All', 'Cars', 'Bikes'
   String _selectedFilter = 'All Status';
   String _searchQuery = '';
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVehicles();
+  }
+
+  Future<void> _loadVehicles() async {
+    setState(() => _isLoading = true);
+    try {
+      final res = await ApiService().getVehicles();
+      if (res != null && res['data'] != null) {
+        final list = (res['data'] as List)
+            .map((item) => Vehicle.fromJson(item as Map<String, dynamic>))
+            .toList();
+        if (mounted && list.isNotEmpty) {
+          setState(() {
+            MockData.vehicles = list;
+          });
+        }
+      }
+    } catch (_) {
+      // Offline fallback
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,11 +92,25 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Vehicle', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: RefreshIndicator(
+        onRefresh: _loadVehicles,
+        color: AppColors.primaryCyan,
+        backgroundColor: AppColors.surfaceCard,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (_isLoading)
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 8),
+                  child: LinearProgressIndicator(
+                    color: AppColors.primaryCyan,
+                    backgroundColor: AppColors.canvasLow,
+                    minHeight: 2,
+                  ),
+                ),
             // Search & Add Button Header
             Row(
               children: [
@@ -174,8 +219,9 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _categoryTab(String key, String title, IconData icon) {
     final isSelected = _selectedCategory == key;

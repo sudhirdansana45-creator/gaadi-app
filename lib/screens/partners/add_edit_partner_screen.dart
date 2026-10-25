@@ -5,6 +5,7 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/info_note.dart';
 import '../../models/mock_models.dart';
 import '../../data/mock_data.dart';
+import '../../services/api_service.dart';
 
 class AddEditPartnerScreen extends StatefulWidget {
   final Partner? partner;
@@ -67,6 +68,56 @@ class _AddEditPartnerScreenState extends State<AddEditPartnerScreen> {
     _bankCtrl.dispose();
     _upiCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleSave() async {
+    if (_nameCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter partner name')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final payload = <String, dynamic>{
+      'name': _nameCtrl.text.trim(),
+      'phone': _phoneCtrl.text.trim(),
+      'mobile': _phoneCtrl.text.trim(),
+      'share_type': _payoutType,
+      'share_value': _payoutType == 'percentage'
+          ? (double.tryParse(_splitCtrl.text) ?? 70.0)
+          : (double.tryParse(_fixedAmtCtrl.text) ?? 15000.0),
+    };
+
+    try {
+      if (widget.partner == null) {
+        await ApiService().createPartner(payload);
+      } else {
+        await ApiService().updatePartner(widget.partner!.id, payload);
+      }
+    } catch (e) {
+      // Offline fallback
+      if (widget.partner == null) {
+        MockData.partners.add(
+          Partner(
+            id: 'P${DateTime.now().millisecondsSinceEpoch}',
+            name: _nameCtrl.text.trim(),
+            phone: _phoneCtrl.text.trim(),
+            profitSplitPercent: double.tryParse(_splitCtrl.text) ?? 70,
+            assignedVehicleIds: _selectedVehicleIds.toList(),
+            payoutType: _payoutType,
+            fixedPayoutAmount: double.tryParse(_fixedAmtCtrl.text) ?? 0,
+            fixedPayoutFrequency: _fixedFrequency,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        widget.onSaved();
+      }
+    }
   }
 
   @override
@@ -362,15 +413,7 @@ class _AddEditPartnerScreenState extends State<AddEditPartnerScreen> {
                   text: widget.partner == null ? 'Save Partner Record' : 'Update Partner Record',
                   icon: Icons.check_circle_outline_rounded,
                   isLoading: _isLoading,
-                  onPressed: () {
-                    setState(() => _isLoading = true);
-                    Future.delayed(const Duration(milliseconds: 600), () {
-                      if (mounted) {
-                        setState(() => _isLoading = false);
-                        widget.onSaved();
-                      }
-                    });
-                  },
+                  onPressed: _handleSave,
                 ),
               ],
             ),

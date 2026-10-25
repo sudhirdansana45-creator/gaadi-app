@@ -3,9 +3,11 @@ import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../data/mock_data.dart';
 import '../../data/dummy_plan_data.dart';
+import '../../services/api_service.dart';
+import '../../models/mock_models.dart';
 import '../modals/daily_limit_modal.dart';
 
-class HomeDashboardScreen extends StatelessWidget {
+class HomeDashboardScreen extends StatefulWidget {
   final Function(String route, {dynamic args}) onNavigate;
 
   const HomeDashboardScreen({
@@ -13,56 +15,118 @@ class HomeDashboardScreen extends StatelessWidget {
     required this.onNavigate,
   });
 
+  @override
+  State<HomeDashboardScreen> createState() => _HomeDashboardScreenState();
+}
+
+class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
+  Map<String, dynamic>? _dashboardStats;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDashboardData();
+  }
+
+  Future<void> _loadDashboardData() async {
+    setState(() => _isLoading = true);
+    try {
+      final res = await ApiService().getDashboardStats();
+      if (res != null && res['data'] != null) {
+        if (mounted) {
+          setState(() {
+            _dashboardStats = res['data'] as Map<String, dynamic>;
+          });
+        }
+        final recent = res['data']['recent_bookings'] as List?;
+        if (recent != null && recent.isNotEmpty) {
+          for (final item in recent) {
+            try {
+              final b = Booking.fromJson(item as Map<String, dynamic>);
+              final idx = MockData.bookings.indexWhere((existing) => existing.id == b.id);
+              if (idx == -1) {
+                MockData.bookings.insert(0, b);
+              } else {
+                MockData.bookings[idx] = b;
+              }
+            } catch (_) {}
+          }
+        }
+      }
+    } catch (_) {
+      // Offline fallback: keep cached data
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   void _handleNewBookingTap(BuildContext context) {
     if (DummyPlanData().usage.isDailyBillLimitReached) {
       DailyLimitModal.show(
         context: context,
-        onUpgrade: () => onNavigate('plans_and_usage'),
+        onUpgrade: () => widget.onNavigate('plans_and_usage'),
       );
     } else {
-      onNavigate('new_booking');
+      widget.onNavigate('new_booking');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 0. Plan Expiry / Grace Banner
-          _buildPlanStateBanner(context),
+    return RefreshIndicator(
+      onRefresh: _loadDashboardData,
+      color: AppColors.primaryCyan,
+      backgroundColor: const Color(0xFF1B1F2B),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: LinearProgressIndicator(
+                  color: AppColors.primaryCyan,
+                  backgroundColor: AppColors.canvasLow,
+                  minHeight: 2,
+                ),
+              ),
+            // 0. Plan Expiry / Grace Banner
+            _buildPlanStateBanner(context),
 
-          // 1. Top Greeting & Business Snapshot Section
-          _buildGreetingHeader(context),
-          const SizedBox(height: 16),
+            // 1. Top Greeting & Business Snapshot Section
+            _buildGreetingHeader(context),
+            const SizedBox(height: 16),
 
-          // 2. Plan Usage Counter Card ("Daily Invoice Quota")
-          _buildInvoiceQuotaCard(context),
-          const SizedBox(height: 20),
+            // 2. Plan Usage Counter Card ("Daily Invoice Quota")
+            _buildInvoiceQuotaCard(context),
+            const SizedBox(height: 20),
 
-          // 3. Operational Quick Actions Row ("Express Desk")
-          _buildExpressDeskRow(context),
-          const SizedBox(height: 20),
+            // 3. Operational Quick Actions Row ("Express Desk")
+            _buildExpressDeskRow(context),
+            const SizedBox(height: 20),
 
-          // 4. Metrics & Operations Grid ("Today's Pulse")
-          _buildTodaysPulseGrid(context),
-          const SizedBox(height: 20),
+            // 4. Metrics & Operations Grid ("Today's Pulse")
+            _buildTodaysPulseGrid(context),
+            const SizedBox(height: 20),
 
-          // 5. Highlighted Offer Banner ("Fleet 4G Live GPS")
-          _buildGpsOfferBanner(context),
-          const SizedBox(height: 20),
+            // 5. Highlighted Offer Banner ("Fleet 4G Live GPS")
+            _buildGpsOfferBanner(context),
+            const SizedBox(height: 20),
 
-          // 6. Recent Activity / Priority Returns List
-          _buildPriorityReturnsSection(context),
-          const SizedBox(height: 16),
+            // 6. Recent Activity / Priority Returns List
+            _buildPriorityReturnsSection(context),
+            const SizedBox(height: 16),
 
-          // 7. Garage Quick Stat Strip
-          _buildGarageStatStrip(context),
-          const SizedBox(height: 110), // Gap to prevent overlap with bottom tab menu
-        ],
+            // 7. Garage Quick Stat Strip
+            _buildGarageStatStrip(context),
+            const SizedBox(height: 110), // Gap to prevent overlap with bottom tab menu
+          ],
+        ),
       ),
     );
   }
@@ -99,7 +163,7 @@ class HomeDashboardScreen extends StatelessWidget {
               variant: ButtonVariant.secondary,
               height: 32,
               width: 75,
-              onPressed: () => onNavigate('plans_and_usage'),
+              onPressed: () => widget.onNavigate('plans_and_usage'),
             ),
           ],
         ),
@@ -133,7 +197,7 @@ class HomeDashboardScreen extends StatelessWidget {
               variant: ButtonVariant.destructive,
               height: 32,
               width: 95,
-              onPressed: () => onNavigate('plans_and_usage'),
+              onPressed: () => widget.onNavigate('plans_and_usage'),
             ),
           ],
         ),
@@ -147,6 +211,8 @@ class HomeDashboardScreen extends StatelessWidget {
   // 1. GREETING & BUSINESS SNAPSHOT
   // ---------------------------------------------------------------------------
   Widget _buildGreetingHeader(BuildContext context) {
+    final totalFleet = (_dashboardStats?['metrics']?['total_vehicles'] as num?)?.toInt() ?? 24;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -200,9 +266,9 @@ class HomeDashboardScreen extends StatelessWidget {
                   const SizedBox(width: 6),
                   const Text('•', style: TextStyle(color: Color(0xFF869397), fontSize: 12)),
                   const SizedBox(width: 6),
-                  const Text(
-                    '24 Active Fleet',
-                    style: TextStyle(
+                  Text(
+                    '$totalFleet Active Fleet',
+                    style: const TextStyle(
                       color: Color(0xFF4CD7F6),
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -260,6 +326,12 @@ class HomeDashboardScreen extends StatelessWidget {
   // 2. DAILY INVOICE QUOTA CARD
   // ---------------------------------------------------------------------------
   Widget _buildInvoiceQuotaCard(BuildContext context) {
+    final quota = _dashboardStats?['quota'];
+    final int billsToday = (quota?['bills_today'] as num?)?.toInt() ?? 7;
+    final int billsPerDay = (quota?['bills_per_day'] as num?)?.toInt() ?? 10;
+    final int remaining = billsPerDay == -1 ? 999 : (billsPerDay - billsToday).clamp(0, billsPerDay);
+    final double factor = billsPerDay <= 0 ? 0.7 : (billsToday / billsPerDay).clamp(0.0, 1.0);
+
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF1B1F2B),
@@ -322,19 +394,19 @@ class HomeDashboardScreen extends StatelessWidget {
                               ),
                             ),
                             RichText(
-                              text: const TextSpan(
+                              text: TextSpan(
                                 children: [
                                   TextSpan(
-                                    text: '7',
-                                    style: TextStyle(
+                                    text: '$billsToday',
+                                    style: const TextStyle(
                                       color: Color(0xFFDEE2F2),
                                       fontSize: 18,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                   TextSpan(
-                                    text: '/10 bills used today',
-                                    style: TextStyle(
+                                    text: '/${billsPerDay == -1 ? "∞" : billsPerDay} bills used today',
+                                    style: const TextStyle(
                                       color: Color(0xFF869397),
                                       fontSize: 14,
                                       fontWeight: FontWeight.w400,
@@ -348,7 +420,7 @@ class HomeDashboardScreen extends StatelessWidget {
                       ],
                     ),
                     GestureDetector(
-                      onTap: () => onNavigate('plans_and_usage'),
+                      onTap: () => widget.onNavigate('plans_and_usage'),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
@@ -386,7 +458,7 @@ class HomeDashboardScreen extends StatelessWidget {
                   ),
                   child: FractionallySizedBox(
                     alignment: Alignment.centerLeft,
-                    widthFactor: 0.70, // 70%
+                    widthFactor: factor,
                     child: Container(
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
@@ -406,18 +478,18 @@ class HomeDashboardScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
 
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '3 invoices remaining',
-                      style: TextStyle(
+                      billsPerDay == -1 ? 'Unlimited invoices' : '$remaining invoices remaining',
+                      style: const TextStyle(
                         color: Color(0xFF4CD7F6),
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    Text(
+                    const Text(
                       'Resets at midnight',
                       style: TextStyle(
                         color: Color(0xFF869397),
@@ -481,7 +553,7 @@ class HomeDashboardScreen extends StatelessWidget {
                 icon: Icons.checklist_rtl_rounded,
                 iconColor: const Color(0xFF4EDEAE),
                 label: 'Inspect In',
-                onTap: () => onNavigate('pickup_checklist'),
+                onTap: () => widget.onNavigate('pickup_checklist'),
               ),
             ),
             const SizedBox(width: 8),
@@ -490,7 +562,7 @@ class HomeDashboardScreen extends StatelessWidget {
                 icon: Icons.send_rounded,
                 iconColor: const Color(0xFFADC6FF),
                 label: 'Pay Link',
-                onTap: () => onNavigate('collect_payment'),
+                onTap: () => widget.onNavigate('collect_payment'),
               ),
             ),
             const SizedBox(width: 8),
@@ -499,7 +571,7 @@ class HomeDashboardScreen extends StatelessWidget {
                 icon: Icons.badge_rounded,
                 iconColor: const Color(0xFF4CD7F6),
                 label: 'Scan DL',
-                onTap: () => onNavigate('customers_list'),
+                onTap: () => widget.onNavigate('customers_list'),
               ),
             ),
           ],
@@ -555,6 +627,12 @@ class HomeDashboardScreen extends StatelessWidget {
   // 4. TODAY'S PULSE (FINANCIALS & FLEET STATUS GRID)
   // ---------------------------------------------------------------------------
   Widget _buildTodaysPulseGrid(BuildContext context) {
+    final metrics = _dashboardStats?['metrics'];
+    final todayCash = (metrics?['today_revenue'] as num?)?.toInt();
+    final onTripCount = (metrics?['rented_vehicles'] as num?)?.toInt() ?? 12;
+    final returningCount = (metrics?['available_vehicles'] as num?)?.toInt() ?? 5;
+    final overdueCount = (metrics?['overdue_bookings'] as num?)?.toInt() ?? 2;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -604,7 +682,7 @@ class HomeDashboardScreen extends StatelessWidget {
             // Today's Cash Card
             Expanded(
               child: GestureDetector(
-                onTap: () => onNavigate('daily_monthly_report'),
+                onTap: () => widget.onNavigate('daily_monthly_report'),
                 child: Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
@@ -642,9 +720,9 @@ class HomeDashboardScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        '₹18,450',
-                        style: TextStyle(
+                      Text(
+                        todayCash != null ? '₹$todayCash' : '₹18,450',
+                        style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 24,
                           fontWeight: FontWeight.w800,
@@ -690,7 +768,7 @@ class HomeDashboardScreen extends StatelessWidget {
             // Pending Due Card
             Expanded(
               child: GestureDetector(
-                onTap: () => onNavigate('collect_payment'),
+                onTap: () => widget.onNavigate('collect_payment'),
                 child: Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
@@ -793,21 +871,21 @@ class HomeDashboardScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFF2A3854).withValues(alpha: 0.3)),
                 ),
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'ON TRIP',
                       style: TextStyle(color: Color(0xFFBCC9CD), fontSize: 10, fontWeight: FontWeight.w600),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      '12',
-                      style: TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.w800),
+                      '$onTripCount',
+                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.w800),
                     ),
-                    SizedBox(height: 2),
-                    Text(
-                      '8 Cars • 4 Bikes',
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Active on Road',
                       style: TextStyle(color: Color(0xFF869397), fontSize: 10),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -827,27 +905,27 @@ class HomeDashboardScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFF2A3854).withValues(alpha: 0.3)),
                 ),
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'RETURNING',
+                          'AVAILABLE',
                           style: TextStyle(color: Color(0xFFBCC9CD), fontSize: 10, fontWeight: FontWeight.w600),
                         ),
                         CircleAvatar(radius: 3, backgroundColor: Color(0xFF4CD7F6)),
                       ],
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      '5 Due',
-                      style: TextStyle(color: Color(0xFF4CD7F6), fontSize: 20, fontWeight: FontWeight.w800),
+                      '$returningCount Ready',
+                      style: const TextStyle(color: Color(0xFF4CD7F6), fontSize: 20, fontWeight: FontWeight.w800),
                     ),
-                    SizedBox(height: 2),
-                    Text(
-                      'By 9:00 PM',
+                    const SizedBox(height: 2),
+                    const Text(
+                      'In Garage Depot',
                       style: TextStyle(color: Color(0xFF869397), fontSize: 10),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -867,10 +945,10 @@ class HomeDashboardScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFFFFB4AB).withValues(alpha: 0.3)),
                 ),
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
@@ -880,13 +958,13 @@ class HomeDashboardScreen extends StatelessWidget {
                         Icon(Icons.warning_amber_rounded, color: Color(0xFFFFB4AB), size: 14),
                       ],
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      '2 Alert',
-                      style: TextStyle(color: Color(0xFFFFB4AB), fontSize: 20, fontWeight: FontWeight.w800),
+                      '$overdueCount Alert',
+                      style: const TextStyle(color: Color(0xFFFFB4AB), fontSize: 20, fontWeight: FontWeight.w800),
                     ),
-                    SizedBox(height: 2),
-                    Text(
+                    const SizedBox(height: 2),
+                    const Text(
                       'Action Req.',
                       style: TextStyle(color: Color(0xFFFFB4AB), fontSize: 10, fontWeight: FontWeight.w600),
                       maxLines: 1,
@@ -1035,7 +1113,7 @@ class HomeDashboardScreen extends StatelessWidget {
                 ],
               ),
               GestureDetector(
-                onTap: () => onNavigate('store'),
+                onTap: () => widget.onNavigate('store'),
                 child: Container(
                   height: 38,
                   padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -1111,7 +1189,7 @@ class HomeDashboardScreen extends StatelessWidget {
               ],
             ),
             GestureDetector(
-              onTap: () => onNavigate('bookings'),
+              onTap: () => widget.onNavigate('bookings'),
               child: const Text(
                 'View All Schedule',
                 style: TextStyle(
@@ -1137,7 +1215,7 @@ class HomeDashboardScreen extends StatelessWidget {
           statusIcon: Icons.timer_off_rounded,
           footerTextLeft: 'Fuel: 45%',
           footerTextRight: '+₹350 Penalty',
-          onCheckIn: () => onNavigate('return_final_bill', args: MockData.bookings.last),
+          onCheckIn: () => widget.onNavigate('return_final_bill', args: MockData.bookings.last),
         ),
         const SizedBox(height: 10),
 
@@ -1153,7 +1231,7 @@ class HomeDashboardScreen extends StatelessWidget {
           statusIcon: Icons.schedule_rounded,
           footerTextLeft: 'Security: ₹5,000',
           footerTextRight: 'Paid',
-          onCheckIn: () => onNavigate('booking_detail', args: MockData.bookings[1]),
+          onCheckIn: () => widget.onNavigate('booking_detail', args: MockData.bookings[1]),
         ),
       ],
     );
