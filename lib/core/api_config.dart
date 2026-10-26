@@ -11,6 +11,8 @@ class ApiConfig {
   static const String login = '/auth/login';
   static const String verifyOtp = '/auth/verify-otp';
   static const String register = '/auth/register';
+  static const String forgotPin = '/auth/forgot-pin';
+  static const String resetPin = '/auth/reset-pin';
   static const String profile = '/auth/profile';
   static const String logout = '/auth/logout';
   static const String deviceToken = '/auth/device-token';

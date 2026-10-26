@@ -2,6 +2,7 @@ class AppRoutes {
   // Auth
   static const String login = '/login';
   static const String signup = '/signup';
+  static const String forgotPin = '/forgot-pin';
 
   // Tabs (Root branches)
   static const String home = '/home';

@@ -24,6 +24,7 @@ class ApiService {
     required String name,
     required String mobile,
     required String password,
+    String? email,
     String? businessName,
     String? city,
   }) async {
@@ -31,8 +32,27 @@ class ApiService {
       'name': name,
       'mobile': mobile,
       'password': password,
+      if (email != null && email.isNotEmpty) 'email': email,
       'business_name': businessName,
       'city': city,
+    });
+  }
+
+  Future<dynamic> forgotPin(String mobile) async {
+    return await _client.post(ApiConfig.forgotPin, body: {
+      'mobile': mobile,
+    });
+  }
+
+  Future<dynamic> resetPin({
+    required String mobile,
+    required String otp,
+    required String pin,
+  }) async {
+    return await _client.post(ApiConfig.resetPin, body: {
+      'mobile': mobile,
+      'otp': otp,
+      'pin': pin,
     });
   }
 

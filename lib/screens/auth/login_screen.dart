@@ -8,11 +8,13 @@ import '../../services/api_client.dart';
 class LoginScreen extends StatefulWidget {
   final VoidCallback onLogin;
   final VoidCallback onSignUp;
+  final VoidCallback onForgotPin;
 
   const LoginScreen({
     super.key,
     required this.onLogin,
     required this.onSignUp,
+    required this.onForgotPin,
   });
 
   @override
@@ -20,10 +22,17 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _phoneController = TextEditingController(text: '9876543210');
-  final _pinController = TextEditingController(text: '1234');
+  final _phoneController = TextEditingController();
+  final _pinController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePin = true;
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _pinController.dispose();
+    super.dispose();
+  }
 
   Future<void> _handleLogin() async {
     final phone = _phoneController.text.trim();
@@ -177,14 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('OTP sent to registered mobile for PIN reset.'),
-                            backgroundColor: AppColors.primaryCyan,
-                          ),
-                        );
-                      },
+                      onPressed: widget.onForgotPin,
                       child: const Text(
                         'Forgot PIN?',
                         style: TextStyle(color: AppColors.primaryCyan, fontSize: 13, fontWeight: FontWeight.w600),

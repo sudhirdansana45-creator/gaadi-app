@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'routes.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/sign_up_screen.dart';
+import '../screens/auth/forgot_pin_screen.dart';
 import '../screens/dashboard/home_dashboard_screen.dart';
 import '../screens/bookings/bookings_list_screen.dart';
 import '../screens/bookings/new_booking_screen.dart';
@@ -44,6 +45,7 @@ final appRouter = GoRouter(
       builder: (context, state) => LoginScreen(
         onLogin: () => context.go(AppRoutes.home),
         onSignUp: () => context.push(AppRoutes.signup),
+        onForgotPin: () => context.push(AppRoutes.forgotPin),
       ),
     ),
     GoRoute(
@@ -51,6 +53,13 @@ final appRouter = GoRouter(
       builder: (context, state) => SignUpScreen(
         onSignUp: () => context.go(AppRoutes.home),
         onLogin: () => context.go(AppRoutes.login),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.forgotPin,
+      builder: (context, state) => ForgotPinScreen(
+        onBackToLogin: () => context.go(AppRoutes.login),
+        onResetSuccess: () => context.go(AppRoutes.login),
       ),
     ),
 

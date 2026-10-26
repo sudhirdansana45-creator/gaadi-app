@@ -20,18 +20,33 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  final _nameController = TextEditingController(text: 'Rajesh Sharma');
-  final _businessController = TextEditingController(text: 'Rajesh Fleet Mobility');
-  final _phoneController = TextEditingController(text: '9818800112');
-  final _emailController = TextEditingController(text: 'rajesh@gaadimanager.in');
-  final _cityController = TextEditingController(text: 'New Delhi');
+  final _nameController = TextEditingController();
+  final _businessController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _pinController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePin = true;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _businessController.dispose();
+    _phoneController.dispose();
+    _cityController.dispose();
+    _emailController.dispose();
+    _pinController.dispose();
+    super.dispose();
+  }
 
   Future<void> _handleSignUp() async {
     final name = _nameController.text.trim();
     final mobile = _phoneController.text.trim();
     final business = _businessController.text.trim();
     final city = _cityController.text.trim();
+    final email = _emailController.text.trim();
+    final pin = _pinController.text.trim();
 
     if (name.isEmpty || mobile.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -49,7 +64,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       final res = await ApiService().register(
         name: name,
         mobile: mobile,
-        password: 'password123',
+        password: pin.isNotEmpty ? pin : '1234',
+        email: email.isNotEmpty ? email : null,
         businessName: business.isNotEmpty ? business : null,
         city: city.isNotEmpty ? city : null,
       );
@@ -62,9 +78,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
         widget.onSignUp();
       }
     } catch (e) {
-      // In case of offline testing or fallback
       if (mounted) {
-        widget.onSignUp();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('ApiException: ', '').replaceAll('Exception: ', '')),
+            backgroundColor: AppColors.criticalRed,
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -170,26 +190,36 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomTextField(
-                          label: 'City',
-                          hintText: 'Delhi NCR',
-                          controller: _cityController,
-                          prefixIcon: Icons.location_city_rounded,
-                        ),
+                  CustomTextField(
+                    label: 'Operating City',
+                    hintText: 'e.g. Mumbai, Delhi NCR, Bhubaneswar',
+                    controller: _cityController,
+                    prefixIcon: Icons.location_city_rounded,
+                  ),
+                  const SizedBox(height: 14),
+                  CustomTextField(
+                    label: 'Email Address (Optional)',
+                    hintText: 'e.g. agency@gmail.com',
+                    controller: _emailController,
+                    prefixIcon: Icons.email_outlined,
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 14),
+                  CustomTextField(
+                    label: 'Create 4-Digit Security PIN',
+                    hintText: 'Enter 4-digit PIN for login (e.g. 1234)',
+                    controller: _pinController,
+                    obscureText: _obscurePin,
+                    prefixIcon: Icons.lock_outline_rounded,
+                    keyboardType: TextInputType.number,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePin ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        color: AppColors.textSecondary,
+                        size: 20,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: CustomTextField(
-                          label: 'Email',
-                          hintText: 'agency@gmail.com',
-                          controller: _emailController,
-                          prefixIcon: Icons.email_outlined,
-                        ),
-                      ),
-                    ],
+                      onPressed: () => setState(() => _obscurePin = !_obscurePin),
+                    ),
                   ),
                   const SizedBox(height: 24),
                   CustomButton(
