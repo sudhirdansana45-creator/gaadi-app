@@ -31,13 +31,34 @@ import '../screens/common/coming_soon_screen.dart';
 import '../widgets/app_bottom_nav.dart';
 import '../core/plan_guard.dart';
 import '../screens/modals/daily_limit_modal.dart';
+import '../services/api_client.dart';
 import '../data/mock_data.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: AppRoutes.login,
+  initialLocation: ApiClient().isAuthenticated ? AppRoutes.home : AppRoutes.login,
+  refreshListenable: ApiClient.authStateNotifier,
+  redirect: (context, state) {
+    final bool loggedIn = ApiClient().isAuthenticated;
+    final String loc = state.matchedLocation;
+    final bool isAuthRoute = loc == AppRoutes.login ||
+        loc == AppRoutes.signup ||
+        loc == AppRoutes.forgotPin;
+
+    // If not logged in and trying to access a protected screen, redirect to login
+    if (!loggedIn && !isAuthRoute) {
+      return AppRoutes.login;
+    }
+
+    // If already authenticated and trying to access login or signup, redirect to home
+    if (loggedIn && (loc == AppRoutes.login || loc == AppRoutes.signup)) {
+      return AppRoutes.home;
+    }
+
+    return null;
+  },
   routes: [
     // Auth Routes
     GoRoute(

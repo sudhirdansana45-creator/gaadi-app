@@ -87,14 +87,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   text: 'Delete Account',
                   variant: ButtonVariant.destructive,
                   height: 42,
-                  onPressed: () {
+                  onPressed: () async {
                     Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Account deletion request submitted.'),
-                        backgroundColor: AppColors.criticalRed,
-                      ),
-                    );
+                    try {
+                      await ApiService().logout();
+                    } catch (_) {}
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Account deletion request submitted.'),
+                          backgroundColor: AppColors.criticalRed,
+                        ),
+                      );
+                    }
                     widget.onLogout();
                   },
                 ),

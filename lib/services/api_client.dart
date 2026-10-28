@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/api_config.dart';
@@ -52,10 +53,14 @@ class ApiClient {
   static const String _tokenKey = 'auth_bearer_token';
   String? _cachedToken;
 
+  /// Reactive notifier for authentication state changes (used by router)
+  static final ValueNotifier<bool> authStateNotifier = ValueNotifier<bool>(false);
+
   /// Load cached token from SharedPreferences
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     _cachedToken = prefs.getString(_tokenKey);
+    authStateNotifier.value = isAuthenticated;
   }
 
   /// Get current auth token
@@ -64,6 +69,7 @@ class ApiClient {
   /// Save auth token
   Future<void> setToken(String? token) async {
     _cachedToken = token;
+    authStateNotifier.value = isAuthenticated;
     final prefs = await SharedPreferences.getInstance();
     if (token != null) {
       await prefs.setString(_tokenKey, token);
