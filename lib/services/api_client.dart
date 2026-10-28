@@ -12,7 +12,22 @@ class ApiException implements Exception {
   ApiException(this.message, {this.statusCode, this.errors});
 
   @override
-  String toString() => message;
+  String toString() {
+    if (errors is Map) {
+      final messages = <String>[];
+      for (final val in (errors as Map).values) {
+        if (val is List && val.isNotEmpty) {
+          messages.add(val.first.toString());
+        } else if (val != null) {
+          messages.add(val.toString());
+        }
+      }
+      if (messages.isNotEmpty) {
+        return messages.join('\n');
+      }
+    }
+    return message;
+  }
 }
 
 class ApiResponse<T> {

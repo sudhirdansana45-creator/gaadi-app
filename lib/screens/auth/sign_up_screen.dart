@@ -58,6 +58,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
+    if (mobile.length < 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid 10-digit mobile number'),
+          backgroundColor: AppColors.criticalRed,
+        ),
+      );
+      return;
+    }
+
+    if (pin.isNotEmpty && pin.length < 4) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Security PIN must be at least 4 digits'),
+          backgroundColor: AppColors.criticalRed,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -70,11 +90,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
         city: city.isNotEmpty ? city : null,
       );
 
-      if (res is Map<String, dynamic> && res['token'] != null) {
-        await ApiClient().setToken(res['token'].toString());
+      String? token;
+      if (res is Map<String, dynamic>) {
+        if (res['token'] != null) {
+          token = res['token'].toString();
+        } else if (res['data'] is Map && res['data']['token'] != null) {
+          token = res['data']['token'].toString();
+        }
+      }
+
+      if (token != null) {
+        await ApiClient().setToken(token);
       }
 
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully! Welcome to Gaadi Manager.'),
+            backgroundColor: AppColors.successGreen,
+          ),
+        );
         widget.onSignUp();
       }
     } catch (e) {

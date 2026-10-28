@@ -52,8 +52,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final res = await ApiService().login(phone, pin);
-      if (res is Map<String, dynamic> && res['token'] != null) {
-        await ApiClient().setToken(res['token'].toString());
+      String? token;
+      if (res is Map<String, dynamic>) {
+        if (res['token'] != null) {
+          token = res['token'].toString();
+        } else if (res['data'] is Map && res['data']['token'] != null) {
+          token = res['data']['token'].toString();
+        }
+      }
+      if (token != null) {
+        await ApiClient().setToken(token);
       }
       if (mounted) {
         widget.onLogin();
