@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../services/api_client.dart';
 
 class NavigationItemData {
   final int index;
@@ -166,31 +167,50 @@ class AppSidebar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.borderSubtle),
               ),
-              child: const Row(
-                children: [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: AppColors.primaryCyan,
-                    child: Text('RS', style: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.bold)),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Rajesh Sharma',
-                          style: TextStyle(color: AppColors.textPrimary, fontSize: 12, fontWeight: FontWeight.bold),
+              child: ValueListenableBuilder<Map<String, dynamic>?>(
+                valueListenable: ApiClient.userNotifier,
+                builder: (context, user, _) {
+                  final String name = user?['name']?.toString().trim() ?? 'Operator';
+                  final String business = user?['business_name']?.toString().trim() ?? 'Admin';
+                  final List<String> parts = name.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+                  final String initials = parts.isNotEmpty
+                      ? parts.take(2).map((p) => p[0].toUpperCase()).join()
+                      : 'OP';
+
+                  return Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundColor: AppColors.primaryCyan,
+                        child: Text(
+                          initials,
+                          style: const TextStyle(color: AppColors.textDark, fontWeight: FontWeight.bold, fontSize: 12),
                         ),
-                        Text(
-                          'Super Admin',
-                          style: TextStyle(color: AppColors.textSecondary, fontSize: 10),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: const TextStyle(color: AppColors.textPrimary, fontSize: 12, fontWeight: FontWeight.bold),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              business,
+                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 10),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.unfold_more_rounded, color: AppColors.textSecondary, size: 18),
-                ],
+                      ),
+                      const Icon(Icons.unfold_more_rounded, color: AppColors.textSecondary, size: 18),
+                    ],
+                  );
+                },
               ),
             ),
           ),

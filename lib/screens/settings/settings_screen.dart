@@ -5,6 +5,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/lock_badge.dart';
 import '../../data/dummy_plan_data.dart';
 import '../../services/api_service.dart';
+import '../../services/api_client.dart';
 import '../modals/locked_feature_sheet.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -149,13 +150,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(width: 14),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Rajesh Fleet Mobility', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 17)),
-                      Text('GSTIN: 07AAAAA0000A1Z5 • Delhi NCR', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                    ],
+                Expanded(
+                  child: ValueListenableBuilder<Map<String, dynamic>?>(
+                    valueListenable: ApiClient.userNotifier,
+                    builder: (context, user, _) {
+                      final business = user?['business_name']?.toString().trim() ??
+                          user?['name']?.toString().trim() ??
+                          'Fleet Operations';
+                      final city = user?['city']?.toString().trim() ?? '';
+                      final gst = user?['gst_number']?.toString().trim();
+                      final subText = gst != null && gst.isNotEmpty
+                          ? 'GSTIN: $gst${city.isNotEmpty ? " • $city" : ""}'
+                          : (city.isNotEmpty ? city : (user?['mobile'] != null ? '+91 ${user!['mobile']}' : 'Fleet Operator'));
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            business,
+                            style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 17),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            subText,
+                            style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
                 CustomButton(

@@ -6,6 +6,7 @@ import '../../widgets/app_bottom_sheet.dart';
 import '../../widgets/success_dialog.dart';
 import '../../models/mock_models.dart';
 import '../../services/api_service.dart';
+import '../../services/api_client.dart';
 
 class ProductDetailEnquiryScreen extends StatefulWidget {
   final StoreProduct product;
@@ -25,8 +26,9 @@ class _ProductDetailEnquiryScreenState extends State<ProductDetailEnquiryScreen>
   int _qty = 2;
 
   void _showEnquirySheet() {
-    final nameCtrl = TextEditingController(text: 'Rajesh Sharma');
-    final phoneCtrl = TextEditingController(text: '9818800112');
+    final user = ApiClient().currentUser;
+    final nameCtrl = TextEditingController(text: user?['name']?.toString() ?? '');
+    final phoneCtrl = TextEditingController(text: user?['mobile']?.toString() ?? '');
     final noteCtrl = TextEditingController(text: 'Need fast delivery for our fleet garage.');
     int enquiryQty = _qty;
 

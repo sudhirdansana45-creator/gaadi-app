@@ -59,6 +59,10 @@ class _LoginScreenState extends State<LoginScreen> {
         } else if (res['data'] is Map && res['data']['token'] != null) {
           token = res['data']['token'].toString();
         }
+        final dynamic userObj = res['user'] ?? (res['data'] is Map ? res['data']['user'] : null);
+        if (userObj is Map<String, dynamic>) {
+          await ApiClient().setUser(userObj);
+        }
       }
       if (token != null) {
         await ApiClient().setToken(token);

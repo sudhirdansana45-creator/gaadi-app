@@ -1,9 +1,10 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../data/mock_data.dart';
-import '../../data/dummy_plan_data.dart';
 import '../../services/api_service.dart';
+import '../../services/api_client.dart';
 import '../../models/mock_models.dart';
 import '../modals/daily_limit_modal.dart';
 
@@ -34,12 +35,16 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     try {
       final res = await ApiService().getDashboardStats();
       if (res != null && res['data'] != null) {
+        final data = res['data'] as Map<String, dynamic>;
+        if (data['user'] is Map<String, dynamic>) {
+          await ApiClient().setUser(data['user'] as Map<String, dynamic>);
+        }
         if (mounted) {
           setState(() {
-            _dashboardStats = res['data'] as Map<String, dynamic>;
+            _dashboardStats = data;
           });
         }
-        final recent = res['data']['recent_bookings'] as List?;
+        final recent = data['recent_bookings'] as List?;
         if (recent != null && recent.isNotEmpty) {
           for (final item in recent) {
             try {
@@ -64,7 +69,12 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   }
 
   void _handleNewBookingTap(BuildContext context) {
-    if (DummyPlanData().usage.isDailyBillLimitReached) {
+    final quota = _dashboardStats?['quota'];
+    final int billsToday = (quota?['bills_today'] as num?)?.toInt() ?? 0;
+    final int billsPerDay = (quota?['bills_per_day'] as num?)?.toInt() ?? -1;
+    final bool isLimitReached = (billsPerDay != -1 && billsToday >= billsPerDay);
+
+    if (isLimitReached) {
       DailyLimitModal.show(
         context: context,
         onUpgrade: () => widget.onNavigate('plans_and_usage'),
@@ -98,7 +108,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   minHeight: 2,
                 ),
               ),
-            // 0. Plan Expiry / Grace Banner
+            // 0. Plan Expiry / Grace Banner (Dynamic from Backend Quota)
             _buildPlanStateBanner(context),
 
             // 1. Top Greeting & Business Snapshot Section
@@ -117,7 +127,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             _buildTodaysPulseGrid(context),
             const SizedBox(height: 20),
 
-            // 5. Highlighted Offer Banner ("Fleet 4G Live GPS")
+            // 5. Highlighted Offer Banner (Dynamic Store Promotions)
             _buildGpsOfferBanner(context),
             const SizedBox(height: 20),
 
@@ -136,59 +146,29 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   }
 
   Widget _buildPlanStateBanner(BuildContext context) {
-    final state = DummyPlanData().activeState;
+    final quota = _dashboardStats?['quota'];
+    if (quota == null) return const SizedBox.shrink();
 
-    if (state == PlanState.expiringSoon) {
+    final int? daysRemaining = (quota['days_remaining'] as num?)?.toInt();
+    final String planName = quota['plan_name']?.toString() ?? 'Plan';
+
+    if (daysRemaining != null && daysRemaining <= 0) {
       return Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.warningBg,
+          color: AppColors.criticalRed.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.warningBorder),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.warning_amber_rounded, color: AppColors.warningAmber, size: 20),
-            const SizedBox(width: 10),
-            const Expanded(
-              child: Text(
-                'Your plan expires in 3 days. Renew to avoid losing access.',
-                style: TextStyle(
-                  color: AppColors.warningAmber,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            CustomButton(
-              text: 'Renew',
-              variant: ButtonVariant.secondary,
-              height: 32,
-              width: 75,
-              onPressed: () => widget.onNavigate('plans_and_usage'),
-            ),
-          ],
-        ),
-      );
-    } else if (state == PlanState.grace) {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.criticalBg,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.criticalBorder),
+          border: Border.all(color: AppColors.criticalRed.withValues(alpha: 0.5)),
         ),
         child: Row(
           children: [
             const Icon(Icons.error_outline_rounded, color: AppColors.criticalRed, size: 20),
             const SizedBox(width: 10),
-            const Expanded(
+            Expanded(
               child: Text(
-                'Plan expired. 2 days grace left. Staff logins will stop after that.',
-                style: TextStyle(
+                'Your $planName has expired. Renew to continue adding bookings & vehicles.',
+                style: const TextStyle(
                   color: AppColors.criticalRed,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -206,6 +186,40 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           ],
         ),
       );
+    } else if (daysRemaining != null && daysRemaining <= 3) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.warningBg,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.warningBorder),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: AppColors.warningAmber, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Your $planName expires in $daysRemaining day${daysRemaining > 1 ? "s" : ""}. Renew to avoid losing access.',
+                style: const TextStyle(
+                  color: AppColors.warningAmber,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            CustomButton(
+              text: 'Renew',
+              variant: ButtonVariant.secondary,
+              height: 32,
+              width: 75,
+              onPressed: () => widget.onNavigate('plans_and_usage'),
+            ),
+          ],
+        ),
+      );
     }
 
     return const SizedBox.shrink();
@@ -215,9 +229,20 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   // 1. GREETING & BUSINESS SNAPSHOT
   // ---------------------------------------------------------------------------
   Widget _buildGreetingHeader(BuildContext context) {
-    final totalFleet = (_dashboardStats?['metrics']?['total_vehicles'] as num?)?.toInt() ?? 24;
-    final userName = _dashboardStats?['user']?['name']?.toString() ?? 'Rajesh';
-    final businessName = _dashboardStats?['user']?['business_name']?.toString() ?? 'Royal Rentals';
+    final cachedUser = ApiClient().currentUser;
+    final user = _dashboardStats?['user'] as Map<String, dynamic>? ?? cachedUser;
+    final metrics = _dashboardStats?['metrics'];
+
+    final String rawName = user?['name']?.toString().trim() ?? '';
+    final String userName = rawName.isNotEmpty ? rawName : (_isLoading ? '...' : 'Operator');
+
+    final String rawBusiness = user?['business_name']?.toString().trim() ?? '';
+    final String businessName = rawBusiness.isNotEmpty ? rawBusiness : (_isLoading ? '...' : 'Fleet Operations');
+
+    final int? totalFleet = (metrics?['total_vehicles'] as num?)?.toInt();
+    final String fleetText = totalFleet != null
+        ? '$totalFleet Active Fleet'
+        : (_isLoading ? '...' : '0 Active Fleet');
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -229,13 +254,17 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             children: [
               Row(
                 children: [
-                  Text(
-                    'Namaste, $userName',
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.3,
+                  Flexible(
+                    child: Text(
+                      'Namaste, $userName',
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -261,19 +290,23 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    businessName,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                  Flexible(
+                    child: Text(
+                      businessName,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   const SizedBox(width: 6),
                   const Text('•', style: TextStyle(color: Color(0xFF869397), fontSize: 12)),
                   const SizedBox(width: 6),
                   Text(
-                    '$totalFleet Active Fleet',
+                    fleetText,
                     style: const TextStyle(
                       color: Color(0xFF4CD7F6),
                       fontSize: 12,
@@ -333,10 +366,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   // ---------------------------------------------------------------------------
   Widget _buildInvoiceQuotaCard(BuildContext context) {
     final quota = _dashboardStats?['quota'];
-    final int billsToday = (quota?['bills_today'] as num?)?.toInt() ?? 7;
-    final int billsPerDay = (quota?['bills_per_day'] as num?)?.toInt() ?? 10;
-    final int remaining = billsPerDay == -1 ? 999 : (billsPerDay - billsToday).clamp(0, billsPerDay);
-    final double factor = billsPerDay <= 0 ? 0.7 : (billsToday / billsPerDay).clamp(0.0, 1.0);
+    final bool hasQuota = quota != null;
+    final int billsToday = (quota?['bills_today'] as num?)?.toInt() ?? 0;
+    final int billsPerDay = (quota?['bills_per_day'] as num?)?.toInt() ?? -1;
+    final int remaining = billsPerDay == -1 ? -1 : max(0, billsPerDay - billsToday);
+    final double factor = billsPerDay <= 0
+        ? (billsPerDay == -1 ? 0.05 : 0.0)
+        : (billsToday / billsPerDay).clamp(0.0, 1.0);
 
     return Container(
       decoration: BoxDecoration(
@@ -403,7 +439,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                               text: TextSpan(
                                 children: [
                                   TextSpan(
-                                    text: '$billsToday',
+                                    text: hasQuota ? '$billsToday' : (_isLoading ? '--' : '0'),
                                     style: const TextStyle(
                                       color: Color(0xFFDEE2F2),
                                       fontSize: 18,
@@ -411,7 +447,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                                     ),
                                   ),
                                   TextSpan(
-                                    text: '/${billsPerDay == -1 ? "∞" : billsPerDay} bills used today',
+                                    text: hasQuota
+                                        ? (billsPerDay == -1 ? '/∞ bills used today' : '/$billsPerDay bills used today')
+                                        : (_isLoading ? '/-- bills used today' : '/10 bills used today'),
                                     style: const TextStyle(
                                       color: Color(0xFF869397),
                                       fontSize: 14,
@@ -488,7 +526,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      billsPerDay == -1 ? 'Unlimited invoices' : '$remaining invoices remaining',
+                      !hasQuota
+                          ? (_isLoading ? 'Checking quota...' : 'Daily limit active')
+                          : (billsPerDay == -1 ? 'Unlimited invoices' : '$remaining invoices remaining'),
                       style: const TextStyle(
                         color: Color(0xFF4CD7F6),
                         fontSize: 11,
@@ -989,9 +1029,20 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   }
 
   // ---------------------------------------------------------------------------
-  // 5. HIGHLIGHTED OFFER BANNER (FLEET 4G LIVE GPS)
+  // 5. HIGHLIGHTED OFFER BANNER (DYNAMIC STORE PROMOS)
   // ---------------------------------------------------------------------------
   Widget _buildGpsOfferBanner(BuildContext context) {
+    final flashProducts = _dashboardStats?['flash_products'] as List?;
+    final bool hasProduct = flashProducts != null && flashProducts.isNotEmpty;
+    final Map<String, dynamic>? product = hasProduct ? (flashProducts.first as Map<String, dynamic>?) : null;
+
+    final String title = product?['name']?.toString() ?? 'Fleet IoT Accessories & GPS Trackers';
+    final String description = product?['description']?.toString() ??
+        'Genuine IoT hardware, live tracking and vehicle sensors for your rental fleet.';
+    final double? rawPrice = (product?['price'] as num?)?.toDouble();
+    final double? rawDiscount = (product?['discount_price'] as num?)?.toDouble();
+    final String productId = product?['id']?.toString() ?? '';
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1014,13 +1065,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   color: const Color(0xFF1BBD85).withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(100),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.verified, color: Color(0xFF4EDEAE), size: 13),
-                    SizedBox(width: 4),
+                    const Icon(Icons.verified, color: Color(0xFF4EDEAE), size: 13),
+                    const SizedBox(width: 4),
                     Text(
-                      'Partner Deal • 35% OFF',
-                      style: TextStyle(
+                      hasProduct && rawDiscount != null ? 'Flash Deal Available' : 'Verified Fleet Store',
+                      style: const TextStyle(
                         color: Color(0xFF4EDEAE),
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -1029,9 +1080,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   ],
                 ),
               ),
-              const Text(
-                'Limited Period',
-                style: TextStyle(color: Color(0xFF869397), fontSize: 10),
+              Text(
+                hasProduct ? 'Available in Store' : 'Wholesale Rates',
+                style: const TextStyle(color: Color(0xFF869397), fontSize: 10),
               ),
             ],
           ),
@@ -1046,32 +1097,29 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   color: const Color(0xFF090E19),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&q=80&w=200',
-                    fit: BoxFit.cover,
-                    errorBuilder: (c, e, s) => const Icon(Icons.gps_fixed, color: Color(0xFF06B6D4)),
-                  ),
+                child: const Center(
+                  child: Icon(Icons.gps_fixed_rounded, color: Color(0xFF06B6D4), size: 28),
                 ),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Fleet 4G Live GPS & Engine Cut-Off',
-                      style: TextStyle(
+                      title,
+                      style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      'Free pan-India doorstep installation. Remote immobilization via Gaadi Manager app.',
-                      style: TextStyle(
+                      description,
+                      style: const TextStyle(
                         color: Color(0xFFBCC9CD),
                         fontSize: 11,
                         height: 1.3,
@@ -1092,36 +1140,53 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  RichText(
-                    text: const TextSpan(
-                      children: [
-                        TextSpan(
-                          text: '₹1,499',
-                          style: TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
+                  if (hasProduct && (rawDiscount != null || rawPrice != null))
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '₹${(rawDiscount ?? rawPrice ?? 0).toInt()}',
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        ),
-                        TextSpan(
-                          text: ' ₹2,299',
-                          style: TextStyle(
-                            color: Color(0xFF869397),
-                            fontSize: 11,
-                            decoration: TextDecoration.lineThrough,
-                          ),
-                        ),
-                      ],
+                          if (rawDiscount != null && rawPrice != null && rawDiscount < rawPrice)
+                            TextSpan(
+                              text: ' ₹${rawPrice.toInt()}',
+                              style: const TextStyle(
+                                color: Color(0xFF869397),
+                                fontSize: 11,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                        ],
+                      ),
+                    )
+                  else
+                    const Text(
+                      'Fleet Store Catalog',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
                   const Text(
-                    '/device all-inclusive',
+                    'Direct delivery to garage depot',
                     style: TextStyle(color: Color(0xFFBCC9CD), fontSize: 10),
                   ),
                 ],
               ),
               GestureDetector(
-                onTap: () => widget.onNavigate('store'),
+                onTap: () {
+                  if (productId.isNotEmpty) {
+                    widget.onNavigate('product_detail', args: productId);
+                  } else {
+                    widget.onNavigate('store');
+                  }
+                },
                 child: Container(
                   height: 38,
                   padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -1132,18 +1197,18 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                       BoxShadow(color: Color(0x660566D9), blurRadius: 10, offset: Offset(0, 3)),
                     ],
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
                       Text(
-                        'Claim Device',
-                        style: TextStyle(
+                        hasProduct ? 'View Device' : 'Explore Store',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      SizedBox(width: 4),
-                      Icon(Icons.arrow_forward, color: Colors.white, size: 14),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_forward, color: Colors.white, size: 14),
                     ],
                   ),
                 ),
@@ -1485,10 +1550,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   // 7. GARAGE QUICK STAT STRIP
   // ---------------------------------------------------------------------------
   Widget _buildGarageStatStrip(BuildContext context) {
-    final city = _dashboardStats?['user']?['city']?.toString() ?? 'Main Depot, Sector 18';
+    final cachedUser = ApiClient().currentUser;
+    final user = _dashboardStats?['user'] as Map<String, dynamic>? ?? cachedUser;
+    final String rawCity = user?['city']?.toString().trim() ?? '';
+    final String depotLabel = rawCity.isNotEmpty ? 'Depot: $rawCity' : 'Depot: Operations Hub';
     final total = (_dashboardStats?['metrics']?['total_vehicles'] as num?)?.toInt() ?? 0;
     final avail = (_dashboardStats?['metrics']?['available_vehicles'] as num?)?.toInt() ?? 0;
-    final int health = total > 0 ? ((avail / total) * 100).toInt() : 100;
+    final int health = total > 0 ? ((avail / total) * 100).toInt() : (total == 0 ? 0 : 100);
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -1505,7 +1573,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               const Icon(Icons.store_rounded, color: Color(0xFF4EDEAE), size: 18),
               const SizedBox(width: 6),
               Text(
-                'Depot: $city',
+                depotLabel,
                 style: const TextStyle(color: Color(0xFFBCC9CD), fontSize: 11),
               ),
             ],
@@ -1513,7 +1581,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           Row(
             children: [
               Text(
-                'Fleet Ready: $health%',
+                total > 0 ? 'Fleet Ready: $health%' : 'Fleet: 0 Vehicles',
                 style: const TextStyle(
                   color: Color(0xFF4CD7F6),
                   fontSize: 11,

@@ -53,13 +53,29 @@ class ApiClient {
   static const String _tokenKey = 'auth_bearer_token';
   String? _cachedToken;
 
+  static const String _userKey = 'auth_cached_user';
+  Map<String, dynamic>? _cachedUser;
+
   /// Reactive notifier for authentication state changes (used by router)
   static final ValueNotifier<bool> authStateNotifier = ValueNotifier<bool>(false);
 
-  /// Load cached token from SharedPreferences
+  /// Reactive notifier for user profile data changes
+  static final ValueNotifier<Map<String, dynamic>?> userNotifier = ValueNotifier<Map<String, dynamic>?>(null);
+
+  /// Get current cached user profile
+  Map<String, dynamic>? get currentUser => _cachedUser;
+
+  /// Load cached token and user from SharedPreferences
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     _cachedToken = prefs.getString(_tokenKey);
+    final userStr = prefs.getString(_userKey);
+    if (userStr != null) {
+      try {
+        _cachedUser = jsonDecode(userStr) as Map<String, dynamic>;
+        userNotifier.value = _cachedUser;
+      } catch (_) {}
+    }
     authStateNotifier.value = isAuthenticated;
   }
 
@@ -78,9 +94,22 @@ class ApiClient {
     }
   }
 
+  /// Save current user profile
+  Future<void> setUser(Map<String, dynamic>? user) async {
+    _cachedUser = user;
+    userNotifier.value = user;
+    final prefs = await SharedPreferences.getInstance();
+    if (user != null) {
+      await prefs.setString(_userKey, jsonEncode(user));
+    } else {
+      await prefs.remove(_userKey);
+    }
+  }
+
   /// Remove auth token upon logout
   Future<void> clearSession() async {
     await setToken(null);
+    await setUser(null);
   }
 
   /// Check if user is logged in

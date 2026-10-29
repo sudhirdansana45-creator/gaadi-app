@@ -7,6 +7,7 @@ import '../../widgets/info_note.dart';
 import '../../widgets/status_chip.dart';
 import '../../widgets/app_bottom_sheet.dart';
 import '../../services/api_service.dart';
+import '../../services/api_client.dart';
 
 class UsersAndRolesScreen extends StatefulWidget {
   final VoidCallback onBack;
@@ -28,11 +29,15 @@ class _UsersAndRolesScreenState extends State<UsersAndRolesScreen> {
   @override
   void initState() {
     super.initState();
+    final user = ApiClient().currentUser;
+    final String currentName = user?['name']?.toString().trim() ?? 'Fleet Admin';
+    final String currentPhone = user?['mobile'] != null ? '+91 ${user!['mobile']}' : 'Primary Admin';
+
     _staffList = [
       _StaffModel(
         id: 'USR-01',
-        name: 'Rajesh Sharma',
-        phone: '+91 98188 00112',
+        name: currentName,
+        phone: currentPhone,
         role: 'Admin',
         isActive: true,
         isDisabledByPlan: false,
