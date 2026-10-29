@@ -216,6 +216,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   // ---------------------------------------------------------------------------
   Widget _buildGreetingHeader(BuildContext context) {
     final totalFleet = (_dashboardStats?['metrics']?['total_vehicles'] as num?)?.toInt() ?? 24;
+    final userName = _dashboardStats?['user']?['name']?.toString() ?? 'Rajesh';
+    final businessName = _dashboardStats?['user']?['business_name']?.toString() ?? 'Royal Rentals';
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -225,19 +227,19 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
+              Row(
                 children: [
                   Text(
-                    'Namaste, Rajesh',
-                    style: TextStyle(
+                    'Namaste, $userName',
+                    style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.3,
                     ),
                   ),
-                  SizedBox(width: 6),
-                  Text('🙏', style: TextStyle(fontSize: 18)),
+                  const SizedBox(width: 6),
+                  const Text('🙏', style: TextStyle(fontSize: 18)),
                 ],
               ),
               const SizedBox(height: 4),
@@ -259,9 +261,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  const Text(
-                    'Royal Rentals',
-                    style: TextStyle(
+                  Text(
+                    businessName,
+                    style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -632,10 +634,12 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   // ---------------------------------------------------------------------------
   Widget _buildTodaysPulseGrid(BuildContext context) {
     final metrics = _dashboardStats?['metrics'];
-    final todayCash = (metrics?['today_revenue'] as num?)?.toInt();
-    final onTripCount = (metrics?['rented_vehicles'] as num?)?.toInt() ?? 12;
-    final returningCount = (metrics?['available_vehicles'] as num?)?.toInt() ?? 5;
-    final overdueCount = (metrics?['overdue_bookings'] as num?)?.toInt() ?? 2;
+    final todayCash = (metrics?['today_revenue'] as num?)?.toInt() ?? 0;
+    final pendingDue = (metrics?['pending_due'] as num?)?.toInt() ?? 0;
+    final pendingInvoices = (metrics?['pending_invoices_count'] as num?)?.toInt() ?? 0;
+    final onTripCount = (metrics?['rented_vehicles'] as num?)?.toInt() ?? 0;
+    final returningCount = (metrics?['available_vehicles'] as num?)?.toInt() ?? 0;
+    final overdueCount = (metrics?['overdue_bookings'] as num?)?.toInt() ?? 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -725,7 +729,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        todayCash != null ? '₹$todayCash' : '₹18,450',
+                        '₹$todayCash',
                         style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 24,
@@ -742,9 +746,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                               color: const Color(0xFF1BBD85).withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(100),
                             ),
-                            child: const Text(
-                              '+14%',
-                              style: TextStyle(
+                            child: Text(
+                              todayCash > 0 ? 'Active' : 'No bills yet',
+                              style: const TextStyle(
                                 color: Color(0xFF4EDEAE),
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
@@ -754,7 +758,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                           const SizedBox(width: 4),
                           const Expanded(
                             child: Text(
-                              'vs yesterday',
+                              'today total',
                               style: TextStyle(color: Color(0xFF869397), fontSize: 10),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -810,9 +814,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        '₹6,200',
-                        style: TextStyle(
+                      Text(
+                        '₹$pendingDue',
+                        style: const TextStyle(
                           color: Color(0xFFADC6FF),
                           fontSize: 24,
                           fontWeight: FontWeight.w800,
@@ -828,13 +832,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                               color: const Color(0xFF0566D9).withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(100),
                             ),
-                            child: const Row(
+                            child: Row(
                               children: [
-                                CircleAvatar(radius: 2, backgroundColor: Color(0xFFADC6FF)),
-                                SizedBox(width: 3),
+                                const CircleAvatar(radius: 2, backgroundColor: Color(0xFFADC6FF)),
+                                const SizedBox(width: 3),
                                 Text(
-                                  '3 invoices',
-                                  style: TextStyle(
+                                  '$pendingInvoices invoices',
+                                  style: const TextStyle(
                                     color: Color(0xFFE6ECFF),
                                     fontSize: 10,
                                     fontWeight: FontWeight.w600,
@@ -1155,6 +1159,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   // 6. PRIORITY RETURNS (URGENT ALERTS & DUE SOON LIST)
   // ---------------------------------------------------------------------------
   Widget _buildPriorityReturnsSection(BuildContext context) {
+    final recent = _dashboardStats?['recent_bookings'] as List?;
+    final int overdueCount = (_dashboardStats?['metrics']?['overdue_bookings'] as num?)?.toInt() ?? 0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1164,32 +1171,34 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             Row(
               children: [
                 const Text(
-                  'Priority Returns',
+                  'Priority Returns & Rentals',
                   style: TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(width: 6),
-                Container(
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF93000A).withValues(alpha: 0.4),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Text(
-                      '2',
-                      style: TextStyle(
-                        color: Color(0xFFFFB4AB),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                if (overdueCount > 0) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF93000A).withValues(alpha: 0.4),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        '$overdueCount',
+                        style: const TextStyle(
+                          color: Color(0xFFFFB4AB),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ],
             ),
             GestureDetector(
@@ -1207,36 +1216,66 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         ),
         const SizedBox(height: 10),
 
-        // Alert 1: Overdue Vehicle (Royal Enfield Classic 350)
-        _buildPriorityReturnCard(
-          context,
-          imageUrl: 'https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?auto=format&fit=crop&q=80&w=200',
-          title: 'Royal Enfield Classic 350',
-          regPlate: 'DL 04 AB 9021',
-          renterName: 'Vikram Singh',
-          statusBadgeLabel: 'Late 1h 20m',
-          isOverdue: true,
-          statusIcon: Icons.timer_off_rounded,
-          footerTextLeft: 'Fuel: 45%',
-          footerTextRight: '+₹350 Penalty',
-          onCheckIn: () => widget.onNavigate('return_final_bill', args: MockData.bookings.last),
-        ),
-        const SizedBox(height: 10),
+        if (recent != null && recent.isNotEmpty)
+          ...recent.take(3).map((item) {
+            final b = item as Map<String, dynamic>;
+            final bool isOverdue = b['is_overdue'] == true || b['status'] == 'overdue';
+            final String vehicleName = b['vehicle_name']?.toString() ?? 'Vehicle';
+            final String regNumber = b['vehicle_number']?.toString() ?? 'Fleet Vehicle';
+            final String customerName = b['customer_name']?.toString() ?? 'Customer';
+            final double amount = (b['amount'] as num?)?.toDouble() ?? 0.0;
+            final String id = b['id']?.toString() ?? b['booking_id']?.toString() ?? '1';
 
-        // Alert 2: Due Soon Vehicle (Hyundai Creta 1.5 MT)
-        _buildPriorityReturnCard(
-          context,
-          imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=200',
-          title: 'Hyundai Creta 1.5 MT',
-          regPlate: 'HR 26 DQ 5541',
-          renterName: 'Priya Sharma',
-          statusBadgeLabel: 'Due in 45m',
-          isOverdue: false,
-          statusIcon: Icons.schedule_rounded,
-          footerTextLeft: 'Security: ₹5,000',
-          footerTextRight: 'Paid',
-          onCheckIn: () => widget.onNavigate('booking_detail', args: MockData.bookings[1]),
-        ),
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _buildPriorityReturnCard(
+                context,
+                imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=200',
+                title: vehicleName,
+                regPlate: regNumber,
+                renterName: customerName,
+                statusBadgeLabel: isOverdue ? 'Late / Overdue' : (b['status']?.toString().toUpperCase() ?? 'ACTIVE'),
+                isOverdue: isOverdue,
+                statusIcon: isOverdue ? Icons.timer_off_rounded : Icons.schedule_rounded,
+                footerTextLeft: 'Fare: ₹${amount.toInt()}',
+                footerTextRight: isOverdue ? 'Action Req.' : 'On Trip',
+                onCheckIn: () => widget.onNavigate('booking_detail', args: id),
+              ),
+            );
+          })
+        else
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1B1F2B),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFF2A3854).withValues(alpha: 0.4)),
+            ),
+            child: Column(
+              children: [
+                const Icon(Icons.verified_rounded, color: Color(0xFF4EDEAE), size: 36),
+                const SizedBox(height: 8),
+                const Text(
+                  'No Overdue Returns',
+                  style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'All fleet bookings are on track or vehicles are in depot.',
+                  style: TextStyle(color: Color(0xFF869397), fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                CustomButton(
+                  text: '+ Create New Booking',
+                  height: 38,
+                  width: 190,
+                  onPressed: () => _handleNewBookingTap(context),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -1446,6 +1485,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   // 7. GARAGE QUICK STAT STRIP
   // ---------------------------------------------------------------------------
   Widget _buildGarageStatStrip(BuildContext context) {
+    final city = _dashboardStats?['user']?['city']?.toString() ?? 'Main Depot, Sector 18';
+    final total = (_dashboardStats?['metrics']?['total_vehicles'] as num?)?.toInt() ?? 0;
+    final avail = (_dashboardStats?['metrics']?['available_vehicles'] as num?)?.toInt() ?? 0;
+    final int health = total > 0 ? ((avail / total) * 100).toInt() : 100;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -1453,31 +1497,31 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF2A3854).withValues(alpha: 0.3)),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
-              Icon(Icons.store_rounded, color: Color(0xFF4EDEAE), size: 18),
-              SizedBox(width: 6),
+              const Icon(Icons.store_rounded, color: Color(0xFF4EDEAE), size: 18),
+              const SizedBox(width: 6),
               Text(
-                'Main Depot: Sector 18, Noida',
-                style: TextStyle(color: Color(0xFFBCC9CD), fontSize: 11),
+                'Depot: $city',
+                style: const TextStyle(color: Color(0xFFBCC9CD), fontSize: 11),
               ),
             ],
           ),
           Row(
             children: [
               Text(
-                'Garage Health: 98%',
-                style: TextStyle(
+                'Fleet Ready: $health%',
+                style: const TextStyle(
                   color: Color(0xFF4CD7F6),
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(width: 3),
-              Icon(Icons.verified, color: Color(0xFF4CD7F6), size: 14),
+              const SizedBox(width: 3),
+              const Icon(Icons.verified, color: Color(0xFF4CD7F6), size: 14),
             ],
           ),
         ],

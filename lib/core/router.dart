@@ -34,6 +34,7 @@ import '../core/plan_guard.dart';
 import '../screens/modals/daily_limit_modal.dart';
 import '../services/api_client.dart';
 import '../data/mock_data.dart';
+import '../models/mock_models.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -128,22 +129,41 @@ final appRouter = GoRouter(
                 onNavigate: (route, {dynamic args}) {
                   if (route == 'bookings') {
                     context.go(AppRoutes.bookings);
+                  } else if (route == 'new_booking') {
+                    context.push(AppRoutes.newBooking, extra: args);
                   } else if (route == 'daily_monthly_report') {
                     context.push(AppRoutes.dailyMonthlyReport);
-                  } else if (route == 'customers') {
+                  } else if (route == 'customers' || route == 'customers_list') {
                     context.push(AppRoutes.customers);
                   } else if (route == 'vehicles') {
                     context.go(AppRoutes.vehicles);
                   } else if (route == 'store') {
                     context.push(AppRoutes.store);
-                  } else if (route == 'plans') {
+                  } else if (route == 'plans' || route == 'plans_and_usage') {
                     context.push(AppRoutes.plans);
+                  } else if (route == 'pickup_checklist') {
+                    final bookingId = args is String ? args : (args is Booking ? args.id : 'BK-1089');
+                    context.push('/bookings/$bookingId/pickup');
+                  } else if (route == 'collect_payment') {
+                    final bookingId = args is String ? args : (args is Booking ? args.id : 'BK-1089');
+                    context.push('/bookings/$bookingId/payment');
+                  } else if (route == 'return_final_bill') {
+                    final bookingId = args is String ? args : (args is Booking ? args.id : 'BK-1089');
+                    context.push('/bookings/$bookingId/return');
+                  } else if (route == 'partner_ledger') {
+                    context.push(AppRoutes.partners);
+                  } else if (route == 'vehicle_wise_report') {
+                    context.push(AppRoutes.vehicleWiseReport);
                   } else if (route == 'booking_detail' && args != null) {
-                    context.push('/bookings/$args');
+                    final id = args is Booking ? args.id : args.toString();
+                    context.push('/bookings/$id');
                   } else if (route == 'product_detail' && args != null) {
-                    context.push('/store/product/$args');
-                  } else {
+                    final id = args is StoreProduct ? args.id : args.toString();
+                    context.push('/store/product/$id');
+                  } else if (route.startsWith('/')) {
                     context.push(route);
+                  } else {
+                    context.push('/$route');
                   }
                 },
               ),
@@ -175,8 +195,13 @@ final appRouter = GoRouter(
                     context.push(AppRoutes.addVehicle);
                   } else if (route == 'plans') {
                     context.push(AppRoutes.plans);
+                  } else if (route == 'new_booking') {
+                    context.push(AppRoutes.newBooking, extra: args);
+                  } else if (route == 'vehicle_wise_report') {
+                    context.push(AppRoutes.vehicleWiseReport);
                   } else if (args != null) {
-                    context.push('/vehicles/$args/edit');
+                    final id = args is Vehicle ? args.id : args.toString();
+                    context.push('/vehicles/$id/edit');
                   }
                 },
               ),
@@ -253,9 +278,11 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.newBooking,
       builder: (context, state) {
+        final preselectedVehicle = state.extra is Vehicle ? state.extra as Vehicle : null;
         return NewBookingScreen(
+          preselectedVehicle: preselectedVehicle,
           onBookingCreated: () {
-            context.pushReplacement('/bookings/BK-1089');
+            context.pushReplacement(AppRoutes.bookings);
           },
           onCancel: () => context.pop(),
         );
