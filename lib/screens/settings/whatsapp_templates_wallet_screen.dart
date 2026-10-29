@@ -166,8 +166,11 @@ class _WhatsappTemplatesWalletScreenState extends State<WhatsappTemplatesWalletS
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+    return SafeArea(
+      top: true,
+      bottom: false,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -399,7 +402,8 @@ class _WhatsappTemplatesWalletScreenState extends State<WhatsappTemplatesWalletS
           const SizedBox(height: 110),
         ],
       ),
-    );
+    ),
+  );
   }
 }
 

@@ -164,10 +164,21 @@ class _PartnerLedgerScreenState extends State<PartnerLedgerScreen> {
   Widget build(BuildContext context) {
     final isDisabled = widget.partner.status == PartnerStatus.inactive;
 
-    return RefreshIndicator(
-      onRefresh: _loadLedger,
-      color: AppColors.primaryCyan,
-      backgroundColor: AppColors.surfaceCard,
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: Text('Partner Ledger: ${widget.partner.name}'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: widget.onBack,
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: RefreshIndicator(
+          onRefresh: _loadLedger,
+          color: AppColors.primaryCyan,
+          backgroundColor: AppColors.surfaceCard,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
         padding: const EdgeInsets.all(16),
@@ -332,7 +343,9 @@ class _PartnerLedgerScreenState extends State<PartnerLedgerScreen> {
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _metric(String title, String val, {bool isAlert = false}) {

@@ -212,9 +212,20 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Customer Profile'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: widget.onBack,
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header Card
@@ -587,7 +598,9 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
           const SizedBox(height: 110), // Gap to prevent overlap with bottom tab menu
         ],
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _buildDocCard({

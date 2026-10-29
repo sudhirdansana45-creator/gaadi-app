@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../theme/app_colors.dart';
 import 'routes.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/sign_up_screen.dart';
@@ -88,7 +89,12 @@ final appRouter = GoRouter(
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return Scaffold(
-          body: navigationShell,
+          backgroundColor: AppColors.background,
+          body: SafeArea(
+            top: true,
+            bottom: false,
+            child: navigationShell,
+          ),
           bottomNavigationBar: AppBottomNav(
             currentIndex: navigationShell.currentIndex,
             onTap: (index) {

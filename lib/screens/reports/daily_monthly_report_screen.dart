@@ -68,6 +68,22 @@ class _DailyMonthlyReportScreenState extends State<DailyMonthlyReportScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
+                onPressed: widget.onBack,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Daily & Monthly Report',
+                style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           // Segmented Toggle & Date Picker Row
           Container(
             padding: const EdgeInsets.all(12),

@@ -92,13 +92,16 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Vehicle', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadVehicles,
-        color: AppColors.primaryCyan,
-        backgroundColor: AppColors.surfaceCard,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-          padding: const EdgeInsets.all(16),
+      body: SafeArea(
+        top: true,
+        bottom: false,
+        child: RefreshIndicator(
+          onRefresh: _loadVehicles,
+          color: AppColors.primaryCyan,
+          backgroundColor: AppColors.surfaceCard,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+            padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -220,7 +223,8 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
         ),
       ),
     ),
-  );
+  ),
+);
 }
 
   Widget _categoryTab(String key, String title, IconData icon) {

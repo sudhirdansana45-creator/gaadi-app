@@ -232,13 +232,16 @@ class _UsersAndRolesScreenState extends State<UsersAndRolesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: _loadStaff,
-      color: AppColors.primaryCyan,
-      backgroundColor: AppColors.surfaceCard,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-        padding: const EdgeInsets.all(16),
+    return SafeArea(
+      top: true,
+      bottom: false,
+      child: RefreshIndicator(
+        onRefresh: _loadStaff,
+        color: AppColors.primaryCyan,
+        backgroundColor: AppColors.surfaceCard,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -419,7 +422,8 @@ class _UsersAndRolesScreenState extends State<UsersAndRolesScreen> {
         ],
       ),
     ),
-  );
+  ),
+);
 }
 }
 

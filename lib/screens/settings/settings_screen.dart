@@ -115,8 +115,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final isFreePlan = DummyPlanData().activeState == PlanState.free;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+    return SafeArea(
+      top: true,
+      bottom: false,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -232,7 +235,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 110),
         ],
       ),
-    );
+    ),
+  );
   }
 
   Widget _sectionTitle(String title) {

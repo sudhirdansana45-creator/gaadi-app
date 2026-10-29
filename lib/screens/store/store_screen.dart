@@ -48,13 +48,16 @@ class _StoreScreenState extends State<StoreScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: _loadProducts,
-      color: AppColors.primaryCyan,
-      backgroundColor: AppColors.surfaceCard,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-        padding: const EdgeInsets.all(16),
+    return SafeArea(
+      top: true,
+      bottom: false,
+      child: RefreshIndicator(
+        onRefresh: _loadProducts,
+        color: AppColors.primaryCyan,
+        backgroundColor: AppColors.surfaceCard,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -166,6 +169,7 @@ class _StoreScreenState extends State<StoreScreen> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 }

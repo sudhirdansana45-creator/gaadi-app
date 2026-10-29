@@ -76,13 +76,16 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: _loadDashboardData,
-      color: AppColors.primaryCyan,
-      backgroundColor: const Color(0xFF1B1F2B),
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    return SafeArea(
+      top: true,
+      bottom: false,
+      child: RefreshIndicator(
+        onRefresh: _loadDashboardData,
+        color: AppColors.primaryCyan,
+        backgroundColor: const Color(0xFF1B1F2B),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -128,7 +131,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildPlanStateBanner(BuildContext context) {

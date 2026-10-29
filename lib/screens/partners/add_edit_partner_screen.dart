@@ -122,9 +122,20 @@ class _AddEditPartnerScreenState extends State<AddEditPartnerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: Text(widget.partner == null ? 'Add Fleet Partner' : 'Edit Fleet Partner'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: widget.onCancel,
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
@@ -421,6 +432,8 @@ class _AddEditPartnerScreenState extends State<AddEditPartnerScreen> {
           const SizedBox(height: 110), // Gap to prevent overlap with bottom tab menu
         ],
       ),
-    );
+    ),
+  ),
+);
   }
 }

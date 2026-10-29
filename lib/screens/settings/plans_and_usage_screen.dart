@@ -120,13 +120,16 @@ class _PlansAndUsageScreenState extends State<PlansAndUsageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      color: AppColors.primaryCyan,
-      backgroundColor: AppColors.surfaceCard,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-        padding: const EdgeInsets.all(16),
+    return SafeArea(
+      top: true,
+      bottom: false,
+      child: RefreshIndicator(
+        onRefresh: _loadData,
+        color: AppColors.primaryCyan,
+        backgroundColor: AppColors.surfaceCard,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -141,6 +144,13 @@ class _PlansAndUsageScreenState extends State<PlansAndUsageScreen> {
               ),
             Row(
               children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
+                  onPressed: widget.onBack,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,6 +341,7 @@ class _PlansAndUsageScreenState extends State<PlansAndUsageScreen> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 }

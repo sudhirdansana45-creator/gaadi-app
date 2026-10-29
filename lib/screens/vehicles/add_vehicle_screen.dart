@@ -162,8 +162,34 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   // ---------------------------------------------------------------------------
   Widget _buildSubHeaderStrip(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        Row(
+          children: [
+            InkWell(
+              onTap: widget.onCancel,
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceCard,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.borderSubtle),
+                ),
+                child: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 16),
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Text(
+              'Vehicle Form',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
         Row(
           children: [
             Container(

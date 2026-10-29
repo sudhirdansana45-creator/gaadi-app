@@ -33,8 +33,11 @@ class ReportsHubScreen extends StatelessWidget {
     // Determine locked status from DummyPlanData (Free plan has only Daily & Monthly open)
     final isFreePlan = DummyPlanData().activeState == PlanState.free;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+    return SafeArea(
+      top: true,
+      bottom: false,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -136,7 +139,8 @@ class ReportsHubScreen extends StatelessWidget {
           const SizedBox(height: 110), // Gap to prevent overlap with bottom tab menu
         ],
       ),
-    );
+    ),
+  );
   }
 
   Widget _reportCard(

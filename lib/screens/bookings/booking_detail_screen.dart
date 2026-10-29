@@ -151,9 +151,11 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
           onPressed: widget.onBack,
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Status Header
@@ -306,7 +308,8 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildStatusActions(BuildContext context) {

@@ -50,9 +50,20 @@ class _ReturnFinalBillScreenState extends State<ReturnFinalBillScreen> {
     final totalDeductions = pendingRent + _extraKmCharge + _lateFee + damageCharge;
     final netRefundToCustomer = securityDeposit - totalDeductions;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Return Vehicle & Final Bill'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: widget.onCancel,
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Overdue Return Status Banner
@@ -257,7 +268,9 @@ class _ReturnFinalBillScreenState extends State<ReturnFinalBillScreen> {
           const SizedBox(height: 110), // Gap to prevent overlap with bottom tab menu
         ],
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _mathRow(String title, String amount, {required bool isPositive}) {

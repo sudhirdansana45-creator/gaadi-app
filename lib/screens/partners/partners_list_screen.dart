@@ -73,13 +73,16 @@ class _PartnersListScreenState extends State<PartnersListScreen> {
   Widget build(BuildContext context) {
     final isLimitReached = DummyPlanData().usage.isPartnerLimitReached;
 
-    return RefreshIndicator(
-      onRefresh: _loadPartners,
-      color: AppColors.primaryCyan,
-      backgroundColor: AppColors.surfaceCard,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-        padding: const EdgeInsets.all(16),
+    return SafeArea(
+      top: true,
+      bottom: false,
+      child: RefreshIndicator(
+        onRefresh: _loadPartners,
+        color: AppColors.primaryCyan,
+        backgroundColor: AppColors.surfaceCard,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -295,7 +298,8 @@ class _PartnersListScreenState extends State<PartnersListScreen> {
         ],
       ),
     ),
-  );
+  ),
+);
 }
 
   Widget _col(String title, String val, {bool isHigh = false}) {

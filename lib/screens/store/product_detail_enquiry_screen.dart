@@ -133,9 +133,20 @@ class _ProductDetailEnquiryScreenState extends State<ProductDetailEnquiryScreen>
     final p = widget.product;
     final total = p.price * _qty;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: Text(p.title),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: widget.onBack,
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -234,6 +245,8 @@ class _ProductDetailEnquiryScreenState extends State<ProductDetailEnquiryScreen>
           const SizedBox(height: 110), // Gap to prevent overlap with bottom tab menu
         ],
       ),
-    );
+    ),
+  ),
+);
   }
 }

@@ -72,13 +72,16 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
       return true;
     }).toList();
 
-    return RefreshIndicator(
-      onRefresh: _loadCustomers,
-      color: AppColors.primaryCyan,
-      backgroundColor: AppColors.surfaceCard,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-        padding: const EdgeInsets.all(16),
+    return SafeArea(
+      top: true,
+      bottom: false,
+      child: RefreshIndicator(
+        onRefresh: _loadCustomers,
+        color: AppColors.primaryCyan,
+        backgroundColor: AppColors.surfaceCard,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -324,6 +327,7 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
         ],
       ),
     ),
-  );
+  ),
+);
 }
 }

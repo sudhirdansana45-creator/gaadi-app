@@ -142,9 +142,20 @@ class _CollectPaymentScreenState extends State<CollectPaymentScreen> {
     final double remainingBalance = (totalPendingDue - enteredAmount).clamp(0.0, 999999.0);
     final bool isPartial = remainingBalance > 0;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Collect Payment'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: widget.onCancel,
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Payment Form Card
@@ -306,7 +317,9 @@ class _CollectPaymentScreenState extends State<CollectPaymentScreen> {
           const SizedBox(height: 110), // Gap to prevent overlap with bottom tab menu
         ],
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _historyRow(String title, String amount, String mode, String date) {

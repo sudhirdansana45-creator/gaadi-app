@@ -59,9 +59,20 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
     final double totalPayable = totalRent + securityDeposit;
     final double remainingBalance = totalPayable - _advancePaid;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Create New Booking'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: widget.onCancel,
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Quota & Billing Counter Banner
@@ -369,7 +380,9 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
           const SizedBox(height: 110), // Gap to prevent overlap with bottom tab menu
         ],
       ),
-    );
+    ),
+  ),
+);
   }
 
   void _insertLocalBooking(double totalPayable, double remainingBalance, double securityDeposit) {

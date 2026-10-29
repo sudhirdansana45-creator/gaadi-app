@@ -26,6 +26,20 @@ class GaadiManagerApp extends StatelessWidget {
           darkTheme: AppTheme.darkTheme,
           themeMode: themeMode,
           routerConfig: appRouter,
+          builder: (context, routerChild) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final bg = isDark ? const Color(0xFF0F131D) : const Color(0xFFF6F8FC);
+            return Container(
+              color: bg,
+              child: SafeArea(
+                top: true,
+                bottom: false,
+                left: false,
+                right: false,
+                child: routerChild ?? const SizedBox.shrink(),
+              ),
+            );
+          },
         );
       },
     );

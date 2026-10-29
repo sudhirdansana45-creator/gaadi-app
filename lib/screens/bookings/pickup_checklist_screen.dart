@@ -52,9 +52,11 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
           onPressed: widget.onBack,
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
@@ -269,7 +271,8 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _photoTile(String label, bool isUploaded) {
