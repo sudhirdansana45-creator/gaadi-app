@@ -197,7 +197,10 @@ class ApiClient {
 
     if (response.statusCode == 401) {
       clearSession();
-      throw ApiException('Session expired. Please login again.', statusCode: 401);
+      final errorMsg = (jsonBody is Map<String, dynamic> && jsonBody['message'] != null)
+          ? jsonBody['message'].toString()
+          : 'Session expired. Please login again.';
+      throw ApiException(errorMsg, statusCode: 401, errors: errors);
     }
 
     throw ApiException(message.toString(), statusCode: response.statusCode, errors: errors);
