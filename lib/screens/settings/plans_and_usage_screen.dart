@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/usage_meter.dart';
-import '../../data/dummy_plan_data.dart';
+import '../../models/mock_models.dart';
 import '../../services/api_service.dart';
 
 class PlansAndUsageScreen extends StatefulWidget {
@@ -19,31 +19,21 @@ class PlansAndUsageScreen extends StatefulWidget {
 
 class _PlansAndUsageScreenState extends State<PlansAndUsageScreen> {
   bool _isLoading = false;
-  String _currentPlanName = 'Starter Free Tier';
-  int _vehiclesUsed = 3;
+  String _currentPlanName = 'Free Starter';
+  int _vehiclesUsed = 0;
   int _vehicleLimit = 5;
-  int _partnersUsed = 1;
+  int _partnersUsed = 0;
   int _partnerLimit = 2;
-  int _billsUsedToday = 7;
+  int _billsUsedToday = 0;
   int _dailyBillLimit = 10;
-  int _staffUsersUsed = 1;
+  int _staffUsersUsed = 0;
   int _staffUserLimit = 1;
 
-  List<PlanModel> _plans = DummyPlanData.allPlans;
+  List<PlanModel> _plans = [];
 
   @override
   void initState() {
     super.initState();
-    final usage = DummyPlanData().usage;
-    _vehiclesUsed = usage.vehiclesUsed;
-    _vehicleLimit = usage.vehicleLimit;
-    _partnersUsed = usage.partnersUsed;
-    _partnerLimit = usage.partnerLimit;
-    _billsUsedToday = usage.billsUsedToday;
-    _dailyBillLimit = usage.dailyBillLimit;
-    _staffUsersUsed = usage.staffUsersUsed;
-    _staffUserLimit = usage.staffUserLimit;
-
     _loadData();
   }
 
@@ -54,11 +44,17 @@ class _PlansAndUsageScreenState extends State<PlansAndUsageScreen> {
       if (subRes != null && subRes['data'] != null && mounted) {
         final d = subRes['data'];
         setState(() {
-          _currentPlanName = d['plan_name']?.toString() ?? _currentPlanName;
+          _currentPlanName = d['plan_name']?.toString() ?? 'Free Starter';
           if (d['quota'] is Map) {
             final q = d['quota'];
-            _vehiclesUsed = (q['vehicles_used'] as num?)?.toInt() ?? _vehiclesUsed;
-            _vehicleLimit = (q['max_vehicles'] as num?)?.toInt() ?? _vehicleLimit;
+            _vehiclesUsed = (q['vehicles_used'] as num?)?.toInt() ?? 0;
+            _vehicleLimit = (q['max_vehicles'] as num?)?.toInt() ?? 5;
+            _partnersUsed = (q['partners_used'] as num?)?.toInt() ?? 0;
+            _partnerLimit = (q['max_partners'] as num?)?.toInt() ?? 2;
+            _billsUsedToday = (q['bills_today'] as num?)?.toInt() ?? 0;
+            _dailyBillLimit = (q['bills_per_day'] as num?)?.toInt() ?? 10;
+            _staffUsersUsed = (q['staff_used'] as num?)?.toInt() ?? 0;
+            _staffUserLimit = (q['max_staff'] as num?)?.toInt() ?? 1;
           }
         });
       }
@@ -66,29 +62,27 @@ class _PlansAndUsageScreenState extends State<PlansAndUsageScreen> {
       final plansRes = await ApiService().getPlans();
       if (plansRes != null && plansRes['data'] is List && mounted) {
         final List list = plansRes['data'];
-        if (list.isNotEmpty) {
-          final mapped = list.map((p) {
-            final limits = p['limits'] is Map ? p['limits'] : {};
-            final featuresList = (p['features'] as List?)?.map((e) => e.toString()).toList() ?? [];
-            final name = p['name']?.toString() ?? 'Plan';
-            final isCurrent = name.toLowerCase() == _currentPlanName.toLowerCase() ||
-                (p['price'] == 0 && _currentPlanName.toLowerCase().contains('free'));
-            return PlanModel(
-              id: p['id']?.toString() ?? '',
-              name: name,
-              pricePerMonth: (p['price'] as num?)?.toDouble() ?? 0.0,
-              vehicleLimit: (limits['vehicles'] as num?)?.toInt() ?? 5,
-              partnerLimit: (limits['partners'] as num?)?.toInt() ?? 2,
-              dailyBillLimit: (limits['bills_per_day'] as num?)?.toInt() ?? 10,
-              staffUserLimit: (limits['staff'] as num?)?.toInt() ?? 1,
-              isCurrent: isCurrent,
-              features: featuresList.isNotEmpty
-                  ? featuresList
-                  : ['Vehicle quota access', 'Partner ledger sharing', 'Invoice generator'],
-            );
-          }).toList();
-          setState(() => _plans = mapped);
-        }
+        final mapped = list.map((p) {
+          final limits = p['limits'] is Map ? p['limits'] : {};
+          final featuresList = (p['features'] as List?)?.map((e) => e.toString()).toList() ?? [];
+          final name = p['name']?.toString() ?? 'Plan';
+          final isCurrent = name.toLowerCase() == _currentPlanName.toLowerCase() ||
+              (p['price'] == 0 && _currentPlanName.toLowerCase().contains('free'));
+          return PlanModel(
+            id: p['id']?.toString() ?? '',
+            name: name,
+            pricePerMonth: (p['price'] as num?)?.toDouble() ?? 0.0,
+            vehicleLimit: (limits['vehicles'] as num?)?.toInt() ?? 5,
+            partnerLimit: (limits['partners'] as num?)?.toInt() ?? 2,
+            dailyBillLimit: (limits['bills_per_day'] as num?)?.toInt() ?? 10,
+            staffUserLimit: (limits['staff'] as num?)?.toInt() ?? 1,
+            isCurrent: isCurrent,
+            features: featuresList.isNotEmpty
+                ? featuresList
+                : ['Vehicle quota access', 'Partner ledger sharing', 'Invoice generator'],
+          );
+        }).toList();
+        setState(() => _plans = mapped);
       }
     } catch (_) {
       // Fallback
@@ -231,8 +225,24 @@ class _PlansAndUsageScreenState extends State<PlansAndUsageScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Dynamic Plan Cards List
-            ListView.builder(
+            if (_plans.isEmpty && !_isLoading)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceCard,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.borderSubtle),
+                ),
+                child: const Center(
+                  child: Text(
+                    'No additional subscription plans available.',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  ),
+                ),
+              )
+            else
+              ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: _plans.length,

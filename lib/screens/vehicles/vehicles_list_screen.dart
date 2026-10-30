@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/status_chip.dart';
 import '../../widgets/custom_button.dart';
-import '../../data/mock_data.dart';
 import '../../models/mock_models.dart';
 import '../../services/api_service.dart';
 
@@ -23,6 +22,7 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
   String _selectedFilter = 'All Status';
   String _searchQuery = '';
   bool _isLoading = false;
+  List<Vehicle> _vehicles = [];
 
   @override
   void initState() {
@@ -38,14 +38,14 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
         final list = (res['data'] as List)
             .map((item) => Vehicle.fromJson(item as Map<String, dynamic>))
             .toList();
-        if (mounted && list.isNotEmpty) {
+        if (mounted) {
           setState(() {
-            MockData.vehicles = list;
+            _vehicles = list;
           });
         }
       }
     } catch (_) {
-      // Offline fallback
+      // Offline fallback: keep cached data
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -55,7 +55,7 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredVehicles = MockData.vehicles.where((v) {
+    final filteredVehicles = _vehicles.where((v) {
       // Category Tab Filter
       if (_selectedCategory == 'Cars') {
         if (v.category.toLowerCase().contains('bike') || v.category.toLowerCase().contains('scooter')) {
@@ -86,6 +86,7 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
         backgroundColor: AppColors.primaryCyan,
         foregroundColor: AppColors.textDark,
         onPressed: () => widget.onNavigate('add_vehicle'),
@@ -196,28 +197,85 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Vehicle Cards Grid
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final crossCount = constraints.maxWidth > 900 ? 3 : (constraints.maxWidth > 600 ? 2 : 1);
+            // Vehicle Cards Grid or Empty State
+            if (filteredVehicles.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceCard,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.borderSubtle),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: AppColors.canvasLow,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.borderSubtle),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.directions_car_outlined, color: AppColors.textSecondary, size: 32),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _searchQuery.isNotEmpty || _selectedFilter != 'All Status' || _selectedCategory != 'All'
+                          ? 'No Matching Vehicles Found'
+                          : 'No Vehicles in Fleet',
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      _searchQuery.isNotEmpty || _selectedFilter != 'All Status' || _selectedCategory != 'All'
+                          ? 'Try clearing your filters or search keywords.'
+                          : 'Register your first car or bike to start managing rentals and bookings.',
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 18),
+                    CustomButton(
+                      text: '+ Add Vehicle',
+                      width: 160,
+                      height: 40,
+                      onPressed: () => widget.onNavigate('add_vehicle'),
+                    ),
+                  ],
+                ),
+              )
+            else
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final crossCount = constraints.maxWidth > 900 ? 3 : (constraints.maxWidth > 600 ? 2 : 1);
 
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossCount,
-                    crossAxisSpacing: 14,
-                    mainAxisSpacing: 14,
-                    childAspectRatio: crossCount == 1 ? 1.35 : 0.95,
-                  ),
-                  itemCount: filteredVehicles.length,
-                  itemBuilder: (context, index) {
-                    final vehicle = filteredVehicles[index];
-                    return _buildVehicleCard(vehicle);
-                  },
-                );
-              },
-            ),
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossCount,
+                      crossAxisSpacing: 14,
+                      mainAxisSpacing: 14,
+                      childAspectRatio: crossCount == 1 ? 1.35 : 0.95,
+                    ),
+                    itemCount: filteredVehicles.length,
+                    itemBuilder: (context, index) {
+                      final vehicle = filteredVehicles[index];
+                      return _buildVehicleCard(vehicle);
+                    },
+                  );
+                },
+              ),
             const SizedBox(height: 110), // Gap to prevent overlap with bottom tab menu
           ],
         ),

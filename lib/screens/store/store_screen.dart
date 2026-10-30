@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
-import '../../data/mock_data.dart';
 import '../../models/mock_models.dart';
 import '../../services/api_service.dart';
 
@@ -24,7 +23,6 @@ class _StoreScreenState extends State<StoreScreen> {
   @override
   void initState() {
     super.initState();
-    _products = List.from(MockData.storeProducts);
     _loadProducts();
   }
 
@@ -32,12 +30,10 @@ class _StoreScreenState extends State<StoreScreen> {
     setState(() => _isLoading = true);
     try {
       final res = await ApiService().getStoreProducts();
-      if (res != null && res['data'] is List) {
+      if (res != null && res['data'] is List && mounted) {
         final List list = res['data'];
         final dynamicItems = list.map((item) => StoreProduct.fromJson(item)).toList();
-        if (dynamicItems.isNotEmpty && mounted) {
-          setState(() => _products = dynamicItems);
-        }
+        setState(() => _products = dynamicItems);
       }
     } catch (_) {
       // Graceful offline fallback
@@ -95,10 +91,38 @@ class _StoreScreenState extends State<StoreScreen> {
             ),
             const SizedBox(height: 20),
 
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final crossCount = constraints.maxWidth > 800 ? 3 : (constraints.maxWidth > 500 ? 2 : 1);
-                return GridView.builder(
+            if (_products.isEmpty && !_isLoading)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceCard,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.borderSubtle),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.inventory_2_outlined, size: 64, color: AppColors.textMuted.withAlpha(120)),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'No Hardware Inventory Found',
+                      style: TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'GPS Trackers, FASTag Scanners and Dashcams will appear here once listed.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                    ),
+                  ],
+                ),
+              )
+            else
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final crossCount = constraints.maxWidth > 800 ? 3 : (constraints.maxWidth > 500 ? 2 : 1);
+                  return GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

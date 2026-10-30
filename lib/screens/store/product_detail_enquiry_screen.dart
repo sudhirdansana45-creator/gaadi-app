@@ -9,12 +9,14 @@ import '../../services/api_service.dart';
 import '../../services/api_client.dart';
 
 class ProductDetailEnquiryScreen extends StatefulWidget {
-  final StoreProduct product;
+  final StoreProduct? product;
+  final String? productId;
   final VoidCallback onBack;
 
   const ProductDetailEnquiryScreen({
     super.key,
-    required this.product,
+    this.product,
+    this.productId,
     required this.onBack,
   });
 
@@ -23,9 +25,36 @@ class ProductDetailEnquiryScreen extends StatefulWidget {
 }
 
 class _ProductDetailEnquiryScreenState extends State<ProductDetailEnquiryScreen> {
+  StoreProduct? _product;
+  bool _isLoading = false;
   int _qty = 2;
 
+  @override
+  void initState() {
+    super.initState();
+    _product = widget.product;
+    if (_product == null && widget.productId != null && widget.productId!.isNotEmpty) {
+      _fetchProduct();
+    }
+  }
+
+  Future<void> _fetchProduct() async {
+    setState(() => _isLoading = true);
+    try {
+      final res = await ApiService().getStoreProducts();
+      if (res != null && res['data'] is List && mounted) {
+        final list = (res['data'] as List).map((i) => StoreProduct.fromJson(i)).toList();
+        final match = list.where((p) => p.id == widget.productId).firstOrNull;
+        if (match != null) {
+          setState(() => _product = match);
+        }
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _isLoading = false);
+  }
+
   void _showEnquirySheet() {
+    if (_product == null) return;
     final user = ApiClient().currentUser;
     final nameCtrl = TextEditingController(text: user?['name']?.toString() ?? '');
     final phoneCtrl = TextEditingController(text: user?['mobile']?.toString() ?? '');
@@ -34,7 +63,7 @@ class _ProductDetailEnquiryScreenState extends State<ProductDetailEnquiryScreen>
 
     AppBottomSheet.show(
       context: context,
-      title: 'Enquire for ${widget.product.title}',
+      title: 'Enquire for ${_product!.title}',
       subtitle: 'Submit inquiry for bulk pricing & installer assistance',
       content: StatefulBuilder(
         builder: (context, setModalState) {
@@ -106,7 +135,7 @@ class _ProductDetailEnquiryScreenState extends State<ProductDetailEnquiryScreen>
         Navigator.pop(context);
         try {
           await ApiService().placeStoreOrder(
-            productId: widget.product.id,
+            productId: _product!.id,
             quantity: enquiryQty,
             shippingAddress: noteCtrl.text.trim().isNotEmpty ? noteCtrl.text.trim() : 'Store Garage Delivery',
             contactPhone: phoneCtrl.text.trim(),
@@ -132,7 +161,64 @@ class _ProductDetailEnquiryScreenState extends State<ProductDetailEnquiryScreen>
 
   @override
   Widget build(BuildContext context) {
-    final p = widget.product;
+    if (_isLoading && _product == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          title: const Text('Store Product'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: widget.onBack,
+          ),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(color: AppColors.primaryCyan),
+        ),
+      );
+    }
+
+    if (_product == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          title: const Text('Store Product'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: widget.onBack,
+          ),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.remove_shopping_cart_outlined, size: 64, color: AppColors.textMuted.withAlpha(120)),
+                const SizedBox(height: 16),
+                const Text(
+                  'Product Not Found',
+                  style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'This product is currently unavailable or has been removed from inventory.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                ),
+                const SizedBox(height: 24),
+                CustomButton(
+                  text: 'Back to Store',
+                  variant: ButtonVariant.secondary,
+                  onPressed: widget.onBack,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final p = _product!;
     final total = p.price * _qty;
 
     return Scaffold(

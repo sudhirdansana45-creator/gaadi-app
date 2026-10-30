@@ -50,49 +50,16 @@ class _WhatsappTemplatesWalletScreenState extends State<WhatsappTemplatesWalletS
 
   String _getPreviewText() {
     String text = _templateController.text;
-    text = text.replaceAll('{customer_name}', 'Rahul Verma');
-    text = text.replaceAll('{vehicle}', 'Mahindra Thar 4x4 (DL 01 AB 1234)');
-    text = text.replaceAll('{pickup_time}', '10:00 AM, 05 Oct');
-    text = text.replaceAll('{return_time}', '06:00 PM, 07 Oct');
-    text = text.replaceAll('{amount_due}', '₹7,000');
+    text = text.replaceAll('{customer_name}', '[Customer Name]');
+    text = text.replaceAll('{vehicle}', '[Vehicle Model & Reg No]');
+    text = text.replaceAll('{pickup_time}', '[Pickup Date & Time]');
+    text = text.replaceAll('{return_time}', '[Return Date & Time]');
+    text = text.replaceAll('{amount_due}', '[Pending Amount ₹]');
     return text;
   }
 
   void _showMessageLogSheet() {
-    final logs = [
-      {
-        'name': 'Rahul Verma',
-        'phone': '+91 98765 43210',
-        'type': 'Booking Confirmation',
-        'time': '10:30 AM Today',
-        'status': 'Delivered',
-        'color': AppColors.successGreen,
-      },
-      {
-        'name': 'Priya Sharma',
-        'phone': '+91 98111 22334',
-        'type': 'Vehicle Handover Link',
-        'time': '09:15 AM Today',
-        'status': 'Sent',
-        'color': AppColors.infoBlue,
-      },
-      {
-        'name': 'Vikram Singh',
-        'phone': '+91 97654 32109',
-        'type': 'Overdue Return Alert',
-        'time': 'Yesterday, 06:00 PM',
-        'status': 'Failed',
-        'color': AppColors.criticalRed,
-      },
-      {
-        'name': 'Amit Patel',
-        'phone': '+91 99000 88776',
-        'type': 'Payment Receipt',
-        'time': '03 Oct, 02:45 PM',
-        'status': 'Delivered',
-        'color': AppColors.successGreen,
-      },
-    ];
+    final List<Map<String, dynamic>> logs = [];
 
     showModalBottomSheet(
       context: context,
@@ -103,63 +70,84 @@ class _WhatsappTemplatesWalletScreenState extends State<WhatsappTemplatesWalletS
         subtitle: 'Real-time delivery status for automated messages',
         primaryActionText: 'Close Log',
         onPrimaryAction: () => Navigator.pop(ctx),
-        content: Column(
-          children: logs.map((log) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.borderSubtle),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceHover,
-                      borderRadius: BorderRadius.circular(8),
+        content: logs.isEmpty
+            ? Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                child: Column(
+                  children: [
+                    Icon(Icons.mark_chat_read_outlined, size: 40, color: AppColors.textMuted.withAlpha(120)),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'No WhatsApp Message Logs',
+                      style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
                     ),
-                    child: const Icon(Icons.chat_bubble_outline_rounded, color: AppColors.primaryCyan, size: 18),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Automated booking confirmations, pickup links and payment reminders dispatched to customers will appear here.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                  ],
+                ),
+              )
+            : Column(
+                children: logs.map((log) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.borderSubtle),
+                    ),
+                    child: Row(
                       children: [
-                        Text(
-                          '${log['name']} (${log['phone']})',
-                          style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 13),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceHover,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.chat_bubble_outline_rounded, color: AppColors.primaryCyan, size: 18),
                         ),
-                        Text(
-                          '${log['type']} • ${log['time']}',
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${log['name']} (${log['phone']})',
+                                style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 13),
+                              ),
+                              Text(
+                                '${log['type']} • ${log['time']}',
+                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: (log['color'] as Color).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: (log['color'] as Color).withValues(alpha: 0.3)),
+                          ),
+                          child: Text(
+                            log['status'] as String,
+                            style: TextStyle(
+                              color: log['color'] as Color,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: (log['color'] as Color).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: (log['color'] as Color).withValues(alpha: 0.3)),
-                    ),
-                    child: Text(
-                      log['status'] as String,
-                      style: TextStyle(
-                        color: log['color'] as Color,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
+                  );
+                }).toList(),
               ),
-            );
-          }).toList(),
-        ),
       ),
     );
   }
@@ -194,22 +182,22 @@ class _WhatsappTemplatesWalletScreenState extends State<WhatsappTemplatesWalletS
           ),
           const SizedBox(height: 16),
 
-          // Amber Low Balance Banner
+          // WhatsApp Gateway Status Banner
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: AppColors.warningBg,
+              color: AppColors.surfaceHover,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.warningBorder),
+              border: Border.all(color: AppColors.borderSubtle),
             ),
             child: Row(
               children: [
-                const Icon(Icons.warning_amber_rounded, color: AppColors.warningAmber, size: 20),
+                const Icon(Icons.info_outline_rounded, color: AppColors.primaryCyan, size: 20),
                 const SizedBox(width: 10),
                 const Expanded(
                   child: Text(
-                    'Balance low. Messages will stop when it reaches ₹0.',
-                    style: TextStyle(color: AppColors.warningAmber, fontSize: 12, fontWeight: FontWeight.bold),
+                    'Recharge wallet credits to send automatic WhatsApp booking receipts & reminders.',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                   ),
                 ),
                 CustomButton(
@@ -242,7 +230,7 @@ class _WhatsappTemplatesWalletScreenState extends State<WhatsappTemplatesWalletS
                       children: [
                         Text('WhatsApp Credits Balance', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                         SizedBox(height: 4),
-                        Text('1,420 Credits', style: TextStyle(color: AppColors.primaryCyan, fontWeight: FontWeight.w900, fontSize: 22)),
+                        Text('0 Credits Available', style: TextStyle(color: AppColors.primaryCyan, fontWeight: FontWeight.w900, fontSize: 20)),
                       ],
                     ),
                     CustomButton(

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/status_chip.dart';
-import '../../data/mock_data.dart';
 import '../../models/mock_models.dart';
 import '../../services/api_service.dart';
 
@@ -22,6 +21,7 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
   String _search = '';
   String _selectedFilter = 'All';
   bool _isLoading = false;
+  List<Customer> _customers = [];
 
   final List<String> _filters = ['All', 'Verified', 'Blacklisted', 'Due'];
 
@@ -39,14 +39,14 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
         final list = (res['data'] as List)
             .map((item) => Customer.fromJson(item as Map<String, dynamic>))
             .toList();
-        if (mounted && list.isNotEmpty) {
+        if (mounted) {
           setState(() {
-            MockData.customers = list;
+            _customers = list;
           });
         }
       }
     } catch (_) {
-      // Offline fallback
+      // Offline fallback: keep current list
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -56,7 +56,7 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final list = MockData.customers.where((c) {
+    final list = _customers.where((c) {
       // Filter category logic
       if (_selectedFilter == 'Verified' && (!c.isVerified || c.isBlacklisted)) return false;
       if (_selectedFilter == 'Blacklisted' && !c.isBlacklisted) return false;
@@ -165,11 +165,51 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
 
           if (list.isEmpty)
             Container(
-              padding: const EdgeInsets.all(32),
-              alignment: Alignment.center,
-              child: const Text(
-                'No customers found matching filter criteria.',
-                style: TextStyle(color: AppColors.textMuted, fontSize: 14),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceCard,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.borderSubtle),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryCyan.withAlpha(25),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.people_outline_rounded, color: AppColors.primaryCyan, size: 40),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _search.isNotEmpty || _selectedFilter != 'All'
+                        ? 'No customers matching filter'
+                        : 'No Customers Found',
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _search.isNotEmpty || _selectedFilter != 'All'
+                        ? 'Try searching with another name or clearing the filter.'
+                        : 'No customer profiles recorded yet. Register your first customer to manage KYC & trip history.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
+                  ),
+                  const SizedBox(height: 20),
+                  CustomButton(
+                    text: '+ Add New Customer',
+                    width: 190,
+                    height: 42,
+                    onPressed: () => widget.onNavigate('add_customer'),
+                  ),
+                ],
               ),
             )
           else

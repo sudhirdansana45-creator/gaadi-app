@@ -33,7 +33,6 @@ import '../widgets/app_bottom_nav.dart';
 import '../core/plan_guard.dart';
 import '../screens/modals/daily_limit_modal.dart';
 import '../services/api_client.dart';
-import '../data/mock_data.dart';
 import '../models/mock_models.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -142,14 +141,26 @@ final appRouter = GoRouter(
                   } else if (route == 'plans' || route == 'plans_and_usage') {
                     context.push(AppRoutes.plans);
                   } else if (route == 'pickup_checklist') {
-                    final bookingId = args is String ? args : (args is Booking ? args.id : 'BK-1089');
-                    context.push('/bookings/$bookingId/pickup');
+                    final bookingId = args is String ? args : (args is Booking ? args.id : '');
+                    if (bookingId.isNotEmpty) {
+                      context.push('/bookings/$bookingId/pickup');
+                    } else {
+                      context.push(AppRoutes.bookings);
+                    }
                   } else if (route == 'collect_payment') {
-                    final bookingId = args is String ? args : (args is Booking ? args.id : 'BK-1089');
-                    context.push('/bookings/$bookingId/payment');
+                    final bookingId = args is String ? args : (args is Booking ? args.id : '');
+                    if (bookingId.isNotEmpty) {
+                      context.push('/bookings/$bookingId/payment');
+                    } else {
+                      context.push(AppRoutes.bookings);
+                    }
                   } else if (route == 'return_final_bill') {
-                    final bookingId = args is String ? args : (args is Booking ? args.id : 'BK-1089');
-                    context.push('/bookings/$bookingId/return');
+                    final bookingId = args is String ? args : (args is Booking ? args.id : '');
+                    if (bookingId.isNotEmpty) {
+                      context.push('/bookings/$bookingId/return');
+                    } else {
+                      context.push(AppRoutes.bookings);
+                    }
                   } else if (route == 'partner_ledger') {
                     context.push(AppRoutes.partners);
                   } else if (route == 'vehicle_wise_report') {
@@ -291,7 +302,7 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/bookings/:id',
       builder: (context, state) {
-        final id = state.pathParameters['id'] ?? 'BK-1089';
+        final id = state.pathParameters['id'] ?? '';
         return BookingDetailScreen(
           bookingId: id,
           onBack: () => context.pop(),
@@ -314,7 +325,7 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/bookings/:id/pickup',
       builder: (context, state) {
-        final id = state.pathParameters['id'] ?? 'BK-1089';
+        final id = state.pathParameters['id'] ?? '';
         return PickupChecklistScreen(
           bookingId: id,
           onBack: () => context.pop(),
@@ -325,13 +336,11 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/bookings/:id/return',
       builder: (context, state) {
-        final id = state.pathParameters['id'] ?? 'BK-1089';
-        final bk = MockData.bookings.firstWhere(
-          (b) => b.id == id,
-          orElse: () => MockData.bookings.first,
-        );
+        final id = state.pathParameters['id'] ?? '';
+        final extraBooking = state.extra is Booking ? state.extra as Booking : null;
         return ReturnFinalBillScreen(
-          booking: bk,
+          booking: extraBooking,
+          bookingId: id,
           onBillSettled: () {
             context.pushReplacement('/bookings/$id/payment');
           },
@@ -342,13 +351,11 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/bookings/:id/payment',
       builder: (context, state) {
-        final id = state.pathParameters['id'] ?? 'BK-1089';
-        final bk = MockData.bookings.firstWhere(
-          (b) => b.id == id,
-          orElse: () => MockData.bookings.first,
-        );
+        final id = state.pathParameters['id'] ?? '';
+        final extraBooking = state.extra is Booking ? state.extra as Booking : null;
         return CollectPaymentScreen(
-          booking: bk,
+          booking: extraBooking,
+          bookingId: id,
           onCollected: () => context.pop(),
           onCancel: () => context.pop(),
         );
@@ -393,13 +400,11 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/customers/:id',
       builder: (context, state) {
-        final id = state.pathParameters['id'] ?? 'CUST-01';
-        final cust = MockData.customers.firstWhere(
-          (c) => c.id == id,
-          orElse: () => MockData.customers.first,
-        );
+        final id = state.pathParameters['id'] ?? '';
+        final extraCustomer = state.extra is Customer ? state.extra as Customer : null;
         return CustomerProfileScreen(
-          customer: cust,
+          customer: extraCustomer,
+          customerId: id,
           onBack: () => context.pop(),
         );
       },
@@ -415,9 +420,15 @@ final appRouter = GoRouter(
       builder: (context, state) => PartnersListScreen(
         onNavigate: (route, {dynamic args}) {
           if (route == 'partner_ledger' && args != null) {
-            context.push('/partners/$args/ledger');
-          } else if (route == 'add_partner') {
-            context.push(AppRoutes.addPartner);
+            final id = args is Partner ? args.id : args.toString();
+            context.push('/partners/$id/ledger', extra: args is Partner ? args : null);
+          } else if (route == 'add_edit_partner' || route == 'add_partner') {
+            final partner = args is Partner ? args : null;
+            if (partner != null) {
+              context.push('/partners/${partner.id}/edit', extra: partner);
+            } else {
+              context.push(AppRoutes.addPartner);
+            }
           } else if (route == 'plans') {
             context.push(AppRoutes.plans);
           }
@@ -434,13 +445,11 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/partners/:id/edit',
       builder: (context, state) {
-        final id = state.pathParameters['id'] ?? 'PTR-01';
-        final ptr = MockData.partners.firstWhere(
-          (p) => p.id == id,
-          orElse: () => MockData.partners.first,
-        );
+        final id = state.pathParameters['id'] ?? '';
+        final extraPartner = state.extra is Partner ? state.extra as Partner : null;
         return AddEditPartnerScreen(
-          partner: ptr,
+          partner: extraPartner,
+          partnerId: id,
           onSaved: () => context.pop(),
           onCancel: () => context.pop(),
         );
@@ -449,13 +458,11 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/partners/:id/ledger',
       builder: (context, state) {
-        final id = state.pathParameters['id'] ?? 'PTR-01';
-        final ptr = MockData.partners.firstWhere(
-          (p) => p.id == id,
-          orElse: () => MockData.partners.first,
-        );
+        final id = state.pathParameters['id'] ?? '';
+        final extraPartner = state.extra is Partner ? state.extra as Partner : null;
         return PartnerLedgerScreen(
-          partner: ptr,
+          partner: extraPartner,
+          partnerId: id,
           onBack: () => context.pop(),
         );
       },
@@ -499,7 +506,8 @@ final appRouter = GoRouter(
       builder: (context, state) => StoreScreen(
         onNavigate: (route, {dynamic args}) {
           if (route == 'product_detail' && args != null) {
-            context.push('/store/product/$args');
+            final id = args is StoreProduct ? args.id : args.toString();
+            context.push('/store/product/$id', extra: args is StoreProduct ? args : null);
           }
         },
       ),
@@ -507,13 +515,11 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/store/product/:id',
       builder: (context, state) {
-        final id = state.pathParameters['id'] ?? 'PRD-01';
-        final prod = MockData.storeProducts.firstWhere(
-          (p) => p.id == id,
-          orElse: () => MockData.storeProducts.first,
-        );
+        final id = state.pathParameters['id'] ?? '';
+        final extraProd = state.extra is StoreProduct ? state.extra as StoreProduct : null;
         return ProductDetailEnquiryScreen(
-          product: prod,
+          product: extraProd,
+          productId: id,
           onBack: () => context.pop(),
         );
       },

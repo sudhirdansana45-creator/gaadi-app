@@ -104,6 +104,8 @@ class Booking {
   final String paymentMode;
   final String kycDocType;
   final String kycDocNumber;
+  final String? vehicleId;
+  final String? customerId;
 
   Booking({
     required this.id,
@@ -123,6 +125,8 @@ class Booking {
     required this.paymentMode,
     required this.kycDocType,
     required this.kycDocNumber,
+    this.vehicleId,
+    this.customerId,
   });
 
   factory Booking.fromJson(Map<String, dynamic> json) {
@@ -177,6 +181,8 @@ class Booking {
       paymentMode: json['payment_mode']?.toString() ?? 'UPI',
       kycDocType: 'Aadhar Card',
       kycDocNumber: 'Verified',
+      vehicleId: json['vehicle_id']?.toString() ?? (json['vehicle'] is Map ? json['vehicle']['id']?.toString() : null),
+      customerId: json['customer_id']?.toString() ?? (json['customer'] is Map ? json['customer']['id']?.toString() : null),
     );
   }
 }
@@ -385,4 +391,28 @@ class StaffUser {
       lastActive: DateTime.tryParse(json['last_login_at']?.toString() ?? '') ?? DateTime.now(),
     );
   }
+}
+
+class PlanModel {
+  final String id;
+  final String name;
+  final double pricePerMonth;
+  final int vehicleLimit; // -1 for unlimited
+  final int partnerLimit;
+  final int dailyBillLimit;
+  final int staffUserLimit;
+  final bool isCurrent;
+  final List<String> features;
+
+  const PlanModel({
+    required this.id,
+    required this.name,
+    required this.pricePerMonth,
+    required this.vehicleLimit,
+    required this.partnerLimit,
+    required this.dailyBillLimit,
+    required this.staffUserLimit,
+    this.isCurrent = false,
+    required this.features,
+  });
 }

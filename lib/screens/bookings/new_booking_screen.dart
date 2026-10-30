@@ -3,7 +3,6 @@ import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/counter_chip.dart';
-import '../../data/mock_data.dart';
 import '../../models/mock_models.dart';
 import '../../services/api_service.dart';
 
@@ -79,27 +78,22 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
           final list = (vRes['data'] as List)
               .map((item) => Vehicle.fromJson(item as Map<String, dynamic>))
               .toList();
-          if (list.isNotEmpty) {
-            _fleetVehicles = list;
-          }
+          _fleetVehicles = list;
         }
       } catch (_) {}
 
-      // Fallback vehicles if API returned empty or offline
-      if (_fleetVehicles.isEmpty) {
-        _fleetVehicles = List.from(MockData.vehicles);
-      }
-
       // 2. Determine initial selected vehicle
-      if (widget.preselectedVehicle != null) {
-        final match = _fleetVehicles.firstWhere(
-          (v) => v.id == widget.preselectedVehicle!.id,
-          orElse: () => widget.preselectedVehicle!,
-        );
-        _selectedVehicle = match;
-      } else {
-        final available = _fleetVehicles.where((v) => v.status != VehicleStatus.disabled).toList();
-        _selectedVehicle = available.isNotEmpty ? available.first : _fleetVehicles.first;
+      if (_fleetVehicles.isNotEmpty) {
+        if (widget.preselectedVehicle != null) {
+          final match = _fleetVehicles.firstWhere(
+            (v) => v.id == widget.preselectedVehicle!.id,
+            orElse: () => _fleetVehicles.first,
+          );
+          _selectedVehicle = match;
+        } else {
+          final available = _fleetVehicles.where((v) => v.status != VehicleStatus.disabled).toList();
+          _selectedVehicle = available.isNotEmpty ? available.first : _fleetVehicles.first;
+        }
       }
 
       // 3. Fetch Existing Customers from API
@@ -109,21 +103,9 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
           final cList = (cRes['data'] as List)
               .map((item) => Customer.fromJson(item as Map<String, dynamic>))
               .toList();
-          if (cList.isNotEmpty) {
-            _existingCustomers = cList;
-          }
+          _existingCustomers = cList;
         }
       } catch (_) {}
-
-      if (_existingCustomers.isEmpty) {
-        _existingCustomers = List.from(MockData.customers);
-      }
-
-      // Default customer fields from first customer
-      if (_existingCustomers.isNotEmpty && _customerNameCtrl.text.isEmpty) {
-        _customerNameCtrl.text = _existingCustomers.first.name;
-        _customerPhoneCtrl.text = _existingCustomers.first.phone.replaceAll('+91 ', '');
-      }
 
       // 4. Fetch Quota Info
       try {
@@ -178,8 +160,6 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
     final double unitRate = _isHourlyRate ? _selectedVehicle!.hourlyRate : _selectedVehicle!.dailyRate;
     final double totalRent = unitRate * _rentalDuration;
     final double securityDeposit = _selectedVehicle!.securityDeposit;
-    final double totalPayable = totalRent + securityDeposit;
-    final double remainingBalance = (totalPayable - _advancePaid).clamp(0.0, 999999.0);
 
     final now = DateTime.now();
     final endAt = _isHourlyRate
@@ -189,7 +169,7 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
     final messenger = ScaffoldMessenger.of(context);
 
     try {
-      final res = await ApiService().createBooking({
+      await ApiService().createBooking({
         'vehicle_id': _selectedVehicle!.id,
         'customer_name': name,
         'customer_mobile': phone.startsWith('+91') ? phone : '+91 $phone',
@@ -200,13 +180,6 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
         'security_deposit': securityDeposit,
         'payment_mode': _paymentMode,
       });
-
-      if (res != null && res['data'] != null) {
-        final newBooking = Booking.fromJson(res['data'] as Map<String, dynamic>);
-        MockData.bookings.insert(0, newBooking);
-      } else {
-        _insertLocalBooking(name, phone, totalPayable, remainingBalance, securityDeposit);
-      }
 
       if (mounted) {
         messenger.showSnackBar(
@@ -232,30 +205,6 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
         setState(() => _isLoading = false);
       }
     }
-  }
-
-  void _insertLocalBooking(String name, String phone, double totalPayable, double remainingBalance, double securityDeposit) {
-    MockData.bookings.insert(
-      0,
-      Booking(
-        id: 'BK-${DateTime.now().millisecondsSinceEpoch % 10000}',
-        customerName: name,
-        customerPhone: phone.startsWith('+91') ? phone : '+91 $phone',
-        vehicleName: _selectedVehicle?.name ?? 'Vehicle',
-        vehicleRegNumber: _selectedVehicle?.regNumber ?? 'DL 01 AB 1234',
-        startDate: DateTime.now(),
-        endDate: DateTime.now().add(Duration(days: _rentalDuration)),
-        totalAmount: totalPayable,
-        advancePaid: _advancePaid,
-        pendingAmount: remainingBalance,
-        securityDeposit: securityDeposit,
-        status: BookingStatus.active,
-        startOdometer: _selectedVehicle?.odometerKm ?? 0,
-        paymentMode: _paymentMode,
-        kycDocType: 'Aadhaar Card',
-        kycDocNumber: 'Verified',
-      ),
-    );
   }
 
   @override
@@ -362,6 +311,7 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
                             )
                           else
                             DropdownButtonFormField<Vehicle>(
+                              isExpanded: true,
                               initialValue: _selectedVehicle,
                               dropdownColor: AppColors.surfaceHover,
                               style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
@@ -381,11 +331,15 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
                                         const Icon(Icons.lock_rounded, color: AppColors.textMuted, size: 16),
                                         const SizedBox(width: 6),
                                       ],
-                                      Text(
-                                        '${v.name} (${v.regNumber}) - ₹${v.dailyRate.toInt()}/day',
-                                        style: TextStyle(
-                                          color: isDisabled ? AppColors.textMuted : AppColors.textPrimary,
-                                          decoration: isDisabled ? TextDecoration.lineThrough : null,
+                                      Expanded(
+                                        child: Text(
+                                          '${v.name} (${v.regNumber}) - ₹${v.dailyRate.toInt()}/day',
+                                          style: TextStyle(
+                                            color: isDisabled ? AppColors.textMuted : AppColors.textPrimary,
+                                            decoration: isDisabled ? TextDecoration.lineThrough : null,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
                                     ],

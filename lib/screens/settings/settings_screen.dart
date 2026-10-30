@@ -3,7 +3,6 @@ import '../../theme/app_colors.dart';
 import '../../theme/theme_controller.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/lock_badge.dart';
-import '../../data/dummy_plan_data.dart';
 import '../../services/api_service.dart';
 import '../../services/api_client.dart';
 import '../modals/locked_feature_sheet.dart';
@@ -114,7 +113,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isFreePlan = DummyPlanData().activeState == PlanState.free;
+    final user = ApiClient().currentUser;
+    final plan = user?['plan'] ?? user?['subscription']?['plan'];
+    final planSlug = plan is Map ? (plan['slug'] ?? 'free') : 'free';
+    final planName = plan is Map ? (plan['name'] ?? 'Free Plan') : 'Free Plan';
+    final isFreePlan = planSlug == 'free';
 
     return SafeArea(
       top: true,
@@ -199,20 +202,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _tile(
             Icons.workspace_premium_rounded,
             'Plans & Usage Quota',
-            isFreePlan ? 'Active: Starter Free Plan (5 Cars max)' : 'Active: Growth Plan (18/25 Cars)',
+            'Active: $planName • View quotas & upgrade',
             () => widget.onNavigate('plans_and_usage'),
           ),
           _tile(
             Icons.mark_chat_read_rounded,
             'WhatsApp Templates & Wallet',
-            '1,420 automated credits left',
+            'Automated customer alerts & SMS balance',
             isFreePlan ? () => _showLockedSheet('WhatsApp Templates & Wallet') : () => widget.onNavigate('whatsapp_wallet'),
             isLocked: isFreePlan,
           ),
           _tile(
             Icons.badge_rounded,
             'Users and Roles',
-            '3 active manager accounts',
+            'Manage staff accounts & branch permissions',
             isFreePlan ? () => _showLockedSheet('Users and Roles') : () => widget.onNavigate('users_and_roles'),
             isLocked: isFreePlan,
           ),

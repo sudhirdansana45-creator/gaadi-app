@@ -329,4 +329,8 @@ class ApiService {
       'period': ?period,
     });
   }
+
+  Future<dynamic> getReportsVehicleWise() async {
+    return await _client.get(ApiConfig.reportsVehicleWise);
+  }
 }

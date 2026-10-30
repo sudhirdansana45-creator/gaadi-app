@@ -1,37 +1,34 @@
-import '../data/dummy_plan_data.dart';
+import '../services/api_client.dart';
 
 class PlanGuard {
+  static Map<String, dynamic>? get _user => ApiClient().currentUser;
+  static Map<String, dynamic>? get _plan =>
+      _user?['plan'] is Map ? _user!['plan'] : (_user?['subscription']?['plan'] is Map ? _user!['subscription']['plan'] : null);
+  static String get _planSlug => _plan?['slug']?.toString() ?? 'free';
+  static bool get isFreePlan => _planSlug == 'free';
+
   static bool canAddVehicle() {
-    final data = DummyPlanData();
-    if (data.activeState == PlanState.expired) return false;
-    return !data.isVehicleLimitReached;
+    return true;
   }
 
   static bool canAddPartner() {
-    final data = DummyPlanData();
-    if (data.activeState == PlanState.expired) return false;
-    return !data.isPartnerLimitReached;
+    return true;
   }
 
   static bool canCreateBill() {
-    final data = DummyPlanData();
-    if (data.activeState == PlanState.expired) return false;
-    return !data.isDailyBillLimitReached;
+    return true;
   }
 
   static bool canUseUsers() {
-    final data = DummyPlanData();
-    return data.activeState != PlanState.free && data.activeState != PlanState.expired;
+    return !isFreePlan;
   }
 
   static bool canUseWhatsApp() {
-    final data = DummyPlanData();
-    return data.activeState != PlanState.free && data.activeState != PlanState.expired;
+    return !isFreePlan;
   }
 
   static bool isReportLocked(String reportId) {
-    final data = DummyPlanData();
-    if (data.activeState == PlanState.free) {
+    if (isFreePlan) {
       return reportId != 'daily-monthly' && reportId != 'daily_monthly';
     }
     return false;

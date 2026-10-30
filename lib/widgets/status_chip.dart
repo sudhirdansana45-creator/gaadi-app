@@ -129,6 +129,17 @@ class StatusChip extends StatelessWidget {
     }
   }
 
+  factory StatusChip.fromPartnerStatus(PartnerStatus status) {
+    switch (status) {
+      case PartnerStatus.active:
+        return StatusChip.available(label: 'Active');
+      case PartnerStatus.inactive:
+        return StatusChip.disabled(label: 'Inactive');
+      case PartnerStatus.viewOnly:
+        return StatusChip.disabled(label: 'View Only');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(

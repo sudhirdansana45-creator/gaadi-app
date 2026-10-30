@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
-import '../../models/mock_models.dart';
-import '../../data/mock_data.dart';
 import '../../services/api_service.dart';
 
 class AddVehicleScreen extends StatefulWidget {
@@ -20,34 +18,54 @@ class AddVehicleScreen extends StatefulWidget {
 
 class _AddVehicleScreenState extends State<AddVehicleScreen> {
   String _selectedCategory = 'car'; // 'car' or 'bike'
-  String _selectedFuel = 'Electric';
-  String _ownershipMode = 'partner'; // 'own' or 'partner'
+  String _selectedFuel = 'Petrol';
+  String _ownershipMode = 'own'; // 'own' or 'partner'
   
-  final _nameController = TextEditingController(text: 'Tata Nexon EV Max');
-  final _regController = TextEditingController(text: 'DL 01 AB 7729');
-  final _mfgYearController = TextEditingController(text: '2023');
-  final _colorController = TextEditingController(text: 'Daytona Grey');
+  final _nameController = TextEditingController();
+  final _regController = TextEditingController();
+  final _mfgYearController = TextEditingController();
+  final _colorController = TextEditingController();
   
-  final _hourlyRateCtrl = TextEditingController(text: '250');
-  final _dailyRateCtrl = TextEditingController(text: '2400');
-  final _depositCtrl = TextEditingController(text: '3000');
-  final _extraKmCtrl = TextEditingController(text: '12');
+  final _hourlyRateCtrl = TextEditingController();
+  final _dailyRateCtrl = TextEditingController();
+  final _depositCtrl = TextEditingController();
+  final _extraKmCtrl = TextEditingController();
 
-  final _partnerNameCtrl = TextEditingController(text: 'Suresh Kumar');
-  final _expiryDateCtrl = TextEditingController(text: '2025-11-28');
+  final _partnerNameCtrl = TextEditingController();
+  final _expiryDateCtrl = TextEditingController();
 
   bool _isLoading = false;
 
   Future<void> _handlePublish() async {
-    setState(() => _isLoading = true);
     final regNo = _regController.text.trim();
     final name = _nameController.text.trim();
     final messenger = ScaffoldMessenger.of(context);
+
+    if (name.isEmpty) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Please enter vehicle brand & model'),
+          backgroundColor: AppColors.criticalRed,
+        ),
+      );
+      return;
+    }
+    if (regNo.isEmpty) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Please enter registration plate number'),
+          backgroundColor: AppColors.criticalRed,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
     try {
-      final res = await ApiService().createVehicle(
+      await ApiService().createVehicle(
         fields: {
-          'name': name.isNotEmpty ? name : 'New Fleet Vehicle',
-          'number': regNo.isNotEmpty ? regNo : 'DL 01 AB 7729',
+          'name': name,
+          'number': regNo,
           'type': _selectedCategory,
           'fuel_type': _selectedFuel,
           'daily_rate': _dailyRateCtrl.text.trim(),
@@ -58,17 +76,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
           'year': _mfgYearController.text.trim(),
         },
       );
-      if (res != null && res['data'] != null) {
-        final newVehicle = Vehicle.fromJson(res['data'] as Map<String, dynamic>);
-        MockData.vehicles.insert(0, newVehicle);
-      } else {
-        _insertLocalVehicle();
-      }
-    } catch (_) {
-      _insertLocalVehicle();
-    } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
         messenger.showSnackBar(
           SnackBar(
             content: Text('🚀 Vehicle $regNo live on fleet!'),
@@ -78,29 +86,22 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         );
         widget.onSaved();
       }
+    } catch (e) {
+      final msg = e.toString().replaceAll('ApiException: ', '').replaceAll('Exception: ', '');
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            backgroundColor: AppColors.criticalRed,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
-  }
-
-  void _insertLocalVehicle() {
-    MockData.vehicles.insert(
-      0,
-      Vehicle(
-        id: 'V${DateTime.now().millisecondsSinceEpoch % 10000}',
-        name: _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : 'New Vehicle',
-        regNumber: _regController.text.trim().isNotEmpty ? _regController.text.trim() : 'DL 01 AB 7729',
-        category: _selectedCategory.toUpperCase(),
-        fuelType: _selectedFuel,
-        transmission: 'Manual',
-        dailyRate: double.tryParse(_dailyRateCtrl.text) ?? 2400.0,
-        hourlyRate: double.tryParse(_hourlyRateCtrl.text) ?? 250.0,
-        securityDeposit: double.tryParse(_depositCtrl.text) ?? 3000.0,
-        odometerKm: 0,
-        fuelLevelPercent: 100.0,
-        status: VehicleStatus.available,
-        imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800',
-        assignedPartner: _ownershipMode == 'partner' ? _partnerNameCtrl.text : 'Direct Fleet',
-      ),
-    );
   }
 
   @override
@@ -259,7 +260,6 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               onTap: () {
                 setState(() {
                   _selectedCategory = 'car';
-                  _nameController.text = 'Tata Nexon EV Max';
                 });
               },
               child: Container(
@@ -304,7 +304,6 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               onTap: () {
                 setState(() {
                   _selectedCategory = 'bike';
-                  _nameController.text = 'Royal Enfield Meteor 350';
                 });
               },
               child: Container(

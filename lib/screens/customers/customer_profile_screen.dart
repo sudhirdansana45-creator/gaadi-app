@@ -4,16 +4,17 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/status_chip.dart';
 import '../../widgets/app_bottom_sheet.dart';
 import '../../models/mock_models.dart';
-import '../../data/mock_data.dart';
 import '../../services/api_service.dart';
 
 class CustomerProfileScreen extends StatefulWidget {
-  final Customer customer;
+  final Customer? customer;
+  final String? customerId;
   final VoidCallback onBack;
 
   const CustomerProfileScreen({
     super.key,
-    required this.customer,
+    this.customer,
+    this.customerId,
     required this.onBack,
   });
 
@@ -22,66 +23,91 @@ class CustomerProfileScreen extends StatefulWidget {
 }
 
 class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
+  Customer? _customer;
+  bool _isLoadingCustomer = false;
   late bool _isBlacklisted;
   late TextEditingController _reasonController;
-  late List<Booking> _customerBookings;
+  List<Booking> _customerBookings = [];
+  bool _isLoadingBookings = false;
+
+  Customer get currentCustomer => _customer!;
 
   @override
   void initState() {
     super.initState();
-    _isBlacklisted = widget.customer.isBlacklisted;
-    _reasonController = TextEditingController(text: widget.customer.blacklistReason ?? '');
+    _customer = widget.customer;
+    _isBlacklisted = widget.customer?.isBlacklisted ?? false;
+    _reasonController = TextEditingController(text: widget.customer?.blacklistReason ?? '');
 
-    // Get bookings for this customer or provide realistic fallback mock bookings
-    final matches = MockData.bookings.where((b) {
-      return b.customerName.toLowerCase() == widget.customer.name.toLowerCase() ||
-          b.customerPhone == widget.customer.phone;
-    }).toList();
+    if (_customer == null && widget.customerId != null) {
+      _loadCustomer();
+    } else if (_customer != null) {
+      _loadBookings();
+    }
+  }
 
-    if (matches.isNotEmpty) {
-      _customerBookings = matches;
-    } else {
-      // Fallback mock bookings so history is visible for all test customers
-      _customerBookings = [
-        Booking(
-          id: 'BK-1052',
-          customerName: widget.customer.name,
-          customerPhone: widget.customer.phone,
-          vehicleName: 'Mahindra Thar 4x4',
-          vehicleRegNumber: 'DL 01 AB 1234',
-          startDate: DateTime.now().subtract(const Duration(days: 15)),
-          endDate: DateTime.now().subtract(const Duration(days: 12)),
-          totalAmount: 10500.0,
-          advancePaid: 10500.0,
-          pendingAmount: 0.0,
-          securityDeposit: 5000.0,
-          status: BookingStatus.completed,
-          startOdometer: 23800,
-          endOdometer: 24200,
-          paymentMode: 'UPI (GPay)',
-          kycDocType: 'Driving License',
-          kycDocNumber: widget.customer.drivingLicense,
-        ),
-        Booking(
-          id: 'BK-0994',
-          customerName: widget.customer.name,
-          customerPhone: widget.customer.phone,
-          vehicleName: 'Hyundai Creta SX',
-          vehicleRegNumber: 'DL 03 CD 5678',
-          startDate: DateTime.now().subtract(const Duration(days: 45)),
-          endDate: DateTime.now().subtract(const Duration(days: 43)),
-          totalAmount: 5600.0,
-          advancePaid: 5600.0,
-          pendingAmount: 0.0,
-          securityDeposit: 3000.0,
-          status: BookingStatus.completed,
-          startOdometer: 16500,
-          endOdometer: 16900,
-          paymentMode: 'Card Swipe',
-          kycDocType: 'Aadhaar Card',
-          kycDocNumber: '4829 **** 1092',
-        ),
-      ];
+  Future<void> _loadCustomer() async {
+    setState(() => _isLoadingCustomer = true);
+    try {
+      final res = await ApiService().getCustomerDetail(widget.customerId!);
+      if (res != null && res['data'] != null && mounted) {
+        final c = Customer.fromJson(res['data'] as Map<String, dynamic>);
+        setState(() {
+          _customer = c;
+          _isBlacklisted = c.isBlacklisted;
+          _reasonController.text = c.blacklistReason ?? '';
+        });
+        _loadBookings();
+        return;
+      }
+
+      final allRes = await ApiService().getCustomers();
+      if (allRes != null && allRes['data'] is List && mounted) {
+        final list = (allRes['data'] as List)
+            .map((item) => Customer.fromJson(item as Map<String, dynamic>))
+            .toList();
+        final match = list.where((c) => c.id == widget.customerId).firstOrNull;
+        if (match != null) {
+          setState(() {
+            _customer = match;
+            _isBlacklisted = match.isBlacklisted;
+            _reasonController.text = match.blacklistReason ?? '';
+          });
+          _loadBookings();
+          return;
+        }
+      }
+    } catch (_) {}
+    if (mounted) {
+      setState(() => _isLoadingCustomer = false);
+    }
+  }
+
+  Future<void> _loadBookings() async {
+    if (_customer == null) return;
+    setState(() => _isLoadingBookings = true);
+    try {
+      final res = await ApiService().getBookings();
+      if (res != null && res['data'] is List) {
+        final list = (res['data'] as List)
+            .map((item) => Booking.fromJson(item as Map<String, dynamic>))
+            .where((b) {
+              final phoneClean = currentCustomer.phone.replaceAll(' ', '').replaceAll('+91', '');
+              final bPhoneClean = b.customerPhone.replaceAll(' ', '').replaceAll('+91', '');
+              return (b.customerId != null && b.customerId == currentCustomer.id) ||
+                  (phoneClean.isNotEmpty && bPhoneClean.contains(phoneClean)) ||
+                  b.customerName.toLowerCase() == currentCustomer.name.toLowerCase();
+            })
+            .toList();
+        if (mounted) {
+          setState(() {
+            _customerBookings = list;
+          });
+        }
+      }
+    } catch (_) {}
+    if (mounted) {
+      setState(() => _isLoadingBookings = false);
     }
   }
 
@@ -185,14 +211,15 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   }
 
   void _updateBlacklistStatus() {
+    if (_customer == null) return;
     setState(() {
-      widget.customer.isBlacklisted = _isBlacklisted;
-      widget.customer.blacklistReason = _isBlacklisted ? _reasonController.text : null;
+      currentCustomer.isBlacklisted = _isBlacklisted;
+      currentCustomer.blacklistReason = _isBlacklisted ? _reasonController.text : null;
     });
 
     try {
       ApiService().toggleCustomerBlacklist(
-        widget.customer.id,
+        currentCustomer.id,
         isBlacklisted: _isBlacklisted,
         reason: _reasonController.text.trim(),
       );
@@ -212,6 +239,72 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoadingCustomer) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          title: const Text('Customer Profile'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: widget.onBack,
+          ),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(color: AppColors.primaryCyan),
+        ),
+      );
+    }
+
+    if (_customer == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          title: const Text('Customer Profile'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: widget.onBack,
+          ),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.criticalRed.withAlpha(25),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.person_off_rounded, color: AppColors.criticalRed, size: 48),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  widget.customerId != null
+                      ? 'Customer #${widget.customerId} Not Found'
+                      : 'Customer Record Not Found',
+                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'The requested customer record does not exist on your account or may have been removed.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
+                ),
+                const SizedBox(height: 24),
+                CustomButton(
+                  text: 'Back to Customers',
+                  width: 180,
+                  onPressed: widget.onBack,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -226,102 +319,104 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Card
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: _isBlacklisted
-                  ? AppColors.criticalBg.withValues(alpha: 0.3)
-                  : AppColors.surfaceCard,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: _isBlacklisted ? AppColors.criticalBorder : AppColors.borderSubtle,
-              ),
-            ),
-            child: Column(
-              children: [
-                Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header Card
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: _isBlacklisted
+                      ? AppColors.criticalBg.withValues(alpha: 0.3)
+                      : AppColors.surfaceCard,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: _isBlacklisted ? AppColors.criticalBorder : AppColors.borderSubtle,
+                  ),
+                ),
+                child: Column(
                   children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: _isBlacklisted ? AppColors.criticalBg : AppColors.primaryCyan,
-                      child: Text(
-                        widget.customer.name.substring(0, 2).toUpperCase(),
-                        style: TextStyle(
-                          color: _isBlacklisted ? AppColors.criticalRed : AppColors.textDark,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 22,
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundColor: _isBlacklisted ? AppColors.criticalBg : AppColors.primaryCyan,
+                          child: Text(
+                            currentCustomer.name.isNotEmpty
+                                ? currentCustomer.name.substring(0, currentCustomer.name.length >= 2 ? 2 : 1).toUpperCase()
+                                : 'CU',
+                            style: TextStyle(
+                              color: _isBlacklisted ? AppColors.criticalRed : AppColors.textDark,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 22,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                widget.customer.name,
-                                style: TextStyle(
-                                  color: _isBlacklisted ? AppColors.criticalRed : AppColors.textPrimary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: AppColors.successBg,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  widget.customer.rating,
-                                  style: const TextStyle(
-                                    color: AppColors.successGreen,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
+                              Row(
+                                children: [
+                                  Text(
+                                    currentCustomer.name,
+                                    style: TextStyle(
+                                      color: _isBlacklisted ? AppColors.criticalRed : AppColors.textPrimary,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.successBg,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      currentCustomer.rating,
+                                      style: const TextStyle(
+                                        color: AppColors.successGreen,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
+                              const SizedBox(height: 6),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 4,
+                                children: [
+                                  if (_isBlacklisted)
+                                    StatusChip.blacklisted()
+                                  else if (currentCustomer.isVerified)
+                                    StatusChip.verified(),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(currentCustomer.phone, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                              Text(currentCustomer.email, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                             ],
                           ),
-                          const SizedBox(height: 6),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 4,
-                            children: [
-                              if (_isBlacklisted)
-                                StatusChip.blacklisted()
-                              else if (widget.customer.isVerified)
-                                StatusChip.verified(),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(widget.customer.phone, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                          Text(widget.customer.email, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(color: AppColors.borderHairline),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _kpi('Total Trips', '${currentCustomer.totalRentals}'),
+                        _kpi('Lifetime Spent', '₹${currentCustomer.totalSpent.toInt()}'),
+                        _kpi('Balance Due', '₹${currentCustomer.outstandingBalance.toInt()}', isWarning: currentCustomer.outstandingBalance > 0),
+                      ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                const Divider(color: AppColors.borderHairline),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _kpi('Total Trips', '${widget.customer.totalRentals}'),
-                    _kpi('Lifetime Spent', '₹${widget.customer.totalSpent.toInt()}'),
-                    _kpi('Balance Due', '₹${widget.customer.outstandingBalance.toInt()}', isWarning: widget.customer.outstandingBalance > 0),
-                  ],
-                ),
-              ],
-            ),
-          ),
+              ),
           const SizedBox(height: 16),
 
           // KYC & Identity Documents Section
@@ -346,9 +441,9 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                   ],
                 ),
                 const SizedBox(height: 14),
-                _infoRow('Driving License:', widget.customer.drivingLicense),
-                _infoRow('Registered Address:', widget.customer.address),
-                _infoRow('Verification Status:', widget.customer.isVerified ? 'Verified Active Renter' : 'Unverified'),
+                _infoRow('Driving License:', currentCustomer.drivingLicense),
+                _infoRow('Registered Address:', currentCustomer.address),
+                _infoRow('Verification Status:', currentCustomer.isVerified ? 'Verified Active Renter' : 'Unverified'),
                 const SizedBox(height: 16),
                 const Text('Document Previews', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 10),
@@ -359,8 +454,8 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                     Expanded(
                       child: _buildDocCard(
                         title: 'Driving License',
-                        docNumber: widget.customer.drivingLicense,
-                        imgUrl: widget.customer.dlImageUrl ??
+                        docNumber: currentCustomer.drivingLicense,
+                        imgUrl: currentCustomer.dlImageUrl ??
                             'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&q=80&w=800',
                       ),
                     ),
@@ -368,8 +463,8 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                     Expanded(
                       child: _buildDocCard(
                         title: 'ID Proof (Aadhaar)',
-                        docNumber: '4829 **** 1092',
-                        imgUrl: widget.customer.idProofImageUrl ??
+                        docNumber: 'Verified',
+                        imgUrl: currentCustomer.idProofImageUrl ??
                             'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800',
                       ),
                     ),
@@ -413,13 +508,47 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                   ],
                 ),
                 const SizedBox(height: 14),
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _customerBookings.length,
-                  separatorBuilder: (context, index) => const Divider(color: AppColors.borderHairline, height: 20),
-                  itemBuilder: (context, index) {
-                    final b = _customerBookings[index];
+                if (_isLoadingBookings)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Center(
+                      child: CircularProgressIndicator(color: AppColors.primaryCyan, strokeWidth: 2),
+                    ),
+                  )
+                else if (_customerBookings.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.canvasLow,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.borderSubtle),
+                    ),
+                    child: Column(
+                      children: const [
+                        Icon(Icons.history_toggle_off_rounded, color: AppColors.textMuted, size: 36),
+                        SizedBox(height: 8),
+                        Text(
+                          'No Booking History Found',
+                          style: TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'This customer has not recorded any rental trips yet.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _customerBookings.length,
+                    separatorBuilder: (context, index) => const Divider(color: AppColors.borderHairline, height: 20),
+                    itemBuilder: (context, index) {
+                      final b = _customerBookings[index];
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -575,7 +704,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                   icon: Icons.phone_in_talk_rounded,
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Calling ${widget.customer.name} (${widget.customer.phone})...')),
+                      SnackBar(content: Text('Calling ${currentCustomer.name} (${currentCustomer.phone})...')),
                     );
                   },
                 ),
@@ -588,7 +717,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                   icon: Icons.chat_rounded,
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Opening WhatsApp for ${widget.customer.phone}...')),
+                      SnackBar(content: Text('Opening WhatsApp for ${currentCustomer.phone}...')),
                     );
                   },
                 ),

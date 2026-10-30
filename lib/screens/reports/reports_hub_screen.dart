@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/lock_badge.dart';
-import '../../data/dummy_plan_data.dart';
+import '../../services/api_client.dart';
 import '../modals/locked_feature_sheet.dart';
 
 class ReportsHubScreen extends StatelessWidget {
@@ -30,8 +30,11 @@ class ReportsHubScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Determine locked status from DummyPlanData (Free plan has only Daily & Monthly open)
-    final isFreePlan = DummyPlanData().activeState == PlanState.free;
+    // Determine locked status from live user subscription
+    final user = ApiClient().currentUser;
+    final plan = user?['plan'] ?? user?['subscription']?['plan'];
+    final planSlug = plan is Map ? (plan['slug'] ?? 'free') : 'free';
+    final isFreePlan = planSlug == 'free';
 
     return SafeArea(
       top: true,

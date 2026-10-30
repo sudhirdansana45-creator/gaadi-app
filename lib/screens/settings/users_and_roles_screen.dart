@@ -25,6 +25,7 @@ class _UsersAndRolesScreenState extends State<UsersAndRolesScreen> {
   // Local staff list state for demo toggle
   late List<_StaffModel> _staffList;
   bool _isLoading = false;
+  int _staffLimit = 5;
 
   @override
   void initState() {
@@ -35,28 +36,12 @@ class _UsersAndRolesScreenState extends State<UsersAndRolesScreen> {
 
     _staffList = [
       _StaffModel(
-        id: 'USR-01',
+        id: 'ADMIN',
         name: currentName,
         phone: currentPhone,
-        role: 'Admin',
+        role: 'Admin (Owner)',
         isActive: true,
         isDisabledByPlan: false,
-      ),
-      _StaffModel(
-        id: 'USR-02',
-        name: 'Anil Kumar',
-        phone: '+91 98733 44556',
-        role: 'Manager',
-        isActive: true,
-        isDisabledByPlan: false,
-      ),
-      _StaffModel(
-        id: 'USR-03',
-        name: 'Manoj Singh',
-        phone: '+91 99100 88990',
-        role: 'Staff',
-        isActive: false,
-        isDisabledByPlan: true,
       ),
     ];
     _loadStaff();
@@ -64,24 +49,50 @@ class _UsersAndRolesScreenState extends State<UsersAndRolesScreen> {
 
   Future<void> _loadStaff() async {
     setState(() => _isLoading = true);
+    final user = ApiClient().currentUser;
+    final String currentName = user?['name']?.toString().trim() ?? 'Fleet Admin';
+    final String currentPhone = user?['mobile'] != null ? '+91 ${user!['mobile']}' : 'Primary Admin';
+
     try {
+      final sub = await ApiService().getMySubscription();
+      if (sub != null && sub['data']?['quota'] is Map && mounted) {
+        final q = sub['data']['quota'];
+        setState(() {
+          _staffLimit = (q['max_staff'] as num?)?.toInt() ?? 5;
+        });
+      }
+
       final res = await ApiService().getStaffUsers();
       if (res != null && res['data'] is List && mounted) {
         final List list = res['data'];
-        if (list.isNotEmpty) {
-          final mapped = list.map((s) {
-            return _StaffModel(
-              id: s['id']?.toString() ?? '',
-              name: s['name']?.toString() ?? '',
-              phone: s['mobile']?.toString() ?? s['phone']?.toString() ?? '',
-              role: (s['role']?.toString() ?? 'Staff').toUpperCase().substring(0, 1) +
-                  (s['role']?.toString() ?? 'staff').substring(1),
-              isActive: s['is_active'] == true || s['is_active'] == 1,
+        final mapped = list.map((s) {
+          final roleStr = s['role']?.toString() ?? 'Staff';
+          final capitalizedRole = roleStr.isNotEmpty
+              ? roleStr.substring(0, 1).toUpperCase() + roleStr.substring(1).toLowerCase()
+              : 'Staff';
+          return _StaffModel(
+            id: s['id']?.toString() ?? '',
+            name: s['name']?.toString() ?? '',
+            phone: s['mobile']?.toString() ?? s['phone']?.toString() ?? '',
+            role: capitalizedRole,
+            isActive: s['is_active'] == true || s['is_active'] == 1,
+            isDisabledByPlan: false,
+          );
+        }).toList();
+
+        setState(() {
+          _staffList = [
+            _StaffModel(
+              id: 'ADMIN',
+              name: currentName,
+              phone: currentPhone,
+              role: 'Admin (Owner)',
+              isActive: true,
               isDisabledByPlan: false,
-            );
-          }).toList();
-          setState(() => _staffList = mapped);
-        }
+            ),
+            ...mapped,
+          ];
+        });
       }
     } catch (_) {
       // Fallback
@@ -288,7 +299,7 @@ class _UsersAndRolesScreenState extends State<UsersAndRolesScreen> {
           // Header Counter and Info Note
           Row(
             children: [
-              const CounterChip(count: 2, limit: 3, label: 'staff users'),
+              CounterChip(count: _staffList.length, limit: _staffLimit, label: 'team users'),
               const Spacer(),
             ],
           ),
@@ -423,6 +434,28 @@ class _UsersAndRolesScreenState extends State<UsersAndRolesScreen> {
               );
             },
           ),
+          if (_staffList.length <= 1 && !_isLoading)
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.canvasLow,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.borderSubtle),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, color: AppColors.textSecondary, size: 18),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'No additional staff members added yet. Add branch managers or drivers using "+ Add Staff".',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           const SizedBox(height: 110),
         ],
       ),

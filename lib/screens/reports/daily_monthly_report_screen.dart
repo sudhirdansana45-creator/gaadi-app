@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
+import '../../models/mock_models.dart';
+import '../../services/api_service.dart';
 
 class DailyMonthlyReportScreen extends StatefulWidget {
   final VoidCallback onBack;
@@ -17,23 +19,52 @@ class DailyMonthlyReportScreen extends StatefulWidget {
 class _DailyMonthlyReportScreenState extends State<DailyMonthlyReportScreen> {
   String _reportType = 'Daily'; // 'Daily' or 'Monthly'
   DateTime _selectedDate = DateTime.now();
+  bool _isLoading = false;
 
-  // Dummy Chart Data for Daily (Hourly) & Monthly (Weekly)
-  final List<Map<String, dynamic>> _dailyChartData = [
-    {'time': '08 AM', 'amount': 1500.0, 'label': '1.5k'},
-    {'time': '11 AM', 'amount': 4200.0, 'label': '4.2k'},
-    {'time': '02 PM', 'amount': 8800.0, 'label': '8.8k'},
-    {'time': '05 PM', 'amount': 12500.0, 'label': '12.5k'},
-    {'time': '08 PM', 'amount': 9400.0, 'label': '9.4k'},
-    {'time': '11 PM', 'amount': 3100.0, 'label': '3.1k'},
-  ];
+  double _grossRevenue = 0.0;
+  double _advanceCollected = 0.0;
+  double _netIncome = 0.0;
+  int _totalBookings = 0;
+  int _completedBookings = 0;
 
-  final List<Map<String, dynamic>> _monthlyChartData = [
-    {'time': 'Week 1', 'amount': 38000.0, 'label': '38k'},
-    {'time': 'Week 2', 'amount': 54000.0, 'label': '54k'},
-    {'time': 'Week 3', 'amount': 46000.0, 'label': '46k'},
-    {'time': 'Week 4', 'amount': 62000.0, 'label': '62k'},
-  ];
+  List<Booking> _transactions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReportData();
+  }
+
+  Future<void> _loadReportData() async {
+    setState(() => _isLoading = true);
+    final period = _reportType == 'Daily' ? 'today' : 'month';
+
+    try {
+      final summaryRes = await ApiService().getReportsSummary(period: period);
+      if (summaryRes != null && summaryRes['data'] != null && mounted) {
+        final summary = summaryRes['data']['summary'];
+        if (summary is Map) {
+          _grossRevenue = (summary['gross_revenue'] as num?)?.toDouble() ?? 0.0;
+          _advanceCollected = (summary['advance_collected'] as num?)?.toDouble() ?? 0.0;
+          _netIncome = (summary['net_income'] as num?)?.toDouble() ?? 0.0;
+          _totalBookings = (summary['total_bookings'] as num?)?.toInt() ?? 0;
+          _completedBookings = (summary['completed_bookings'] as num?)?.toInt() ?? 0;
+        }
+      }
+
+      final bookingsRes = await ApiService().getBookings();
+      if (bookingsRes != null && bookingsRes['data'] is List && mounted) {
+        final list = (bookingsRes['data'] as List)
+            .map((item) => Booking.fromJson(item as Map<String, dynamic>))
+            .toList();
+        _transactions = list;
+      }
+    } catch (_) {
+      // Graceful offline fallback
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
@@ -55,285 +86,304 @@ class _DailyMonthlyReportScreenState extends State<DailyMonthlyReportScreen> {
     );
     if (picked != null) {
       setState(() => _selectedDate = picked);
+      _loadReportData();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final chartData = _reportType == 'Daily' ? _dailyChartData : _monthlyChartData;
-    final maxAmount = chartData.map((e) => e['amount'] as double).reduce((a, b) => a > b ? a : b);
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
-                onPressed: widget.onBack,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Daily & Monthly Report',
-                style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Segmented Toggle & Date Picker Row
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceCard,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.borderSubtle),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _reportType = 'Daily'),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color: _reportType == 'Daily'
-                                ? AppColors.primaryCyan.withValues(alpha: 0.2)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: _reportType == 'Daily' ? AppColors.primaryCyan : Colors.transparent,
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            'Daily Report',
-                            style: TextStyle(
-                              color: _reportType == 'Daily' ? AppColors.primaryCyan : AppColors.textSecondary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _reportType = 'Monthly'),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color: _reportType == 'Monthly'
-                                ? AppColors.primaryCyan.withValues(alpha: 0.2)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: _reportType == 'Monthly' ? AppColors.primaryCyan : Colors.transparent,
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            'Monthly Report',
-                            style: TextStyle(
-                              color: _reportType == 'Monthly' ? AppColors.primaryCyan : AppColors.textSecondary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                InkWell(
-                  onTap: _pickDate,
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: AppColors.canvasLow,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.borderSubtle),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.calendar_month_rounded, color: AppColors.primaryCyan, size: 18),
-                            const SizedBox(width: 8),
-                            Text(
-                              _reportType == 'Daily'
-                                  ? 'Selected Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}'
-                                  : 'Selected Month: October 2026',
-                              style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 13),
-                            ),
-                          ],
-                        ),
-                        const Icon(Icons.arrow_drop_down_rounded, color: AppColors.textSecondary),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Total Summary & PDF Download Card
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceCard,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.borderSubtle),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _item('Gross Revenue', _reportType == 'Daily' ? '₹39,500' : '₹2,00,000', AppColors.primaryCyan),
-                    _item('UPI / Online', _reportType == 'Daily' ? '₹28,000' : '₹1,45,000', AppColors.successGreen),
-                    _item('Cash Collected', _reportType == 'Daily' ? '₹11,500' : '₹55,000', AppColors.warningAmber),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomButton(
-                        text: 'Download PDF',
-                        variant: ButtonVariant.secondary,
-                        icon: Icons.picture_as_pdf_rounded,
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Downloading PDF Report...')),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: CustomButton(
-                        text: 'Export Excel (CSV)',
-                        variant: ButtonVariant.outline,
-                        icon: Icons.download_rounded,
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Exporting CSV Ledger Statement...')),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Dark Theme Earnings Bar Chart Section
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceCard,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.borderSubtle),
-            ),
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Daily & Monthly Report'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: widget.onBack,
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: RefreshIndicator(
+          onRefresh: _loadReportData,
+          color: AppColors.primaryCyan,
+          backgroundColor: AppColors.surfaceCard,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _reportType == 'Daily' ? 'Hourly Revenue Breakdown' : 'Weekly Collection Overview',
-                      style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 15),
+                if (_isLoading)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 8),
+                    child: LinearProgressIndicator(
+                      color: AppColors.primaryCyan,
+                      backgroundColor: AppColors.canvasLow,
+                      minHeight: 2,
                     ),
-                    const Icon(Icons.show_chart_rounded, color: AppColors.primaryCyan, size: 20),
-                  ],
+                  ),
+
+                // Segmented Toggle & Date Picker Row
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceCard,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.borderSubtle),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                if (_reportType != 'Daily') {
+                                  setState(() => _reportType = 'Daily');
+                                  _loadReportData();
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: _reportType == 'Daily'
+                                      ? AppColors.primaryCyan.withValues(alpha: 0.2)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: _reportType == 'Daily' ? AppColors.primaryCyan : Colors.transparent,
+                                  ),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'Daily Report',
+                                  style: TextStyle(
+                                    color: _reportType == 'Daily' ? AppColors.primaryCyan : AppColors.textSecondary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                if (_reportType != 'Monthly') {
+                                  setState(() => _reportType = 'Monthly');
+                                  _loadReportData();
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: _reportType == 'Monthly'
+                                      ? AppColors.primaryCyan.withValues(alpha: 0.2)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: _reportType == 'Monthly' ? AppColors.primaryCyan : Colors.transparent,
+                                  ),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'Monthly Report',
+                                  style: TextStyle(
+                                    color: _reportType == 'Monthly' ? AppColors.primaryCyan : AppColors.textSecondary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      InkWell(
+                        onTap: _pickDate,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: AppColors.canvasLow,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.borderSubtle),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.calendar_month_rounded, color: AppColors.primaryCyan, size: 18),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    _reportType == 'Daily'
+                                        ? 'Selected Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}'
+                                        : 'Selected Month: ${_selectedDate.month}/${_selectedDate.year}',
+                                    style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 13),
+                                  ),
+                                ],
+                              ),
+                              const Icon(Icons.arrow_drop_down_rounded, color: AppColors.textSecondary),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Total Summary & PDF Download Card
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceCard,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.borderSubtle),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _item('Gross Revenue', '₹${_grossRevenue.toInt()}', AppColors.primaryCyan),
+                          _item('Advance Paid', '₹${_advanceCollected.toInt()}', AppColors.successGreen),
+                          _item('Net Income', '₹${_netIncome.toInt()}', AppColors.warningAmber),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomButton(
+                              text: 'Download PDF',
+                              variant: ButtonVariant.secondary,
+                              icon: Icons.picture_as_pdf_rounded,
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Downloading PDF Report...')),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: CustomButton(
+                              text: 'Export Excel',
+                              variant: ButtonVariant.outline,
+                              icon: Icons.download_rounded,
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Exporting CSV Ledger Statement...')),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Bookings Overview Stats
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceCard,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.borderSubtle),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Column(
+                        children: [
+                          const Text('Total Bookings', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                          const SizedBox(height: 4),
+                          Text('$_totalBookings', style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 18)),
+                        ],
+                      ),
+                      Container(height: 30, width: 1, color: AppColors.borderHairline),
+                      Column(
+                        children: [
+                          const Text('Completed Trips', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                          const SizedBox(height: 4),
+                          Text('$_completedBookings', style: const TextStyle(color: AppColors.successGreen, fontWeight: FontWeight.bold, fontSize: 18)),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 24),
 
-                // Bar Chart Visual Container
-                SizedBox(
-                  height: 160,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: chartData.map((item) {
-                      final double heightFactor = (item['amount'] as double) / maxAmount;
-                      return Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(
-                            '₹${item['label']}',
-                            style: const TextStyle(color: AppColors.primaryCyan, fontSize: 10, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 6),
-                          Container(
-                            width: _reportType == 'Daily' ? 24 : 36,
-                            height: (100 * heightFactor).clamp(16.0, 110.0),
-                            decoration: BoxDecoration(
-                              gradient: AppColors.primaryGradient,
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primaryCyan.withValues(alpha: 0.3),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            item['time'] as String,
-                            style: const TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      );
-                    }).toList(),
-                  ),
+                // Transaction Log
+                Text(
+                  _reportType == 'Daily' ? "Today's Transaction Log" : "Recent Billing Log",
+                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
+                const SizedBox(height: 12),
+
+                if (_transactions.isEmpty && !_isLoading)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceCard,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.borderSubtle),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.receipt_long_outlined, size: 48, color: AppColors.textMuted.withAlpha(120)),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'No Transactions Found',
+                          style: TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Bookings and customer invoices for this period will appear here.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceCard,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.borderSubtle),
+                    ),
+                    child: Column(
+                      children: _transactions.take(10).map((b) {
+                        return Column(
+                          children: [
+                            _txRow(
+                              b.id,
+                              b.customerName,
+                              b.vehicleName,
+                              b.status.name.toUpperCase(),
+                              '₹${b.totalAmount.toInt()}',
+                              '${b.startDate.day}/${b.startDate.month}/${b.startDate.year}',
+                            ),
+                            const Divider(color: AppColors.borderHairline, height: 1),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                const SizedBox(height: 110),
               ],
             ),
           ),
-          const SizedBox(height: 20),
-
-          // Transaction Log
-          Text(
-            _reportType == 'Daily' ? "Today's Transaction Log" : "Monthly Billing Log",
-            style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.surfaceCard,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.borderSubtle),
-            ),
-            child: Column(
-              children: [
-                _txRow('BK-1089', 'Rahul Verma', 'Mahindra Thar', 'UPI', '₹3,500', '11:45 AM'),
-                const Divider(color: AppColors.borderHairline, height: 1),
-                _txRow('BK-1088', 'Priya Sharma', 'RE Classic 350', 'Cash', '₹1,200', '10:15 AM'),
-                const Divider(color: AppColors.borderHairline, height: 1),
-                _txRow('BK-1087', 'Amit Patel', 'Creta SX', 'Card', '₹5,600', '09:30 AM'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 110), // Gap to prevent overlap with bottom tab menu
-        ],
+        ),
       ),
     );
   }
@@ -354,13 +404,16 @@ class _DailyMonthlyReportScreenState extends State<DailyMonthlyReportScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('$id • $name', style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
-              Text('$vehicle • $mode ($time)', style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('$id • $name', style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text('$vehicle • $mode ($time)', style: const TextStyle(color: AppColors.textSecondary, fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
+              ],
+            ),
           ),
+          const SizedBox(width: 8),
           Text(amount, style: const TextStyle(color: AppColors.successGreen, fontWeight: FontWeight.bold, fontSize: 15)),
         ],
       ),

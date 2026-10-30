@@ -4,17 +4,18 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/info_note.dart';
 import '../../models/mock_models.dart';
-import '../../data/mock_data.dart';
 import '../../services/api_service.dart';
 
 class AddEditPartnerScreen extends StatefulWidget {
   final Partner? partner;
+  final String? partnerId;
   final VoidCallback onSaved;
   final VoidCallback onCancel;
 
   const AddEditPartnerScreen({
     super.key,
     this.partner,
+    this.partnerId,
     required this.onSaved,
     required this.onCancel,
   });
@@ -24,6 +25,8 @@ class AddEditPartnerScreen extends StatefulWidget {
 }
 
 class _AddEditPartnerScreenState extends State<AddEditPartnerScreen> {
+  Partner? _partner;
+  bool _isFetching = false;
   late TextEditingController _nameCtrl;
   late TextEditingController _phoneCtrl;
   late TextEditingController _emailCtrl;
@@ -36,26 +39,81 @@ class _AddEditPartnerScreenState extends State<AddEditPartnerScreen> {
   String _fixedFrequency = 'Per Month'; // 'Per Day', 'Per Week', 'Per Month'
   late Set<String> _selectedVehicleIds;
   bool _isLoading = false;
+  List<Vehicle> _availableVehicles = [];
+  bool _isLoadingVehicles = false;
 
   final List<String> _frequencyOptions = ['Per Day', 'Per Week', 'Per Month'];
 
   @override
   void initState() {
     super.initState();
-    _nameCtrl = TextEditingController(text: widget.partner?.name ?? '');
-    _phoneCtrl = TextEditingController(text: widget.partner?.phone.replaceAll('+91 ', '') ?? '');
-    _emailCtrl = TextEditingController(text: widget.partner?.email ?? '');
-    _splitCtrl = TextEditingController(text: widget.partner?.profitSplitPercent.toInt().toString() ?? '70');
-    _fixedAmtCtrl = TextEditingController(
-        text: widget.partner?.fixedPayoutAmount != null && widget.partner!.fixedPayoutAmount > 0
-            ? widget.partner!.fixedPayoutAmount.toInt().toString()
-            : '15000');
-    _bankCtrl = TextEditingController(text: widget.partner?.bankAccount ?? '');
-    _upiCtrl = TextEditingController(text: widget.partner?.upiId ?? '');
+    _partner = widget.partner;
+    _initControllers();
+    _fetchVehicles();
+    if (_partner == null && widget.partnerId != null && widget.partnerId!.isNotEmpty) {
+      _fetchPartner();
+    }
+  }
 
-    _payoutType = widget.partner?.payoutType ?? 'percentage';
-    _fixedFrequency = widget.partner?.fixedPayoutFrequency ?? 'Per Month';
-    _selectedVehicleIds = Set<String>.from(widget.partner?.assignedVehicleIds ?? ['V001', 'V005']);
+  Future<void> _fetchVehicles() async {
+    setState(() => _isLoadingVehicles = true);
+    try {
+      final res = await ApiService().getVehicles();
+      if (res != null && res['data'] is List && mounted) {
+        setState(() {
+          _availableVehicles = (res['data'] as List)
+              .map((item) => Vehicle.fromJson(item as Map<String, dynamic>))
+              .toList();
+        });
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _isLoadingVehicles = false);
+  }
+
+  void _initControllers() {
+    _nameCtrl = TextEditingController(text: _partner?.name ?? '');
+    _phoneCtrl = TextEditingController(text: _partner?.phone.replaceAll('+91 ', '') ?? '');
+    _emailCtrl = TextEditingController(text: _partner?.email ?? '');
+    _splitCtrl = TextEditingController(text: _partner?.profitSplitPercent.toInt().toString() ?? '70');
+    _fixedAmtCtrl = TextEditingController(
+        text: _partner?.fixedPayoutAmount != null && _partner!.fixedPayoutAmount > 0
+            ? _partner!.fixedPayoutAmount.toInt().toString()
+            : '15000');
+    _bankCtrl = TextEditingController(text: _partner?.bankAccount ?? '');
+    _upiCtrl = TextEditingController(text: _partner?.upiId ?? '');
+
+    _payoutType = _partner?.payoutType ?? 'percentage';
+    _fixedFrequency = _partner?.fixedPayoutFrequency ?? 'Per Month';
+    _selectedVehicleIds = Set<String>.from(_partner?.assignedVehicleIds ?? []);
+  }
+
+  Future<void> _fetchPartner() async {
+    setState(() => _isFetching = true);
+    try {
+      final res = await ApiService().getPartners();
+      if (res != null && res['data'] is List && mounted) {
+        final list = (res['data'] as List)
+            .map((item) => Partner.fromJson(item as Map<String, dynamic>))
+            .toList();
+        final match = list.where((p) => p.id == widget.partnerId).firstOrNull;
+        if (match != null) {
+          setState(() {
+            _partner = match;
+            _nameCtrl.text = match.name;
+            _phoneCtrl.text = match.phone.replaceAll('+91 ', '');
+            _emailCtrl.text = match.email;
+            _splitCtrl.text = match.profitSplitPercent.toInt().toString();
+            _fixedAmtCtrl.text = match.fixedPayoutAmount.toInt().toString();
+            _bankCtrl.text = match.bankAccount;
+            _upiCtrl.text = match.upiId;
+            _payoutType = match.payoutType;
+            _fixedFrequency = match.fixedPayoutFrequency;
+            _selectedVehicleIds = Set<String>.from(match.assignedVehicleIds);
+          });
+        }
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _isFetching = false);
   }
 
   @override
@@ -79,6 +137,7 @@ class _AddEditPartnerScreenState extends State<AddEditPartnerScreen> {
     }
 
     setState(() => _isLoading = true);
+    final messenger = ScaffoldMessenger.of(context);
 
     final payload = <String, dynamic>{
       'name': _nameCtrl.text.trim(),
@@ -91,41 +150,102 @@ class _AddEditPartnerScreenState extends State<AddEditPartnerScreen> {
     };
 
     try {
-      if (widget.partner == null) {
+      if (_partner == null) {
         await ApiService().createPartner(payload);
       } else {
-        await ApiService().updatePartner(widget.partner!.id, payload);
+        await ApiService().updatePartner(_partner!.id, payload);
+      }
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(_partner == null ? 'Partner added successfully!' : 'Partner details saved!'),
+            backgroundColor: AppColors.successGreen,
+          ),
+        );
+        widget.onSaved();
       }
     } catch (e) {
-      // Offline fallback
-      if (widget.partner == null) {
-        MockData.partners.add(
-          Partner(
-            id: 'P${DateTime.now().millisecondsSinceEpoch}',
-            name: _nameCtrl.text.trim(),
-            phone: _phoneCtrl.text.trim(),
-            profitSplitPercent: double.tryParse(_splitCtrl.text) ?? 70,
-            assignedVehicleIds: _selectedVehicleIds.toList(),
-            payoutType: _payoutType,
-            fixedPayoutAmount: double.tryParse(_fixedAmtCtrl.text) ?? 0,
-            fixedPayoutFrequency: _fixedFrequency,
+      final msg = e.toString().replaceAll('ApiException: ', '').replaceAll('Exception: ', '');
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            backgroundColor: AppColors.criticalRed,
           ),
         );
       }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
-        widget.onSaved();
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isFetching) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          title: const Text('Edit Fleet Partner'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: widget.onCancel,
+          ),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(color: AppColors.primaryCyan),
+        ),
+      );
+    }
+
+    if (widget.partnerId != null && _partner == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          title: const Text('Edit Fleet Partner'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: widget.onCancel,
+          ),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.person_off_outlined, size: 64, color: AppColors.textMuted.withAlpha(120)),
+                const SizedBox(height: 16),
+                const Text(
+                  'Partner Record Not Found',
+                  style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'The partner you are trying to edit does not exist or has been removed.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                ),
+                const SizedBox(height: 24),
+                CustomButton(
+                  text: 'Back to Fleet Partners',
+                  variant: ButtonVariant.secondary,
+                  onPressed: widget.onCancel,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final isEdit = _partner != null;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(widget.partner == null ? 'Add Fleet Partner' : 'Edit Fleet Partner'),
+        title: Text(!isEdit ? 'Add Fleet Partner' : 'Edit Fleet Partner'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: widget.onCancel,
@@ -152,7 +272,7 @@ class _AddEditPartnerScreenState extends State<AddEditPartnerScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      widget.partner == null ? 'Add New Fleet Partner' : 'Edit Partner Details',
+                      !isEdit ? 'Add New Fleet Partner' : 'Edit Partner Details',
                       style: const TextStyle(color: AppColors.primaryCyan, fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     IconButton(
@@ -207,41 +327,61 @@ class _AddEditPartnerScreenState extends State<AddEditPartnerScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: MockData.vehicles.map((v) {
-                    final isSelected = _selectedVehicleIds.contains(v.id);
-                    return FilterChip(
-                      selected: isSelected,
-                      label: Text('${v.name} (${v.regNumber})'),
-                      onSelected: (selected) {
-                        setState(() {
-                          if (selected) {
-                            _selectedVehicleIds.add(v.id);
-                          } else {
-                            _selectedVehicleIds.remove(v.id);
-                          }
-                        });
-                      },
-                      selectedColor: AppColors.primaryCyan.withValues(alpha: 0.2),
-                      backgroundColor: AppColors.canvasLow,
-                      checkmarkColor: AppColors.primaryCyan,
-                      labelStyle: TextStyle(
-                        color: isSelected ? AppColors.primaryCyan : AppColors.textSecondary,
-                        fontSize: 12,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(
-                          color: isSelected ? AppColors.primaryCyan : AppColors.borderSubtle,
+                if (_isLoadingVehicles)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Center(child: CircularProgressIndicator(color: AppColors.primaryCyan, strokeWidth: 2)),
+                  )
+                else if (_availableVehicles.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.canvasLow,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.borderSubtle),
+                    ),
+                    child: const Text(
+                      'No vehicles found in fleet to assign.',
+                      style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                    ),
+                  )
+                else
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _availableVehicles.map((v) {
+                      final isSelected = _selectedVehicleIds.contains(v.id);
+                      return FilterChip(
+                        selected: isSelected,
+                        label: Text('${v.name} (${v.regNumber})'),
+                        onSelected: (selected) {
+                          setState(() {
+                            if (selected) {
+                              _selectedVehicleIds.add(v.id);
+                            } else {
+                              _selectedVehicleIds.remove(v.id);
+                            }
+                          });
+                        },
+                        selectedColor: AppColors.primaryCyan.withValues(alpha: 0.2),
+                        backgroundColor: AppColors.canvasLow,
+                        checkmarkColor: AppColors.primaryCyan,
+                        labelStyle: TextStyle(
+                          color: isSelected ? AppColors.primaryCyan : AppColors.textSecondary,
+                          fontSize: 12,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: isSelected ? AppColors.primaryCyan : AppColors.borderSubtle,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 const SizedBox(height: 20),
                 const Divider(color: AppColors.borderHairline),
                 const SizedBox(height: 16),

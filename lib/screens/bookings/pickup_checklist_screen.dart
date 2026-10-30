@@ -3,6 +3,7 @@ import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../utils/app_placeholders.dart';
+import '../../models/mock_models.dart';
 import '../../services/api_service.dart';
 
 class PickupChecklistScreen extends StatefulWidget {
@@ -22,8 +23,9 @@ class PickupChecklistScreen extends StatefulWidget {
 }
 
 class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
-  final _odometerController = TextEditingController(text: '24500');
-  double _fuelLevel = 85.0;
+  final _odometerController = TextEditingController();
+  double _fuelLevel = 100.0;
+  Booking? _booking;
 
   bool _spareWheelChecked = true;
   bool _toolKitChecked = true;
@@ -33,13 +35,34 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
   bool _isLoading = false;
 
   final Map<String, bool> _photoUploaded = {
-    'Front View': true,
-    'Rear View': true,
+    'Front View': false,
+    'Rear View': false,
     'Left Side': false,
     'Right Side': false,
   };
 
   final List<Offset?> _signaturePoints = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBookingOdometer();
+  }
+
+  Future<void> _loadBookingOdometer() async {
+    try {
+      final res = await ApiService().getBookingDetail(widget.bookingId);
+      if (res != null && res['data'] != null && mounted) {
+        final b = Booking.fromJson(res['data'] as Map<String, dynamic>);
+        setState(() {
+          _booking = b;
+          if (b.startOdometer > 0) {
+            _odometerController.text = b.startOdometer.toString();
+          }
+        });
+      }
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +96,7 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
                   const SizedBox(height: 14),
                   CustomTextField(
                     label: 'Start Odometer Reading (KM)',
-                    hintText: '24500',
+                    hintText: 'e.g. 12500',
                     controller: _odometerController,
                     prefixIcon: Icons.speed_rounded,
                     keyboardType: TextInputType.number,
@@ -156,12 +179,18 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
                           child: const Icon(Icons.badge_rounded, color: AppColors.primaryCyan, size: 24),
                         ),
                         const SizedBox(width: 12),
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Rahul Verma', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
-                              Text('DL No: DL-1420210098271', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                              Text(
+                                _booking?.customerName ?? 'Customer',
+                                style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
+                              ),
+                              Text(
+                                'DL / ID: ${_booking?.kycDocNumber.isNotEmpty == true ? _booking!.kycDocNumber : "Verified on Booking"}',
+                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                              ),
                             ],
                           ),
                         ),
@@ -170,7 +199,7 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
                           onPressed: () => AppPlaceholders.showImageViewer(
                             context,
                             imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800',
-                            title: 'Driving Licence - Rahul Verma',
+                            title: '${_booking?.kycDocType.isNotEmpty == true ? _booking!.kycDocType : "Document"} - ${_booking?.customerName ?? "Customer"}',
                           ),
                         ),
                       ],
@@ -242,25 +271,49 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
                     icon: Icons.assignment_turned_in_rounded,
                     isLoading: _isLoading,
                     onPressed: () async {
+                      final odo = int.tryParse(_odometerController.text.trim());
+                      if (odo == null || odo <= 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please enter a valid starting odometer reading (KM)'),
+                            backgroundColor: AppColors.criticalRed,
+                          ),
+                        );
+                        return;
+                      }
+
                       setState(() => _isLoading = true);
                       final messenger = ScaffoldMessenger.of(context);
                       try {
                         await ApiService().submitPickupInspection(
                           widget.bookingId,
-                          startOdometer: int.tryParse(_odometerController.text) ?? 24500,
+                          startOdometer: odo,
                           fuelPercent: _fuelLevel,
                           notes: 'Verified accessories: spare wheel, tool kit, and registration documents checked.',
                         );
-                      } catch (_) {}
-                      if (mounted) {
-                        setState(() => _isLoading = false);
-                        messenger.showSnackBar(
-                          const SnackBar(
-                            content: Text('Pickup completed! Trip is now Running.'),
-                            backgroundColor: AppColors.successGreen,
-                          ),
-                        );
-                        widget.onPickupConfirmed();
+                        if (mounted) {
+                          messenger.showSnackBar(
+                            const SnackBar(
+                              content: Text('Pickup completed! Trip is now Running.'),
+                              backgroundColor: AppColors.successGreen,
+                            ),
+                          );
+                          widget.onPickupConfirmed();
+                        }
+                      } catch (e) {
+                        final msg = e.toString().replaceAll('ApiException: ', '').replaceAll('Exception: ', '');
+                        if (mounted) {
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text(msg),
+                              backgroundColor: AppColors.criticalRed,
+                            ),
+                          );
+                        }
+                      } finally {
+                        if (mounted) {
+                          setState(() => _isLoading = false);
+                        }
                       }
                     },
                   ),

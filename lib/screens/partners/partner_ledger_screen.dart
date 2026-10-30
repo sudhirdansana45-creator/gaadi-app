@@ -7,12 +7,14 @@ import '../../services/api_service.dart';
 import '../modals/locked_feature_sheet.dart';
 
 class PartnerLedgerScreen extends StatefulWidget {
-  final Partner partner;
+  final Partner? partner;
+  final String? partnerId;
   final VoidCallback onBack;
 
   const PartnerLedgerScreen({
     super.key,
-    required this.partner,
+    this.partner,
+    this.partnerId,
     required this.onBack,
   });
 
@@ -21,25 +23,58 @@ class PartnerLedgerScreen extends StatefulWidget {
 }
 
 class _PartnerLedgerScreenState extends State<PartnerLedgerScreen> {
+  Partner? _partner;
   bool _isLoading = false;
   double _grossEarnings = 0;
   double _partnerShare = 0;
   double _pendingPayout = 0;
   List<Map<String, dynamic>> _transactions = [];
 
+  Partner get currentPartner => _partner!;
+
   @override
   void initState() {
     super.initState();
-    _partnerShare = widget.partner.totalEarned;
-    _grossEarnings = widget.partner.totalEarned * 1.3;
-    _pendingPayout = widget.partner.pendingPayout;
-    _loadLedger();
+    _partner = widget.partner;
+    if (_partner != null) {
+      _partnerShare = _partner!.totalEarned;
+      _grossEarnings = _partner!.totalEarned;
+      _pendingPayout = _partner!.pendingPayout;
+      _loadLedger();
+    } else if (widget.partnerId != null) {
+      _fetchPartner();
+    }
+  }
+
+  Future<void> _fetchPartner() async {
+    setState(() => _isLoading = true);
+    try {
+      final res = await ApiService().getPartners();
+      if (res != null && res['data'] is List && mounted) {
+        final list = (res['data'] as List)
+            .map((item) => Partner.fromJson(item as Map<String, dynamic>))
+            .toList();
+        final match = list.where((p) => p.id == widget.partnerId).firstOrNull;
+        if (match != null) {
+          setState(() {
+            _partner = match;
+            _partnerShare = match.totalEarned;
+            _grossEarnings = match.totalEarned;
+            _pendingPayout = match.pendingPayout;
+          });
+          _loadLedger();
+          return;
+        }
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _loadLedger() async {
+    if (_partner == null) return;
     setState(() => _isLoading = true);
     try {
-      final res = await ApiService().getPartnerLedger(widget.partner.id);
+      final res = await ApiService().getPartnerLedger(currentPartner.id);
       if (res != null && res['data'] != null && mounted) {
         final data = res['data'];
         setState(() {
@@ -124,11 +159,11 @@ class _PartnerLedgerScreenState extends State<PartnerLedgerScreen> {
               height: 40,
               onPressed: () async {
                 final amt = double.tryParse(amountCtrl.text.trim()) ?? 0;
-                if (amt <= 0) return;
+                if (amt <= 0 || _partner == null) return;
                 setDlgState(() => isSaving = true);
                 try {
                   await ApiService().recordPartnerPayout(
-                    widget.partner.id,
+                    currentPartner.id,
                     amount: amt,
                     mode: mode,
                     note: noteCtrl.text.trim(),
@@ -162,12 +197,69 @@ class _PartnerLedgerScreenState extends State<PartnerLedgerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDisabled = widget.partner.status == PartnerStatus.inactive;
+    if (_isLoading && _partner == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          title: const Text('Partner Ledger'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: widget.onBack,
+          ),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(color: AppColors.primaryCyan),
+        ),
+      );
+    }
+
+    if (_partner == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          title: const Text('Partner Ledger'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: widget.onBack,
+          ),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.person_off_outlined, size: 64, color: AppColors.textMuted.withAlpha(120)),
+                const SizedBox(height: 16),
+                const Text(
+                  'Partner Record Not Found',
+                  style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'The requested partner details could not be found or have been deleted.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                ),
+                const SizedBox(height: 24),
+                CustomButton(
+                  text: 'Back to Fleet Partners',
+                  variant: ButtonVariant.secondary,
+                  onPressed: widget.onBack,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final isDisabled = currentPartner.status == PartnerStatus.inactive;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Partner Ledger: ${widget.partner.name}'),
+        title: Text('Partner Ledger: ${currentPartner.name}'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: widget.onBack,
@@ -201,11 +293,11 @@ class _PartnerLedgerScreenState extends State<PartnerLedgerScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Partner Ledger: ${widget.partner.name}',
+                        'Partner Ledger: ${currentPartner.name}',
                         style: const TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        '${widget.partner.profitSplitPercent.toInt()}% Share • ${widget.partner.bankAccount}',
+                        '${currentPartner.profitSplitPercent.toInt()}% Share • ${currentPartner.bankAccount}',
                         style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                       ),
                     ],
@@ -329,14 +421,27 @@ class _PartnerLedgerScreenState extends State<PartnerLedgerScreen> {
                         );
                       }).toList(),
                     )
-                  : Column(
-                      children: [
-                        _historyRow('28 Sep 2026', 'Mahindra Thar (DL01AB1234) Trip Share', '+ ₹4,200', true),
-                        const Divider(color: AppColors.borderHairline, height: 1),
-                        _historyRow('24 Sep 2026', 'Bank Payout Transferred (HDFC ****4910)', '- ₹15,000', false),
-                        const Divider(color: AppColors.borderHairline, height: 1),
-                        _historyRow('20 Sep 2026', 'Royal Enfield (DL08JK7890) Trip Share', '+ ₹1,800', true),
-                      ],
+                  : Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.receipt_long_outlined, color: AppColors.textMuted.withAlpha(120), size: 40),
+                          const SizedBox(height: 10),
+                          const Text(
+                            'No Ledger Transactions Found',
+                            style: TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Trip profit shares and payout records for this partner will appear here.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                          ),
+                        ],
+                      ),
                     ),
             ),
             const SizedBox(height: 110), // Gap to prevent overlap with bottom tab menu

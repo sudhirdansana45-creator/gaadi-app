@@ -2,10 +2,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
-import '../../data/mock_data.dart';
 import '../../services/api_service.dart';
 import '../../services/api_client.dart';
-import '../../models/mock_models.dart';
 import '../modals/daily_limit_modal.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
@@ -43,20 +41,6 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           setState(() {
             _dashboardStats = data;
           });
-        }
-        final recent = data['recent_bookings'] as List?;
-        if (recent != null && recent.isNotEmpty) {
-          for (final item in recent) {
-            try {
-              final b = Booking.fromJson(item as Map<String, dynamic>);
-              final idx = MockData.bookings.indexWhere((existing) => existing.id == b.id);
-              if (idx == -1) {
-                MockData.bookings.insert(0, b);
-              } else {
-                MockData.bookings[idx] = b;
-              }
-            } catch (_) {}
-          }
         }
       }
     } catch (_) {

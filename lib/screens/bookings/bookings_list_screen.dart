@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/status_chip.dart';
 import '../../widgets/custom_button.dart';
-import '../../data/mock_data.dart';
 import '../../models/mock_models.dart';
 import '../../core/plan_guard.dart';
 import '../../services/api_service.dart';
@@ -25,6 +24,7 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
   late String _selectedFilter;
   String _searchQuery = '';
   bool _isLoading = false;
+  List<Booking> _bookings = [];
 
   @override
   void initState() {
@@ -41,14 +41,14 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
         final list = (res['data'] as List)
             .map((item) => Booking.fromJson(item as Map<String, dynamic>))
             .toList();
-        if (mounted && list.isNotEmpty) {
+        if (mounted) {
           setState(() {
-            MockData.bookings = list;
+            _bookings = list;
           });
         }
       }
     } catch (_) {
-      // Offline fallback
+      // Offline fallback: keep current list
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -65,7 +65,7 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
         },
       );
     } else {
-      context.push('/bookings/new');
+      context.push('/bookings/new').then((_) => _loadBookings());
     }
   }
 
@@ -73,7 +73,7 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
   Widget build(BuildContext context) {
     final filters = ['All', 'Booked', 'Running', 'Returned', 'Cancelled', 'Late'];
 
-    final filteredBookings = MockData.bookings.where((b) {
+    final filteredBookings = _bookings.where((b) {
       if (_searchQuery.isNotEmpty) {
         final q = _searchQuery.toLowerCase();
         final matches = b.customerName.toLowerCase().contains(q) ||
@@ -205,13 +205,50 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
               // Bookings List
               if (filteredBookings.isEmpty)
                 Container(
-                  padding: const EdgeInsets.all(32),
-                  alignment: Alignment.center,
-                  child: const Column(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceCard,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.borderSubtle),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.receipt_long_outlined, color: AppColors.textMuted, size: 48),
-                      SizedBox(height: 12),
-                      Text('No bookings found matching filter.', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+                      Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryCyan.withAlpha(25),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.receipt_long_outlined, color: AppColors.primaryCyan, size: 40),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        _searchQuery.isNotEmpty || _selectedFilter != 'All'
+                            ? 'No bookings matching filter'
+                            : 'No Bookings Found in Ledger',
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _searchQuery.isNotEmpty || _selectedFilter != 'All'
+                            ? 'Try clearing the search query or changing status filters.'
+                            : 'No bookings recorded yet. Generate your first booking bill to track running rentals and settlements.',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
+                      ),
+                      const SizedBox(height: 20),
+                      CustomButton(
+                        text: '+ Create Booking',
+                        width: 170,
+                        height: 42,
+                        onPressed: _onNewBookingTap,
+                      ),
                     ],
                   ),
                 )
@@ -229,53 +266,63 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: AppColors.borderSubtle),
                       ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(14),
-                        onTap: () => context.push('/bookings/${booking.id}'),
-                        title: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              booking.id,
-                              style: const TextStyle(color: AppColors.primaryCyan, fontWeight: FontWeight.bold, fontSize: 13),
-                            ),
-                            StatusChip.fromBookingStatus(booking.status),
-                          ],
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 6),
-                            Text(
-                              booking.customerName,
-                              style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 15),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${booking.vehicleName} (${booking.vehicleRegNumber})',
-                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Total: ₹${booking.totalAmount.toInt()}',
-                                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 12, fontWeight: FontWeight.w600),
-                                ),
-                                if (booking.pendingAmount > 0)
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () => context.push('/bookings/${booking.id}').then((_) => _loadBookings()),
+                        child: Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
                                   Text(
-                                    'Due: ₹${booking.pendingAmount.toInt()}',
-                                    style: const TextStyle(color: AppColors.criticalRed, fontSize: 12, fontWeight: FontWeight.bold),
-                                  )
-                                else
-                                  const Text(
-                                    'Fully Paid',
-                                    style: TextStyle(color: AppColors.successGreen, fontSize: 11, fontWeight: FontWeight.bold),
+                                    booking.id,
+                                    style: const TextStyle(color: AppColors.primaryCyan, fontWeight: FontWeight.bold, fontSize: 13),
                                   ),
-                              ],
-                            ),
-                          ],
+                                  StatusChip.fromBookingStatus(booking.status),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                booking.customerName,
+                                style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${booking.vehicleName} (${booking.vehicleRegNumber})',
+                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                              ),
+                              const SizedBox(height: 10),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: AppColors.canvasLow,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Total: ₹${booking.totalAmount.toInt()}',
+                                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 12, fontWeight: FontWeight.w600),
+                                    ),
+                                    if (booking.pendingAmount > 0)
+                                      Text(
+                                        'Due: ₹${booking.pendingAmount.toInt()}',
+                                        style: const TextStyle(color: AppColors.criticalRed, fontSize: 12, fontWeight: FontWeight.bold),
+                                      )
+                                    else
+                                      const Text(
+                                        'Fully Paid',
+                                        style: TextStyle(color: AppColors.successGreen, fontSize: 11, fontWeight: FontWeight.bold),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -287,12 +334,13 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
         ),
       ),
     ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.primaryCyan,
-        onPressed: _onNewBookingTap,
-        icon: const Icon(Icons.add_rounded, color: AppColors.textDark),
-        label: const Text('New Booking', style: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.bold)),
-      ),
-    );
-  }
+    floatingActionButton: FloatingActionButton.extended(
+      heroTag: null,
+      backgroundColor: AppColors.primaryCyan,
+      onPressed: _onNewBookingTap,
+      icon: const Icon(Icons.add_rounded, color: AppColors.textDark),
+      label: const Text('New Booking', style: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.bold)),
+    ),
+  );
+}
 }
