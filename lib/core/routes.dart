@@ -54,4 +54,5 @@ class AppRoutes {
   static const String billingRules = '/settings/billing-rules';
   static const String invoiceFormat = '/settings/invoice-format';
   static const String helpSupport = '/settings/help';
+  static const String privacyData = '/settings/privacy-data';
 }

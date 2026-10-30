@@ -29,14 +29,23 @@ class GaadiManagerApp extends StatelessWidget {
           builder: (context, routerChild) {
             final isDark = Theme.of(context).brightness == Brightness.dark;
             final bg = isDark ? const Color(0xFF0F131D) : const Color(0xFFF6F8FC);
-            return Container(
-              color: bg,
-              child: SafeArea(
-                top: true,
-                bottom: false,
-                left: false,
-                right: false,
-                child: routerChild ?? const SizedBox.shrink(),
+            final mediaQuery = MediaQuery.of(context);
+            final clampedScaler = mediaQuery.textScaler.clamp(
+              minScaleFactor: 0.85,
+              maxScaleFactor: 1.35,
+            );
+
+            return MediaQuery(
+              data: mediaQuery.copyWith(textScaler: clampedScaler),
+              child: Container(
+                color: bg,
+                child: SafeArea(
+                  top: true,
+                  bottom: false,
+                  left: false,
+                  right: false,
+                  child: routerChild ?? const SizedBox.shrink(),
+                ),
               ),
             );
           },

@@ -29,7 +29,12 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
 
   final _customerNameCtrl = TextEditingController();
   final _customerPhoneCtrl = TextEditingController();
+  final _dlNumberCtrl = TextEditingController();
   final _advancePaidCtrl = TextEditingController(text: '2000');
+
+  DateTime? _dlExpiryDate;
+  bool _customerConsentGiven = false;
+  bool _whatsappOptIn = true;
 
   bool _isHourlyRate = false;
   int _rentalDuration = 2; // Days or Hours depending on _isHourlyRate
@@ -64,6 +69,7 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
   void dispose() {
     _customerNameCtrl.dispose();
     _customerPhoneCtrl.dispose();
+    _dlNumberCtrl.dispose();
     _advancePaidCtrl.dispose();
     super.dispose();
   }
@@ -155,16 +161,37 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
       return;
     }
 
-    setState(() => _isLoading = true);
-
-    final double unitRate = _isHourlyRate ? _selectedVehicle!.hourlyRate : _selectedVehicle!.dailyRate;
-    final double totalRent = unitRate * _rentalDuration;
-    final double securityDeposit = _selectedVehicle!.securityDeposit;
+    if (!_customerConsentGiven) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please confirm customer affirmative consent for ID/DL verification (DPDP Act Sec 6).'),
+          backgroundColor: AppColors.criticalRed,
+        ),
+      );
+      return;
+    }
 
     final now = DateTime.now();
     final endAt = _isHourlyRate
         ? now.add(Duration(hours: _rentalDuration))
         : now.add(Duration(days: _rentalDuration));
+
+    if (_dlExpiryDate != null && _dlExpiryDate!.isBefore(endAt)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Customer Driving Licence expires before rental return! Prohibited under Motor Vehicles Act.'),
+          backgroundColor: AppColors.criticalRed,
+          duration: Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final double unitRate = _isHourlyRate ? _selectedVehicle!.hourlyRate : _selectedVehicle!.dailyRate;
+    final double totalRent = unitRate * _rentalDuration;
+    final double securityDeposit = _selectedVehicle!.securityDeposit;
 
     final messenger = ScaffoldMessenger.of(context);
 
@@ -173,6 +200,10 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
         'vehicle_id': _selectedVehicle!.id,
         'customer_name': name,
         'customer_mobile': phone.startsWith('+91') ? phone : '+91 $phone',
+        'dl_no': _dlNumberCtrl.text.trim(),
+        'dl_expiry_date': _dlExpiryDate?.toIso8601String().split('T').first,
+        'terms_accepted': true,
+        'whatsapp_opt_in': _whatsappOptIn,
         'start_at': now.toIso8601String(),
         'end_at': endAt.toIso8601String(),
         'amount': totalRent,
@@ -411,6 +442,109 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
                             prefixText: '+91 ',
                             prefixIcon: Icons.phone_android_rounded,
                             keyboardType: TextInputType.phone,
+                          ),
+                          const SizedBox(height: 12),
+                          CustomTextField(
+                            label: 'Driving Licence Number',
+                            hintText: 'e.g. DL-0420110012345',
+                            controller: _dlNumberCtrl,
+                            prefixIcon: Icons.credit_card_rounded,
+                          ),
+                          const SizedBox(height: 12),
+                          // DL Expiry Date Picker (Motor Vehicles Act)
+                          InkWell(
+                            onTap: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: _dlExpiryDate ?? DateTime.now().add(const Duration(days: 365)),
+                                firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                                lastDate: DateTime.now().add(const Duration(days: 365 * 25)),
+                              );
+                              if (picked != null) {
+                                setState(() => _dlExpiryDate = picked);
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: AppColors.canvasLow,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.borderSubtle),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.calendar_today_rounded, size: 18, color: AppColors.primaryCyan),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        _dlExpiryDate != null
+                                            ? 'DL Expiry: ${_dlExpiryDate!.day}/${_dlExpiryDate!.month}/${_dlExpiryDate!.year}'
+                                            : 'Select DL Expiry Date (Statutory check)',
+                                        style: TextStyle(
+                                          color: _dlExpiryDate != null ? AppColors.textPrimary : AppColors.textMuted,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const Icon(Icons.arrow_drop_down, color: AppColors.textMuted),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          // WhatsApp Opt-in Switch
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            value: _whatsappOptIn,
+                            activeThumbColor: AppColors.primaryCyan,
+                            onChanged: (val) => setState(() => _whatsappOptIn = val),
+                            title: const Text(
+                              'WhatsApp Invoice & Return Reminder',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                            ),
+                            subtitle: const Text(
+                              'Customer agrees to receive rental alerts on WhatsApp',
+                              style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                            ),
+                          ),
+                          const Divider(height: 16),
+                          // DPDP Customer Consent Checkbox
+                          InkWell(
+                            onTap: () => setState(() => _customerConsentGiven = !_customerConsentGiven),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: Checkbox(
+                                      value: _customerConsentGiven,
+                                      activeColor: AppColors.primaryCyan,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                      onChanged: (val) => setState(() => _customerConsentGiven = val ?? false),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Expanded(
+                                    child: Text(
+                                      'Customer has confirmed affirmative consent to verify & store DL/ID for rental verification under DPDP Act 2023 Sec 6.',
+                                      style: TextStyle(
+                                        color: AppColors.textPrimary,
+                                        fontSize: 11,
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),

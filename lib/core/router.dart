@@ -28,6 +28,7 @@ import '../screens/store/product_detail_enquiry_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/settings/users_and_roles_screen.dart';
 import '../screens/settings/whatsapp_templates_wallet_screen.dart';
+import '../screens/settings/privacy_data_screen.dart';
 import '../screens/common/coming_soon_screen.dart';
 import '../widgets/app_bottom_nav.dart';
 import '../core/plan_guard.dart';
@@ -273,6 +274,8 @@ final appRouter = GoRouter(
                     context.push(AppRoutes.invoiceFormat);
                   } else if (route == 'help') {
                     context.push(AppRoutes.helpSupport);
+                  } else if (route == 'privacy_data') {
+                    context.push(AppRoutes.privacyData);
                   } else {
                     context.push(route);
                   }
@@ -557,6 +560,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.helpSupport,
       builder: (context, state) => const ComingSoonScreen(title: 'Help & Support'),
+    ),
+    GoRoute(
+      path: AppRoutes.privacyData,
+      builder: (context, state) => PrivacyDataScreen(
+        onBack: () => context.pop(),
+        onLogout: () => context.go(AppRoutes.login),
+      ),
     ),
   ],
 );

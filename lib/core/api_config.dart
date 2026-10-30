@@ -71,6 +71,18 @@ class ApiConfig {
   static const String whatsappSettings = '/settings/whatsapp';
   static const String businessProfile = '/settings/business';
 
+  // --- DPDP Act 2023 Compliance & Privacy Endpoints ---
+  static const String compliancePolicyLatest = '/compliance/policy/latest';
+  static const String complianceConsent = '/compliance/consent';
+  static const String complianceConsentWithdraw = '/compliance/consent/withdraw';
+  static const String complianceConsents = '/compliance/consents';
+  static const String compliancePolicyAccept = '/compliance/policy/accept';
+  static const String complianceMyDataExport = '/compliance/my-data-export';
+  static const String complianceCorrectionRequest = '/compliance/correction-request';
+  static const String complianceDeleteAccount = '/compliance/delete-account';
+  static const String complianceGrievance = '/compliance/grievance';
+  static String complianceGrievanceStatus(String ticket) => '/compliance/grievance/$ticket';
+
   /// Standard Headers for API requests
   static Map<String, String> headers({String? token}) {
     final headers = {

@@ -333,4 +333,88 @@ class ApiService {
   Future<dynamic> getReportsVehicleWise() async {
     return await _client.get(ApiConfig.reportsVehicleWise);
   }
+
+  // ==================== DPDP ACT 2023 COMPLIANCE & PRIVACY ====================
+  Future<dynamic> getLatestPolicy() async {
+    return await _client.get(ApiConfig.compliancePolicyLatest);
+  }
+
+  Future<dynamic> recordConsent({
+    required String purpose,
+    required String policyVersion,
+    required bool hasConsented,
+    String? entityType,
+    String? customerId,
+  }) async {
+    final body = <String, dynamic>{
+      'purpose': purpose,
+      'policy_version': policyVersion,
+      'has_consented': hasConsented,
+    };
+    if (entityType != null) body['entity_type'] = entityType;
+    if (customerId != null) body['customer_id'] = customerId;
+    return await _client.post(ApiConfig.complianceConsent, body: body);
+  }
+
+  Future<dynamic> withdrawConsent(String purpose) async {
+    return await _client.post(ApiConfig.complianceConsentWithdraw, body: {
+      'purpose': purpose,
+    });
+  }
+
+  Future<dynamic> getConsents() async {
+    return await _client.get(ApiConfig.complianceConsents);
+  }
+
+  Future<dynamic> acceptPolicy(String version) async {
+    return await _client.post(ApiConfig.compliancePolicyAccept, body: {
+      'version': version,
+    });
+  }
+
+  Future<dynamic> exportMyData() async {
+    return await _client.get(ApiConfig.complianceMyDataExport);
+  }
+
+  Future<dynamic> submitCorrectionRequest({
+    required String targetEntity,
+    String? targetId,
+    required Map<String, dynamic> corrections,
+    String? reason,
+  }) async {
+    final body = <String, dynamic>{
+      'target_entity': targetEntity,
+      'corrections': corrections,
+    };
+    if (targetId != null) body['target_id'] = targetId;
+    if (reason != null) body['reason'] = reason;
+    return await _client.post(ApiConfig.complianceCorrectionRequest, body: body);
+  }
+
+  Future<dynamic> deleteAccount(String reason) async {
+    return await _client.post(ApiConfig.complianceDeleteAccount, body: {
+      'reason': reason,
+    });
+  }
+
+  Future<dynamic> submitGrievance({
+    required String name,
+    required String email,
+    String? phone,
+    required String subject,
+    required String description,
+  }) async {
+    return await _client.post(ApiConfig.complianceGrievance, body: {
+      'name': name,
+      'email': email,
+      if (phone != null && phone.isNotEmpty) 'phone': phone,
+      'subject': subject,
+      'description': description,
+    });
+  }
+
+  Future<dynamic> checkGrievanceStatus(String ticketNo) async {
+    return await _client.get(ApiConfig.complianceGrievanceStatus(ticketNo));
+  }
 }
+

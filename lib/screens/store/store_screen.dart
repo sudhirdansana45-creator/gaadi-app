@@ -151,6 +151,18 @@ class _StoreScreenState extends State<StoreScreen> {
                                 fit: StackFit.expand,
                                 children: [
                                   Image.network(p.imageUrl, fit: BoxFit.cover, errorBuilder: (c, e, s) => Container(color: AppColors.surfaceHover, child: const Icon(Icons.shopping_bag_rounded, color: AppColors.textMuted, size: 36))),
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withValues(alpha: 0.7),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: const Text('SPONSORED', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                                    ),
+                                  ),
                                   if (p.isPopular)
                                     Positioned(
                                       top: 8,
@@ -168,6 +180,14 @@ class _StoreScreenState extends State<StoreScreen> {
                           const SizedBox(height: 10),
                           Text(p.title, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
                           Text(p.subtitle, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
+                          const SizedBox(height: 4),
+                          const Row(
+                            children: [
+                              Icon(Icons.verified_outlined, size: 12, color: AppColors.primaryCyan),
+                              SizedBox(width: 4),
+                              Text('Sold by Verified IoT Vendor', style: TextStyle(color: AppColors.textMuted, fontSize: 10)),
+                            ],
+                          ),
                           const SizedBox(height: 8),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -226,6 +226,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildLanguagePicker(),
 
           const SizedBox(height: 16),
+          _sectionTitle('Privacy & Legal Compliance'),
+          _tile(
+            Icons.privacy_tip_rounded,
+            'Privacy & Data Governance',
+            'DPDP rights, consents, grievance officer & data export',
+            () => widget.onNavigate('privacy_data'),
+          ),
+
+          const SizedBox(height: 16),
           _sectionTitle('Account & Session'),
           Container(
             margin: const EdgeInsets.only(bottom: 10),
