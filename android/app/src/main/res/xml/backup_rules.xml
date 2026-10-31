@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Exclude sensitive cached ID/DL proof documents and auth credentials from cloud backup -->
+    <exclude domain="sharedpref" path="auth_token.xml" />
+    <exclude domain="file" path="documents" />
+    <exclude domain="file" path="cache" />
+</full-backup-content>
