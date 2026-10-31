@@ -66,5 +66,42 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+
+	<!-- iOS Permissions (Least Privilege) -->
+	<key>NSCameraUsageDescription</key>
+	<string>Gaadi Manager uses the camera to capture customer ID/driving licence and vehicle photos for your rental records.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Choose photos of documents or vehicles to attach to bookings.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Save vehicle inspection reports and booking receipts to your photos.</string>
+
+	<!-- Deep link & URL schemes query allowlist -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>whatsapp</string>
+		<string>tel</string>
+		<string>sms</string>
+		<string>mailto</string>
+		<string>upi</string>
+		<string>tez</string>
+		<string>phonepe</string>
+		<string>paytmmp</string>
+		<string>gpay</string>
+		<string>bhim</string>
+	</array>
+
+	<!-- Background Modes for Push Notifications -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+
+	<!-- App Transport Security - Enforce HTTPS -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+	</dict>
 </dict>
 </plist>

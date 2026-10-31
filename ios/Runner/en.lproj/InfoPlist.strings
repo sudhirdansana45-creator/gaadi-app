@@ -1,0 +1,3 @@
+"NSCameraUsageDescription" = "Gaadi Manager uses the camera to capture customer ID/driving licence and vehicle photos for your rental records.";
+"NSPhotoLibraryUsageDescription" = "Choose photos of documents or vehicles to attach to bookings.";
+"NSPhotoLibraryAddUsageDescription" = "Save vehicle inspection reports and booking receipts to your photos.";
