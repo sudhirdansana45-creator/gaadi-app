@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/security/screen_security_service.dart';
 import '../theme/app_colors.dart';
 
 class ImageViewerDialog extends StatelessWidget {
@@ -13,7 +14,9 @@ class ImageViewerDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return SecureScreenWrapper(
+      isSecure: true,
+      child: Dialog(
       backgroundColor: AppColors.surfaceCard,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Column(
@@ -55,6 +58,7 @@ class ImageViewerDialog extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }

@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'core/notifications/notification_service.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_controller.dart';
 import 'core/router.dart';
-
 import 'services/api_client.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ApiClient().init();
+  await NotificationService.instance.initialize(
+    onNavigate: (route) {
+      appRouter.go(route);
+    },
+  );
   runApp(const GaadiManagerApp());
 }
 

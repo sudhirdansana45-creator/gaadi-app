@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../core/media/media_picker_service.dart';
+import '../../core/security/screen_security_service.dart';
+import '../../core/utils/external_actions.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/status_chip.dart';
@@ -181,28 +184,42 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
           ListTile(
             leading: const Icon(Icons.camera_alt_rounded, color: AppColors.primaryCyan),
             title: const Text('Take Photo with Camera', style: TextStyle(color: AppColors.textPrimary, fontSize: 14)),
-            onTap: () {
+            onTap: () async {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Camera opened for $docTitle upload preview'),
-                  backgroundColor: AppColors.surfaceCard,
-                ),
+              final file = await MediaPickerService.instance.captureImageWithCamera(
+                context: context,
+                title: 'Capture $docTitle',
+                rationale: 'Camera access is required to capture customer $docTitle for rental KYC records.',
               );
+              if (file != null && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Captured photo for $docTitle (${file.path.split('/').last})'),
+                    backgroundColor: AppColors.surfaceCard,
+                  ),
+                );
+              }
             },
           ),
           const Divider(color: AppColors.borderHairline),
           ListTile(
             leading: const Icon(Icons.photo_library_rounded, color: AppColors.primaryCyan),
             title: const Text('Choose from Gallery', style: TextStyle(color: AppColors.textPrimary, fontSize: 14)),
-            onTap: () {
+            onTap: () async {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Selected new image file for $docTitle'),
-                  backgroundColor: AppColors.surfaceCard,
-                ),
+              final file = await MediaPickerService.instance.pickImageFromGallery(
+                context: context,
+                title: 'Select $docTitle from Photos',
+                rationale: 'Photo library access is needed to select existing $docTitle documents.',
               );
+              if (file != null && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Selected image for $docTitle (${file.path.split('/').last})'),
+                    backgroundColor: AppColors.surfaceCard,
+                  ),
+                );
+              }
             },
           ),
         ],
@@ -305,8 +322,10 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return SecureScreenWrapper(
+      isSecure: true,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Customer Profile'),
         leading: IconButton(
@@ -703,9 +722,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                   text: 'Call Customer',
                   icon: Icons.phone_in_talk_rounded,
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Calling ${currentCustomer.name} (${currentCustomer.phone})...')),
-                    );
+                    ExternalActions.makePhoneCall(currentCustomer.phone);
                   },
                 ),
               ),
@@ -716,8 +733,10 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                   variant: ButtonVariant.secondary,
                   icon: Icons.chat_rounded,
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Opening WhatsApp for ${currentCustomer.phone}...')),
+                    ExternalActions.openWhatsApp(
+                      phone: currentCustomer.phone,
+                      message: 'Hello ${currentCustomer.name}, this is regarding your rental booking with Gaadi Manager.',
+                      context: context,
                     );
                   },
                 ),
@@ -729,6 +748,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
       ),
     ),
   ),
+),
 );
   }
 

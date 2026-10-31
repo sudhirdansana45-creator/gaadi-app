@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/plan_guard.dart';
+import '../../core/utils/external_actions.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
@@ -127,15 +129,24 @@ class _CollectPaymentScreenState extends State<CollectPaymentScreen> {
             // Send on WhatsApp with LockBadge
             InkWell(
               onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (lCtx) => LockedFeatureSheet(
-                    onClose: () => Navigator.pop(lCtx),
-                    onUpgrade: () => Navigator.pop(lCtx),
-                  ),
-                );
+                if (PlanGuard.canUseWhatsApp()) {
+                  final phone = _booking?.customerPhone ?? '9876543210';
+                  ExternalActions.openWhatsApp(
+                    phone: phone,
+                    message: 'Rental Payment Receipt: Booking #${_booking?.id ?? "1001"} payment of ₹${_amountController.text} collected successfully.',
+                    context: context,
+                  );
+                } else {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (lCtx) => LockedFeatureSheet(
+                      onClose: () => Navigator.pop(lCtx),
+                      onUpgrade: () => Navigator.pop(lCtx),
+                    ),
+                  );
+                }
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
