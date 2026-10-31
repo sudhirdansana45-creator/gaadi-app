@@ -6,7 +6,7 @@ import '../../models/mock_models.dart';
 import '../../services/api_service.dart';
 
 class VehiclesListScreen extends StatefulWidget {
-  final Function(String route, {dynamic args}) onNavigate;
+  final Future<void> Function(String route, {dynamic args}) onNavigate;
 
   const VehiclesListScreen({
     super.key,
@@ -44,7 +44,8 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
           });
         }
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('⚠️ _loadVehicles error: $e');
       // Offline fallback: keep cached data
     } finally {
       if (mounted) {
@@ -89,7 +90,10 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
         heroTag: null,
         backgroundColor: AppColors.primaryCyan,
         foregroundColor: AppColors.textDark,
-        onPressed: () => widget.onNavigate('add_vehicle'),
+        onPressed: () async {
+          await widget.onNavigate('add_vehicle');
+          _loadVehicles();
+        },
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Vehicle', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
@@ -141,7 +145,10 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
                   text: '+ Add',
                   width: 90,
                   height: 48,
-                  onPressed: () => widget.onNavigate('add_vehicle'),
+                  onPressed: () async {
+                    await widget.onNavigate('add_vehicle');
+                    _loadVehicles();
+                  },
                 ),
               ],
             ),
@@ -249,7 +256,10 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
                       text: '+ Add Vehicle',
                       width: 160,
                       height: 40,
-                      onPressed: () => widget.onNavigate('add_vehicle'),
+                      onPressed: () async {
+                        await widget.onNavigate('add_vehicle');
+                        _loadVehicles();
+                      },
                     ),
                   ],
                 ),

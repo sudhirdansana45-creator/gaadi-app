@@ -202,18 +202,18 @@ final appRouter = GoRouter(
             GoRoute(
               path: AppRoutes.vehicles,
               builder: (context, state) => VehiclesListScreen(
-                onNavigate: (route, {dynamic args}) {
+                onNavigate: (route, {dynamic args}) async {
                   if (route == 'add_vehicle') {
-                    context.push(AppRoutes.addVehicle);
+                    await context.push(AppRoutes.addVehicle);
                   } else if (route == 'plans') {
-                    context.push(AppRoutes.plans);
+                    await context.push(AppRoutes.plans);
                   } else if (route == 'new_booking') {
-                    context.push(AppRoutes.newBooking, extra: args);
+                    await context.push(AppRoutes.newBooking, extra: args);
                   } else if (route == 'vehicle_wise_report') {
-                    context.push(AppRoutes.vehicleWiseReport);
+                    await context.push(AppRoutes.vehicleWiseReport);
                   } else if (args != null) {
                     final id = args is Vehicle ? args.id : args.toString();
-                    context.push('/vehicles/$id/edit');
+                    await context.push('/vehicles/$id/edit');
                   }
                 },
               ),

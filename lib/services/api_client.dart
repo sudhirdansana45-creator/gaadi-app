@@ -211,9 +211,7 @@ class ApiClient {
     }
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      if (jsonBody is Map<String, dynamic> && jsonBody.containsKey('data')) {
-        return jsonBody['data'];
-      }
+      // Return full response map so callers can access res['data'], res['message'] etc.
       return jsonBody;
     }
 
