@@ -1,6 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../utils/platform_util.dart';
 
 /// ScreenSecurityService manages screenshot and screen recording blocking (FLAG_SECURE)
 /// for sensitive customer driving licence, ID proof, and payment documents.
@@ -9,7 +9,7 @@ class ScreenSecurityService {
 
   /// Enables screenshot & screen recording blocking.
   static Future<void> enableSecure() async {
-    if (!Platform.isAndroid) return;
+    if (!AppPlatform.isAndroid) return;
     try {
       await _channel.invokeMethod('enableSecure');
       debugPrint('[ScreenSecurityService] FLAG_SECURE enabled for sensitive screen.');
@@ -20,7 +20,7 @@ class ScreenSecurityService {
 
   /// Disables screenshot blocking when exiting sensitive screen.
   static Future<void> disableSecure() async {
-    if (!Platform.isAndroid) return;
+    if (!AppPlatform.isAndroid) return;
     try {
       await _channel.invokeMethod('disableSecure');
       debugPrint('[ScreenSecurityService] FLAG_SECURE disabled.');

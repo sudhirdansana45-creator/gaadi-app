@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../permissions/permission_service.dart';
@@ -12,7 +11,7 @@ class MediaPickerService {
   /// Captures an image with the camera after checking/requesting permission.
   /// Automatically downsizes to max 1600x1600 and compresses at 80% quality
   /// to strip large metadata and optimize upload bandwidth.
-  Future<File?> captureImageWithCamera({
+  Future<XFile?> captureImageWithCamera({
     required BuildContext context,
     String? title,
     String? rationale,
@@ -43,8 +42,7 @@ class MediaPickerService {
         imageQuality: 80,
       );
 
-      if (pickedFile == null) return null;
-      return File(pickedFile.path);
+      return pickedFile;
     } catch (e) {
       debugPrint('[MediaPickerService] Error capturing image: $e');
       return null;
@@ -52,7 +50,7 @@ class MediaPickerService {
   }
 
   /// Picks an image from gallery with least-privilege permission checks.
-  Future<File?> pickImageFromGallery({
+  Future<XFile?> pickImageFromGallery({
     required BuildContext context,
     String? title,
     String? rationale,
@@ -74,8 +72,7 @@ class MediaPickerService {
         imageQuality: 80,
       );
 
-      if (pickedFile == null) return null;
-      return File(pickedFile.path);
+      return pickedFile;
     } catch (e) {
       debugPrint('[MediaPickerService] Error picking from gallery: $e');
       return null;

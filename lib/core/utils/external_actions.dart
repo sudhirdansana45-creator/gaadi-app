@@ -1,8 +1,8 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'platform_util.dart';
 
 /// Helper class for launching external apps, UPI payments, WhatsApp,
 /// phone calls, SMS, and sharing/opening PDF reports safely.
@@ -119,14 +119,16 @@ class ExternalActions {
     String? iosAppId,
   }) async {
     final Uri storeUri;
-    if (Platform.isAndroid) {
+    if (AppPlatform.isAndroid) {
       final marketUri = Uri.parse('market://details?id=$androidPackageName');
       if (await canLaunchUrl(marketUri)) {
         return await launchUrl(marketUri, mode: LaunchMode.externalApplication);
       }
       storeUri = Uri.parse('https://play.google.com/store/apps/details?id=$androidPackageName');
-    } else {
+    } else if (AppPlatform.isIOS) {
       storeUri = Uri.parse('https://apps.apple.com/app/id${iosAppId ?? "123456789"}');
+    } else {
+      storeUri = Uri.parse('https://play.google.com/store/apps/details?id=$androidPackageName');
     }
 
     if (await canLaunchUrl(storeUri)) {

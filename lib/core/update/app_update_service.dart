@@ -1,9 +1,9 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../services/api_service.dart';
 import '../../theme/app_colors.dart';
 import '../utils/external_actions.dart';
+import '../utils/platform_util.dart';
 
 class AppUpdateInfo {
   final bool hasUpdate;
@@ -43,7 +43,7 @@ class AppUpdateService {
   Future<AppUpdateInfo?> checkUpdate() async {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
-      final platform = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'web');
+      final platform = AppPlatform.name;
 
       final res = await ApiService().checkAppVersion(
         platform: platform,

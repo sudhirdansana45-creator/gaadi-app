@@ -194,7 +194,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
               if (file != null && mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Captured photo for $docTitle (${file.path.split('/').last})'),
+                    content: Text('Captured photo for $docTitle (${file.name})'),
                     backgroundColor: AppColors.surfaceCard,
                   ),
                 );
@@ -215,7 +215,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
               if (file != null && mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Selected image for $docTitle (${file.path.split('/').last})'),
+                    content: Text('Selected image for $docTitle (${file.name})'),
                     backgroundColor: AppColors.surfaceCard,
                   ),
                 );

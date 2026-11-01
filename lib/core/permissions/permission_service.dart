@@ -1,7 +1,7 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../theme/app_colors.dart';
+import '../utils/platform_util.dart';
 
 /// Event log entry for DPDP / compliance tracking (No PII stored)
 class PermissionAuditLog {
@@ -45,11 +45,13 @@ class PermissionService {
 
   /// Checks the current status of a permission.
   Future<PermissionStatus> checkStatus(Permission permission) async {
+    if (AppPlatform.isWeb) return PermissionStatus.granted;
     return await permission.status;
   }
 
   /// Opens the OS Application Settings screen.
   Future<bool> openSettings() async {
+    if (AppPlatform.isWeb) return true;
     _log('settings', 'opened', 'user_action');
     return await openAppSettings();
   }
@@ -60,6 +62,10 @@ class PermissionService {
     String? title,
     String? message,
   }) async {
+    if (AppPlatform.isWeb) {
+      _log('camera', 'granted', 'web_browser');
+      return true;
+    }
     const perm = Permission.camera;
     final current = await perm.status;
 
@@ -124,8 +130,12 @@ class PermissionService {
     String? title,
     String? message,
   }) async {
+    if (AppPlatform.isWeb) {
+      _log('photos', 'granted', 'web_browser');
+      return true;
+    }
     // Android 13+ (API 33+) uses photos permission; iOS uses photos.
-    final Permission perm = Platform.isIOS ? Permission.photos : Permission.photos;
+    final Permission perm = AppPlatform.isIOS ? Permission.photos : Permission.photos;
     final current = await perm.status;
 
     // Support iOS 14+ limited access and Android 14 partial access
@@ -179,6 +189,10 @@ class PermissionService {
     required BuildContext context,
     bool isPrePrompt = false,
   }) async {
+    if (AppPlatform.isWeb) {
+      _log('notification', 'granted', 'web_browser');
+      return true;
+    }
     const perm = Permission.notification;
     final current = await perm.status;
 

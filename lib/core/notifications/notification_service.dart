@@ -1,9 +1,9 @@
-import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../services/api_service.dart';
+import '../utils/platform_util.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -52,7 +52,7 @@ class NotificationService {
     );
 
     // 2. Create the 3 required Android Notification Channels
-    if (Platform.isAndroid) {
+    if (AppPlatform.isAndroid) {
       final androidImplementation = _localNotifications
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
 
@@ -185,7 +185,7 @@ class NotificationService {
       // ignore: deprecated_member_use
       final token = await FirebaseMessaging.instance.getToken();
       if (token != null && token.isNotEmpty) {
-        final platform = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'web');
+        final platform = AppPlatform.name;
         await ApiService().updateDeviceToken(token, platform);
         debugPrint('[NotificationService] Synced FCM token with backend: ${token.substring(0, 10)}...');
       }
