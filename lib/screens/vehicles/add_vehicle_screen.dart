@@ -1,15 +1,23 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../core/media/media_picker_service.dart';
+import '../../models/mock_models.dart';
 import '../../theme/app_colors.dart';
 import '../../services/api_service.dart';
 
 class AddVehicleScreen extends StatefulWidget {
   final VoidCallback onSaved;
   final VoidCallback onCancel;
+  final Vehicle? vehicleToEdit;
+  final String? vehicleId;
 
   const AddVehicleScreen({
     super.key,
     required this.onSaved,
     required this.onCancel,
+    this.vehicleToEdit,
+    this.vehicleId,
   });
 
   @override
@@ -34,7 +42,171 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   final _partnerNameCtrl = TextEditingController();
   final _expiryDateCtrl = TextEditingController();
 
+  bool _isEditing = false;
   bool _isLoading = false;
+  bool _isFetchingDetails = false;
+
+  // Image states
+  Uint8List? _selectedImageBytes;
+  String? _existingImageUrl;
+  String? _imageBase64;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.vehicleToEdit != null) {
+      _initFromVehicle(widget.vehicleToEdit!);
+    } else if (widget.vehicleId != null && widget.vehicleId!.isNotEmpty) {
+      _fetchVehicleDetail(widget.vehicleId!);
+    }
+  }
+
+  void _initFromVehicle(Vehicle v) {
+    _isEditing = true;
+    _nameController.text = v.name;
+    _regController.text = v.regNumber;
+    _colorController.text = v.color;
+    _selectedCategory = (v.category.toLowerCase().contains('bike') || v.category.toLowerCase().contains('scooter')) ? 'bike' : 'car';
+    _selectedFuel = v.fuelType.isNotEmpty ? v.fuelType : 'Petrol';
+    _dailyRateCtrl.text = v.dailyRate > 0 ? v.dailyRate.toInt().toString() : '';
+    _hourlyRateCtrl.text = v.hourlyRate > 0 ? v.hourlyRate.toInt().toString() : '';
+    _depositCtrl.text = v.securityDeposit > 0 ? v.securityDeposit.toInt().toString() : '';
+    _partnerNameCtrl.text = (v.assignedPartner != 'Direct Fleet' && v.assignedPartner.isNotEmpty) ? v.assignedPartner : '';
+    _existingImageUrl = v.imageUrl;
+  }
+
+  Future<void> _fetchVehicleDetail(String id) async {
+    setState(() => _isFetchingDetails = true);
+    try {
+      final res = await ApiService().getVehicleDetail(id);
+      if (res != null && res['data'] != null && mounted) {
+        final v = Vehicle.fromJson(res['data'] as Map<String, dynamic>);
+        setState(() {
+          _initFromVehicle(v);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading vehicle detail: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isFetchingDetails = false);
+      }
+    }
+  }
+
+  Future<void> _showImagePickerOptions() async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.borderSubtle,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Upload Vehicle Photo',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF06B6D4).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.camera_alt_rounded, color: AppColors.primaryCyan),
+                ),
+                title: const Text('Take Photo with Camera', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final file = await MediaPickerService.instance.captureImageWithCamera(
+                    context: context,
+                    title: 'Vehicle Photo',
+                    rationale: 'Take a clear front or 3/4 angle photo of the vehicle.',
+                  );
+                  if (file != null) {
+                    final bytes = await file.readAsBytes();
+                    if (mounted) {
+                      setState(() {
+                        _selectedImageBytes = bytes;
+                        _imageBase64 = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+                      });
+                    }
+                  }
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4EDEAE).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.photo_library_rounded, color: Color(0xFF4EDEAE)),
+                ),
+                title: const Text('Choose from Gallery', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final file = await MediaPickerService.instance.pickImageFromGallery(
+                    context: context,
+                    title: 'Select Vehicle Photo',
+                    rationale: 'Pick a photo of the vehicle from your gallery.',
+                  );
+                  if (file != null) {
+                    final bytes = await file.readAsBytes();
+                    if (mounted) {
+                      setState(() {
+                        _selectedImageBytes = bytes;
+                        _imageBase64 = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+                      });
+                    }
+                  }
+                },
+              ),
+              if (_selectedImageBytes != null || (_existingImageUrl != null && _existingImageUrl!.isNotEmpty))
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.criticalRed.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.delete_outline_rounded, color: AppColors.criticalRed),
+                  ),
+                  title: const Text('Remove Photo', style: TextStyle(color: AppColors.criticalRed, fontWeight: FontWeight.w600)),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    setState(() {
+                      _selectedImageBytes = null;
+                      _existingImageUrl = null;
+                      _imageBase64 = null;
+                    });
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   Future<void> _handlePublish() async {
     final regNo = _regController.text.trim();
@@ -60,31 +232,65 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       return;
     }
 
+    final dailyRateText = _dailyRateCtrl.text.trim();
+    final dailyRateVal = double.tryParse(dailyRateText);
+    if (dailyRateText.isEmpty || dailyRateVal == null || dailyRateVal <= 0) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('⚠️ Daily rental rate is mandatory (e.g. ₹1500)'),
+          backgroundColor: AppColors.criticalRed,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
-      await ApiService().createVehicle(
-        fields: {
-          'name': name,
-          'number': regNo,
-          'type': _selectedCategory,
-          'fuel_type': _selectedFuel,
-          'daily_rate': _dailyRateCtrl.text.trim(),
-          'hourly_rate': _hourlyRateCtrl.text.trim(),
-          'security_deposit': _depositCtrl.text.trim(),
-          'extra_km_rate': _extraKmCtrl.text.trim(),
-          'color': _colorController.text.trim(),
-          'year': _mfgYearController.text.trim(),
-        },
-      );
-      if (mounted) {
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text('🚀 Vehicle $regNo live on fleet!'),
-            backgroundColor: const Color(0xFF06B6D4),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-        widget.onSaved();
+      final payload = <String, dynamic>{
+        'name': name,
+        'number': regNo,
+        'type': _selectedCategory,
+        'category': _selectedCategory == 'bike' ? 'Bike' : 'Car',
+        'fuel_type': _selectedFuel,
+        'daily_rate': dailyRateVal,
+        'hourly_rate': _hourlyRateCtrl.text.trim().isNotEmpty ? (double.tryParse(_hourlyRateCtrl.text.trim()) ?? 0) : 0,
+        'security_deposit': _depositCtrl.text.trim().isNotEmpty ? (double.tryParse(_depositCtrl.text.trim()) ?? 0) : 0,
+        'extra_km_rate': _extraKmCtrl.text.trim().isNotEmpty ? (double.tryParse(_extraKmCtrl.text.trim()) ?? 0) : 0,
+        'color': _colorController.text.trim().isNotEmpty ? _colorController.text.trim() : 'White',
+        'year': _mfgYearController.text.trim(),
+      };
+      if (_imageBase64 != null) {
+        payload['image_base64'] = _imageBase64;
+      } else if (_existingImageUrl != null && _existingImageUrl!.isNotEmpty) {
+        payload['image_url'] = _existingImageUrl;
+      }
+
+      if (_isEditing) {
+        final targetId = widget.vehicleToEdit?.id ?? widget.vehicleId!;
+        await ApiService().updateVehicle(targetId, payload);
+        if (mounted) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text('✅ Vehicle $regNo updated successfully!'),
+              backgroundColor: const Color(0xFF1BBD85),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          widget.onSaved();
+        }
+      } else {
+        await ApiService().createVehicle(fields: payload);
+        if (mounted) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text('🚀 Vehicle $regNo live on fleet!'),
+              backgroundColor: const Color(0xFF06B6D4),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          widget.onSaved();
+        }
       }
     } catch (e) {
       final msg = e.toString().replaceAll('ApiException: ', '').replaceAll('Exception: ', '');
@@ -106,6 +312,15 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isFetchingDetails) {
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primaryCyan),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -181,9 +396,9 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               ),
             ),
             const SizedBox(width: 10),
-            const Text(
-              'Vehicle Form',
-              style: TextStyle(
+            Text(
+              _isEditing ? 'Edit Vehicle' : 'Vehicle Form',
+              style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
@@ -352,82 +567,215 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   // SHOWCASE BANNER
   // ---------------------------------------------------------------------------
   Widget _buildShowcaseBanner(BuildContext context) {
+    final bool hasMemoryImage = _selectedImageBytes != null;
+    final bool hasExistingImage = _existingImageUrl != null && _existingImageUrl!.isNotEmpty;
+    final bool hasAnyImage = hasMemoryImage || hasExistingImage;
+
     return Container(
-      height: 140,
+      height: 160,
       width: double.infinity,
       decoration: BoxDecoration(
+        color: const Color(0xFF171B27),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: hasAnyImage ? const Color(0xFF2A3854).withValues(alpha: 0.6) : const Color(0xFF06B6D4).withValues(alpha: 0.4),
+          width: 1.5,
+        ),
         boxShadow: const [
           BoxShadow(color: Color(0x66000000), blurRadius: 16, offset: Offset(0, 4)),
         ],
       ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Image.network(
-              'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800',
-              fit: BoxFit.cover,
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: const LinearGradient(
-                colors: [Color(0xF00E131E), Color(0x660E131E), Colors.transparent],
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(15),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (hasMemoryImage)
+              Image.memory(
+                _selectedImageBytes!,
+                fit: BoxFit.cover,
+              )
+            else if (hasExistingImage)
+              Image.network(
+                _existingImageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, err, stack) => _buildImagePlaceholder(),
+              )
+            else
+              _buildImagePlaceholder(),
+
+            // Gradient Overlay for text readability
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xCC0E131E), Color(0x330E131E), Color(0xDD0E131E)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
               ),
             ),
-          ),
-          Positioned(
-            bottom: 12,
-            left: 14,
-            right: 14,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
+
+            // Top Status Badges
+            Positioned(
+              top: 12,
+              left: 14,
+              right: 14,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0E131E).withValues(alpha: 0.8),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFF06B6D4).withValues(alpha: 0.5)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _isEditing ? Icons.edit_note_rounded : Icons.add_photo_alternate_rounded,
+                          color: const Color(0xFF4CD7F6),
+                          size: 14,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          _isEditing ? 'EDITING VEHICLE' : 'VEHICLE PHOTO',
+                          style: const TextStyle(
+                            color: Color(0xFF4CD7F6),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (hasAnyImage)
                     Container(
-                      padding: const EdgeInsets.all(6),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF06B6D4),
-                        borderRadius: BorderRadius.circular(8),
+                        color: const Color(0xFF1BBD85).withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Icon(Icons.verified, color: Color(0xFF003640), size: 16),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Vehicle Profile Setup',
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.check_circle_rounded, color: Colors.white, size: 12),
+                          SizedBox(width: 4),
+                          Text(
+                            'PHOTO ATTACHED',
+                            style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF303541),
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: const Text(
-                    'Step 1 of 4',
-                    style: TextStyle(
-                      color: Color(0xFF4CD7F6),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+
+            // Bottom Actions & Info
+            Positioned(
+              bottom: 12,
+              left: 14,
+              right: 14,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _nameController.text.trim().isNotEmpty
+                              ? _nameController.text.trim()
+                              : (_isEditing ? 'Update Vehicle' : 'Vehicle Profile Setup'),
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          hasAnyImage ? 'Tap button to change photo' : 'Upload front or 3/4 angle photo',
+                          style: const TextStyle(
+                            color: Color(0xFFBCC9CD),
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF06B6D4),
+                      foregroundColor: const Color(0xFF003640),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      elevation: 4,
+                    ),
+                    onPressed: _showImagePickerOptions,
+                    icon: Icon(
+                      hasAnyImage ? Icons.edit_rounded : Icons.camera_alt_rounded,
+                      size: 16,
+                      color: const Color(0xFF003640),
+                    ),
+                    label: Text(
+                      hasAnyImage ? 'Change' : 'Upload',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF003640),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF1E2433), Color(0xFF141824)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFF06B6D4).withValues(alpha: 0.3)),
+              ),
+              child: Icon(
+                _selectedCategory == 'bike' ? Icons.two_wheeler_rounded : Icons.directions_car_rounded,
+                color: const Color(0xFF4CD7F6),
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'No Vehicle Photo Added',
+              style: TextStyle(color: Color(0xFF869397), fontSize: 12, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -765,13 +1113,13 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: _bentoTile(
-                  title: 'Daily Tariff',
-                  rightBadge: 'POPULAR',
+                  title: 'Daily Tariff *',
+                  rightBadge: 'MANDATORY',
                   rightIcon: null,
                   ctrl: _dailyRateCtrl,
                   currencyColor: const Color(0xFF4CD7F6),
-                  footerText: 'FULL 24 HRS CYCLE',
-                  footerColor: const Color(0xFF869397),
+                  footerText: 'REQUIRED (PER 24H)',
+                  footerColor: const Color(0xFFF87171),
                 ),
               ),
             ],
@@ -818,11 +1166,13 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     required String footerText,
     required Color footerColor,
   }) {
+    final bool isMandatory = rightBadge == 'MANDATORY';
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: const Color(0xFF171B27),
         borderRadius: BorderRadius.circular(12),
+        border: isMandatory ? Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3), width: 1) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -835,12 +1185,16 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1BBD85).withValues(alpha: 0.2),
+                    color: isMandatory ? const Color(0xFFEF4444).withValues(alpha: 0.2) : const Color(0xFF1BBD85).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     rightBadge,
-                    style: const TextStyle(color: Color(0xFF4EDEAE), fontSize: 9, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: isMandatory ? const Color(0xFFF87171) : const Color(0xFF4EDEAE),
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 )
               else if (rightIcon != null)
@@ -1320,14 +1674,18 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF003640)),
                         )
-                      : const Row(
+                      : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.add_circle_rounded, color: Color(0xFF003640), size: 20),
-                            SizedBox(width: 6),
+                            Icon(
+                              _isEditing ? Icons.check_circle_rounded : Icons.add_circle_rounded,
+                              color: const Color(0xFF003640),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 6),
                             Text(
-                              'Publish to Fleet',
-                              style: TextStyle(
+                              _isEditing ? 'Update Vehicle' : 'Publish to Fleet',
+                              style: const TextStyle(
                                 color: Color(0xFF003640),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w800,

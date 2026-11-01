@@ -94,10 +94,14 @@ class ApiService {
   }
 
   Future<dynamic> createVehicle({
-    required Map<String, String> fields,
+    required Map<String, dynamic> fields,
     Map<String, File>? images,
   }) async {
-    return await _client.postMultipart(ApiConfig.vehicles, fields: fields, files: images);
+    if (images != null && images.isNotEmpty) {
+      final stringFields = fields.map((k, v) => MapEntry(k, v.toString()));
+      return await _client.postMultipart(ApiConfig.vehicles, fields: stringFields, files: images);
+    }
+    return await _client.post(ApiConfig.vehicles, body: fields);
   }
 
   Future<dynamic> updateVehicle(String id, Map<String, dynamic> data) async {

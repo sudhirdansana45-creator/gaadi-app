@@ -205,6 +205,10 @@ final appRouter = GoRouter(
                 onNavigate: (route, {dynamic args}) async {
                   if (route == 'add_vehicle') {
                     await context.push(AppRoutes.addVehicle);
+                  } else if (route == 'edit_vehicle') {
+                    final vehicle = args is Vehicle ? args : null;
+                    final id = vehicle?.id ?? args.toString();
+                    await context.push('/vehicles/$id/edit', extra: vehicle);
                   } else if (route == 'plans') {
                     await context.push(AppRoutes.plans);
                   } else if (route == 'new_booking') {
@@ -212,8 +216,9 @@ final appRouter = GoRouter(
                   } else if (route == 'vehicle_wise_report') {
                     await context.push(AppRoutes.vehicleWiseReport);
                   } else if (args != null) {
-                    final id = args is Vehicle ? args.id : args.toString();
-                    await context.push('/vehicles/$id/edit');
+                    final vehicle = args is Vehicle ? args : null;
+                    final id = vehicle?.id ?? args.toString();
+                    await context.push('/vehicles/$id/edit', extra: vehicle);
                   }
                 },
               ),
@@ -376,7 +381,11 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/vehicles/:id/edit',
       builder: (context, state) {
+        final id = state.pathParameters['id'] ?? '';
+        final extraVehicle = state.extra is Vehicle ? state.extra as Vehicle : null;
         return AddVehicleScreen(
+          vehicleId: id,
+          vehicleToEdit: extraVehicle,
           onSaved: () => context.pop(),
           onCancel: () => context.pop(),
         );

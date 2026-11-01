@@ -362,7 +362,29 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
                     ),
                   ),
                 ),
-                StatusChip.fromVehicleStatus(vehicle.status),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    StatusChip.fromVehicleStatus(vehicle.status),
+                    const SizedBox(width: 6),
+                    InkWell(
+                      onTap: () async {
+                        await widget.onNavigate('edit_vehicle', args: vehicle);
+                        _loadVehicles();
+                      },
+                      borderRadius: BorderRadius.circular(6),
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceHover,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.borderSubtle),
+                        ),
+                        child: const Icon(Icons.edit_outlined, size: 14, color: AppColors.primaryCyan),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 10),
@@ -459,11 +481,22 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
                     onPressed: isDisabled ? () {} : () => widget.onNavigate('new_booking', args: vehicle),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
+                CustomButton(
+                  text: 'Edit',
+                  variant: ButtonVariant.secondary,
+                  width: 58,
+                  height: 36,
+                  onPressed: () async {
+                    await widget.onNavigate('edit_vehicle', args: vehicle);
+                    _loadVehicles();
+                  },
+                ),
+                const SizedBox(width: 6),
                 CustomButton(
                   text: 'Report',
                   variant: ButtonVariant.secondary,
-                  width: 70,
+                  width: 68,
                   height: 36,
                   onPressed: () => widget.onNavigate('vehicle_wise_report', args: vehicle),
                 ),
