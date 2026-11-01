@@ -14,3 +14,7 @@
 
 # FileProvider & AndroidX Core
 -keep public class androidx.core.content.FileProvider
+
+# Flutter Deferred Components & Google Play Core
+-dontwarn com.google.android.play.core.**
+-dontwarn io.flutter.embedding.engine.deferredcomponents.**
