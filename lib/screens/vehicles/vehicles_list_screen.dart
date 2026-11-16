@@ -18,7 +18,7 @@ class VehiclesListScreen extends StatefulWidget {
 }
 
 class _VehiclesListScreenState extends State<VehiclesListScreen> {
-  String _selectedCategory = 'All'; // 'All', 'Cars', 'Bikes'
+  String _selectedCategory = 'Cars'; // 'Cars', 'Bikes'
   String _selectedFilter = 'All Status';
   String _searchQuery = '';
   bool _isLoading = false;
@@ -164,7 +164,6 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
               ),
               child: Row(
                 children: [
-                  _categoryTab('All', 'All Vehicles', Icons.directions_car_filled_rounded),
                   _categoryTab('Cars', 'Cars & SUVs', Icons.time_to_leave_rounded),
                   _categoryTab('Bikes', 'Bikes & Scooters', Icons.two_wheeler_rounded),
                 ],

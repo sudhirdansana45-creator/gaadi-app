@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../core/media/media_picker_service.dart';
+import '../../core/services/vehicle_draft_service.dart';
 import '../../models/mock_models.dart';
 import '../../theme/app_colors.dart';
 import '../../services/api_service.dart';
+import 'widgets/vehicle_image_cropper_dialog.dart';
 
 class AddVehicleScreen extends StatefulWidget {
   final VoidCallback onSaved;
@@ -42,9 +44,16 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   final _partnerNameCtrl = TextEditingController();
   final _expiryDateCtrl = TextEditingController();
 
+  final _scrollController = ScrollController();
+
   bool _isEditing = false;
   bool _isLoading = false;
   bool _isFetchingDetails = false;
+  bool _dailyRateHasError = false;
+
+  // Dynamic drafts
+  int _draftsCount = 0;
+  String? _currentDraftId;
 
   // Image states
   Uint8List? _selectedImageBytes;
@@ -54,11 +63,300 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   @override
   void initState() {
     super.initState();
+    _loadDraftsCount();
+
+    _dailyRateCtrl.addListener(() {
+      if (_dailyRateHasError && _dailyRateCtrl.text.trim().isNotEmpty) {
+        setState(() => _dailyRateHasError = false);
+      }
+    });
+
     if (widget.vehicleToEdit != null) {
       _initFromVehicle(widget.vehicleToEdit!);
     } else if (widget.vehicleId != null && widget.vehicleId!.isNotEmpty) {
       _fetchVehicleDetail(widget.vehicleId!);
     }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _nameController.dispose();
+    _regController.dispose();
+    _mfgYearController.dispose();
+    _colorController.dispose();
+    _hourlyRateCtrl.dispose();
+    _dailyRateCtrl.dispose();
+    _depositCtrl.dispose();
+    _extraKmCtrl.dispose();
+    _partnerNameCtrl.dispose();
+    _expiryDateCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadDraftsCount() async {
+    final count = await VehicleDraftService.instance.getDraftsCount();
+    if (mounted) {
+      setState(() => _draftsCount = count);
+    }
+  }
+
+  Future<void> _handleSaveDraft() async {
+    final name = _nameController.text.trim();
+    final regNo = _regController.text.trim();
+    final draftTitle = name.isNotEmpty ? name : (regNo.isNotEmpty ? regNo : 'Draft Vehicle');
+
+    final draft = {
+      'id': _currentDraftId ?? 'draft_${DateTime.now().millisecondsSinceEpoch}',
+      'name': name,
+      'number': regNo,
+      'category': _selectedCategory,
+      'fuel_type': _selectedFuel,
+      'ownership': _ownershipMode,
+      'daily_rate': _dailyRateCtrl.text.trim(),
+      'hourly_rate': _hourlyRateCtrl.text.trim(),
+      'deposit': _depositCtrl.text.trim(),
+      'extra_km': _extraKmCtrl.text.trim(),
+      'color': _colorController.text.trim(),
+      'year': _mfgYearController.text.trim(),
+      'partner_name': _partnerNameCtrl.text.trim(),
+      'image_base64': _imageBase64,
+    };
+
+    await VehicleDraftService.instance.saveDraft(draft);
+    _currentDraftId = draft['id'];
+    await _loadDraftsCount();
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_rounded, color: Color(0xFF1BBD85)),
+              const SizedBox(width: 8),
+              Expanded(child: Text('Draft saved: $draftTitle')),
+            ],
+          ),
+          backgroundColor: const Color(0xFF252A36),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _showDraftsModal(BuildContext context) async {
+    final drafts = await VehicleDraftService.instance.getDrafts();
+    if (!context.mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceCard,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (modalCtx, setModalState) {
+          return SafeArea(
+            child: Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.7,
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.borderSubtle,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.folder_open_rounded, color: AppColors.primaryCyan, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Saved Drafts (${drafts.length})',
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (drafts.isNotEmpty)
+                        TextButton.icon(
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.criticalRed,
+                          ),
+                          onPressed: () async {
+                            await VehicleDraftService.instance.clearAllDrafts();
+                            await _loadDraftsCount();
+                            setModalState(() => drafts.clear());
+                            if (ctx.mounted) Navigator.pop(ctx);
+                          },
+                          icon: const Icon(Icons.delete_sweep_rounded, size: 16),
+                          label: const Text('Clear All', style: TextStyle(fontSize: 12)),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (drafts.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 36),
+                      child: Column(
+                        children: [
+                          Icon(Icons.drafts_outlined, size: 48, color: AppColors.textSecondary.withValues(alpha: 0.4)),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'No saved drafts yet',
+                            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Use "Save Draft" at bottom to save in-progress entries.',
+                            style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Flexible(
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: drafts.length,
+                        separatorBuilder: (ctx, idx) => const SizedBox(height: 10),
+                        itemBuilder: (context, index) {
+                          final d = drafts[index];
+                          final title = (d['name'] != null && (d['name'] as String).isNotEmpty)
+                              ? d['name']
+                              : (d['number'] != null && (d['number'] as String).isNotEmpty ? d['number'] : 'Untitled Draft');
+                          final category = d['category'] ?? 'car';
+                          final rate = d['daily_rate'] ?? '';
+                          final date = d['updated_at'] != null ? DateTime.tryParse(d['updated_at']) : null;
+                          final dateStr = date != null ? '${date.day}/${date.month}/${date.year}' : '';
+
+                          return Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF171B27),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0x1AFFFFFF)),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF06B6D4).withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    category == 'bike' ? Icons.two_wheeler_rounded : Icons.directions_car_rounded,
+                                    color: AppColors.primaryCyan,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        title,
+                                        style: const TextStyle(
+                                          color: AppColors.textPrimary,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '${d['number'] ?? ''} ${rate.toString().isNotEmpty ? '• ₹$rate/day' : ''} ${dateStr.isNotEmpty ? '• $dateStr' : ''}',
+                                        style: const TextStyle(color: Color(0xFF869397), fontSize: 11),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.file_download_outlined, color: AppColors.primaryCyan),
+                                  tooltip: 'Load Draft',
+                                  onPressed: () {
+                                    _loadFromDraft(d);
+                                    Navigator.pop(ctx);
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline_rounded, color: AppColors.criticalRed, size: 20),
+                                  tooltip: 'Delete',
+                                  onPressed: () async {
+                                    await VehicleDraftService.instance.deleteDraft(d['id']);
+                                    await _loadDraftsCount();
+                                    setModalState(() {
+                                      drafts.removeAt(index);
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _loadFromDraft(Map<String, dynamic> d) {
+    setState(() {
+      _currentDraftId = d['id'];
+      _nameController.text = d['name'] ?? '';
+      _regController.text = d['number'] ?? '';
+      _selectedCategory = d['category'] ?? 'car';
+      _selectedFuel = d['fuel_type'] ?? 'Petrol';
+      _ownershipMode = d['ownership'] ?? 'own';
+      _dailyRateCtrl.text = d['daily_rate'] ?? '';
+      _hourlyRateCtrl.text = d['hourly_rate'] ?? '';
+      _depositCtrl.text = d['deposit'] ?? '';
+      _extraKmCtrl.text = d['extra_km'] ?? '';
+      _colorController.text = d['color'] ?? '';
+      _mfgYearController.text = d['year'] ?? '';
+      _partnerNameCtrl.text = d['partner_name'] ?? '';
+      if (d['image_base64'] != null) {
+        _imageBase64 = d['image_base64'];
+        try {
+          final commaIdx = _imageBase64!.indexOf(',');
+          final b64Str = commaIdx >= 0 ? _imageBase64!.substring(commaIdx + 1) : _imageBase64!;
+          _selectedImageBytes = base64Decode(b64Str);
+        } catch (_) {}
+      }
+      _dailyRateHasError = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Draft "${_nameController.text.isNotEmpty ? _nameController.text : "Vehicle"}" loaded!'),
+        backgroundColor: const Color(0xFF252A36),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   void _initFromVehicle(Vehicle v) {
@@ -124,6 +422,11 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              const SizedBox(height: 6),
+              const Text(
+                'Select camera or gallery to add vehicle photo',
+                style: TextStyle(color: Color(0xFF869397), fontSize: 12),
+              ),
               const SizedBox(height: 16),
               ListTile(
                 leading: Container(
@@ -135,20 +438,24 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                   child: const Icon(Icons.camera_alt_rounded, color: AppColors.primaryCyan),
                 ),
                 title: const Text('Take Photo with Camera', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+                subtitle: const Text('Capture photo and adjust crop frame', style: TextStyle(color: Color(0xFF869397), fontSize: 11)),
                 onTap: () async {
                   Navigator.pop(ctx);
                   final file = await MediaPickerService.instance.captureImageWithCamera(
                     context: context,
-                    title: 'Vehicle Photo',
-                    rationale: 'Take a clear front or 3/4 angle photo of the vehicle.',
+                    title: 'Vehicle Camera Photo',
+                    rationale: 'Camera access is required to take photos of your fleet vehicles.',
                   );
-                  if (file != null) {
-                    final bytes = await file.readAsBytes();
+                  if (file != null && mounted) {
+                    final rawBytes = await file.readAsBytes();
                     if (mounted) {
-                      setState(() {
-                        _selectedImageBytes = bytes;
-                        _imageBase64 = 'data:image/jpeg;base64,${base64Encode(bytes)}';
-                      });
+                      final croppedBytes = await VehicleImageCropperDialog.show(context, rawBytes);
+                      if (croppedBytes != null && mounted) {
+                        setState(() {
+                          _selectedImageBytes = croppedBytes;
+                          _imageBase64 = 'data:image/jpeg;base64,${base64Encode(croppedBytes)}';
+                        });
+                      }
                     }
                   }
                 },
@@ -163,24 +470,51 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                   child: const Icon(Icons.photo_library_rounded, color: Color(0xFF4EDEAE)),
                 ),
                 title: const Text('Choose from Gallery', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+                subtitle: const Text('Select existing photo and adjust crop frame', style: TextStyle(color: Color(0xFF869397), fontSize: 11)),
                 onTap: () async {
                   Navigator.pop(ctx);
                   final file = await MediaPickerService.instance.pickImageFromGallery(
                     context: context,
                     title: 'Select Vehicle Photo',
-                    rationale: 'Pick a photo of the vehicle from your gallery.',
+                    rationale: 'Photo library access is needed to select vehicle images.',
                   );
-                  if (file != null) {
-                    final bytes = await file.readAsBytes();
+                  if (file != null && mounted) {
+                    final rawBytes = await file.readAsBytes();
                     if (mounted) {
-                      setState(() {
-                        _selectedImageBytes = bytes;
-                        _imageBase64 = 'data:image/jpeg;base64,${base64Encode(bytes)}';
-                      });
+                      final croppedBytes = await VehicleImageCropperDialog.show(context, rawBytes);
+                      if (croppedBytes != null && mounted) {
+                        setState(() {
+                          _selectedImageBytes = croppedBytes;
+                          _imageBase64 = 'data:image/jpeg;base64,${base64Encode(croppedBytes)}';
+                        });
+                      }
                     }
                   }
                 },
               ),
+              if (_selectedImageBytes != null)
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.crop_rotate_rounded, color: Color(0xFFF59E0B)),
+                  ),
+                  title: const Text('Re-crop / Adjust Current Photo', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+                  subtitle: const Text('Adjust frame ratio or zoom for this vehicle', style: TextStyle(color: Color(0xFF869397), fontSize: 11)),
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    final croppedBytes = await VehicleImageCropperDialog.show(context, _selectedImageBytes!);
+                    if (croppedBytes != null && mounted) {
+                      setState(() {
+                        _selectedImageBytes = croppedBytes;
+                        _imageBase64 = 'data:image/jpeg;base64,${base64Encode(croppedBytes)}';
+                      });
+                    }
+                  },
+                ),
               if (_selectedImageBytes != null || (_existingImageUrl != null && _existingImageUrl!.isNotEmpty))
                 ListTile(
                   leading: Container(
@@ -218,6 +552,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         const SnackBar(
           content: Text('Please enter vehicle brand & model'),
           backgroundColor: AppColors.criticalRed,
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
@@ -227,6 +562,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         const SnackBar(
           content: Text('Please enter registration plate number'),
           backgroundColor: AppColors.criticalRed,
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
@@ -235,12 +571,30 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     final dailyRateText = _dailyRateCtrl.text.trim();
     final dailyRateVal = double.tryParse(dailyRateText);
     if (dailyRateText.isEmpty || dailyRateVal == null || dailyRateVal <= 0) {
+      setState(() => _dailyRateHasError = true);
       messenger.showSnackBar(
         const SnackBar(
-          content: Text('⚠️ Daily rental rate is mandatory (e.g. ₹1500)'),
+          content: Row(
+            children: [
+              Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Daily rental rate is mandatory! Please enter amount (e.g. ₹1500)',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
           backgroundColor: AppColors.criticalRed,
-          duration: Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 4),
         ),
+      );
+      _scrollController.animateTo(
+        260,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
       );
       return;
     }
@@ -269,6 +623,10 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       if (_isEditing) {
         final targetId = widget.vehicleToEdit?.id ?? widget.vehicleId!;
         await ApiService().updateVehicle(targetId, payload);
+        if (_currentDraftId != null) {
+          await VehicleDraftService.instance.deleteDraft(_currentDraftId!);
+          await _loadDraftsCount();
+        }
         if (mounted) {
           messenger.showSnackBar(
             SnackBar(
@@ -281,6 +639,10 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         }
       } else {
         await ApiService().createVehicle(fields: payload);
+        if (_currentDraftId != null) {
+          await VehicleDraftService.instance.deleteDraft(_currentDraftId!);
+          await _loadDraftsCount();
+        }
         if (mounted) {
           messenger.showSnackBar(
             SnackBar(
@@ -328,6 +690,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
           children: [
             Expanded(
               child: SingleChildScrollView(
+                controller: _scrollController,
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Column(
@@ -359,7 +722,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 
                     // Section 5: Vehicle Documents
                     _buildDocumentsCard(context),
-                    const SizedBox(height: 160), // Gap to prevent overlap with bottom tab menu
+                    const SizedBox(height: 32),
                   ],
                 ),
               ),
@@ -430,25 +793,31 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF252A36),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.folder_open_rounded, color: Color(0xFF4CD7F6), size: 15),
-                  SizedBox(width: 4),
-                  Text(
-                    'Drafts (2)',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
+            GestureDetector(
+              onTap: () => _showDraftsModal(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF252A36),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: _draftsCount > 0 ? const Color(0xFF4CD7F6).withValues(alpha: 0.5) : const Color(0x1AFFFFFF),
                   ),
-                ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.folder_open_rounded, color: Color(0xFF4CD7F6), size: 15),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Drafts ($_draftsCount)',
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -571,9 +940,11 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     final bool hasExistingImage = _existingImageUrl != null && _existingImageUrl!.isNotEmpty;
     final bool hasAnyImage = hasMemoryImage || hasExistingImage;
 
-    return Container(
-      height: 160,
-      width: double.infinity,
+    return GestureDetector(
+      onTap: _showImagePickerOptions,
+      child: Container(
+        height: 160,
+        width: double.infinity,
       decoration: BoxDecoration(
         color: const Color(0xFF171B27),
         borderRadius: BorderRadius.circular(16),
@@ -740,8 +1111,9 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildImagePlaceholder() {
     return Container(
@@ -1114,12 +1486,13 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               Expanded(
                 child: _bentoTile(
                   title: 'Daily Tariff *',
-                  rightBadge: 'MANDATORY',
+                  rightBadge: _dailyRateHasError ? 'REQUIRED' : 'MANDATORY',
                   rightIcon: null,
                   ctrl: _dailyRateCtrl,
                   currencyColor: const Color(0xFF4CD7F6),
-                  footerText: 'REQUIRED (PER 24H)',
+                  footerText: _dailyRateHasError ? '* ENTER AMOUNT' : 'REQUIRED (PER 24H)',
                   footerColor: const Color(0xFFF87171),
+                  hasError: _dailyRateHasError,
                 ),
               ),
             ],
@@ -1165,14 +1538,17 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     required Color currencyColor,
     required String footerText,
     required Color footerColor,
+    bool hasError = false,
   }) {
-    final bool isMandatory = rightBadge == 'MANDATORY';
+    final bool isMandatory = rightBadge == 'MANDATORY' || hasError;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: const Color(0xFF171B27),
         borderRadius: BorderRadius.circular(12),
-        border: isMandatory ? Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3), width: 1) : null,
+        border: hasError
+            ? Border.all(color: const Color(0xFFEF4444), width: 1.8)
+            : (isMandatory ? Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3), width: 1) : null),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1609,48 +1985,43 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   // FLOATING STICKY ACTION DECK
   // ---------------------------------------------------------------------------
   Widget _buildStickyActionDeck(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.width >= 1100 ? 0 : 84),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0E131E).withValues(alpha: 0.95),
-        border: const Border(top: BorderSide(color: Color(0x1AFFFFFF), width: 1)),
-        boxShadow: const [
-          BoxShadow(color: Color(0x99000000), blurRadius: 24, offset: Offset(0, -4)),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Save Draft Button
-          GestureDetector(
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Draft successfully updated!'),
-                  backgroundColor: Color(0xFF252A36),
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0E131E).withValues(alpha: 0.98),
+          border: const Border(top: BorderSide(color: Color(0x1AFFFFFF), width: 1)),
+          boxShadow: const [
+            BoxShadow(color: Color(0x99000000), blurRadius: 20, offset: Offset(0, -4)),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Save Draft Button
+            GestureDetector(
+              onTap: _handleSaveDraft,
+              child: Container(
+                height: 48,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF252A36),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0x334CD7F6)),
                 ),
-              );
-            },
-            child: Container(
-              height: 48,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF252A36),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.save_rounded, color: Color(0xFFADC6FF), size: 20),
-                  SizedBox(width: 6),
-                  Text(
-                    'Save Draft',
-                    style: TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w600),
-                  ),
-                ],
+                child: const Row(
+                  children: [
+                    Icon(Icons.save_rounded, color: Color(0xFFADC6FF), size: 20),
+                    SizedBox(width: 6),
+                    Text(
+                      'Save Draft',
+                      style: TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
+            const SizedBox(width: 12),
 
           // Publish to Fleet Button
           Expanded(
@@ -1699,6 +2070,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
