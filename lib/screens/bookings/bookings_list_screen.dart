@@ -119,27 +119,17 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
                       minHeight: 2,
                     ),
                   ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Bookings Ledger',
-                        style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        'Active rentals, returns & payment settlements',
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                      ),
-                    ],
+                  Text(
+                    'Bookings Ledger',
+                    style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  CustomButton(
-                    text: '+ New Booking',
-                    width: 120,
-                    height: 38,
-                    onPressed: _onNewBookingTap,
+                  SizedBox(height: 2),
+                  Text(
+                    'Active rentals, returns & payment settlements',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                   ),
                 ],
               ),
@@ -333,13 +323,6 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
           ),
         ),
       ),
-    ),
-    floatingActionButton: FloatingActionButton.extended(
-      heroTag: null,
-      backgroundColor: AppColors.primaryCyan,
-      onPressed: _onNewBookingTap,
-      icon: const Icon(Icons.add_rounded, color: AppColors.textDark),
-      label: const Text('New Booking', style: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.bold)),
     ),
   );
 }

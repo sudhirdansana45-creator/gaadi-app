@@ -302,45 +302,6 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             ],
           ),
         ),
-        const SizedBox(width: 12),
-        // Gradient Button: + New Booking
-        GestureDetector(
-          onTap: () => _handleNewBookingTap(context),
-          child: Container(
-            height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF06B6D4), Color(0xFF0566D9)],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              ),
-              borderRadius: BorderRadius.circular(100),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x5906B6D4),
-                  blurRadius: 16,
-                  offset: Offset(0, 4),
-                )
-              ],
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.add, color: Color(0xFF090E19), size: 20),
-                SizedBox(width: 4),
-                Text(
-                  'New Booking',
-                  style: TextStyle(
-                    color: Color(0xFF090E19),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ],
     );
   }
