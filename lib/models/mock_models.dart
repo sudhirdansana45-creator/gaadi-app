@@ -1,3 +1,5 @@
+import '../core/api_config.dart';
+
 enum VehicleStatus { available, booked, inService, reserved, disabled }
 enum BookingStatus { active, pending, completed, overdue, cancelled }
 enum PartnerStatus { active, inactive, viewOnly }
@@ -19,6 +21,13 @@ class Vehicle {
   final String imageUrl;
   final String assignedPartner;
   final String color;
+  final String year;
+  final String? rcNumber;
+  final String? rcExpiryDate;
+  final String? rcImageUrl;
+  final String? insuranceExpiryDate;
+  final String? insurancePolicyNo;
+  final String? insuranceImageUrl;
   final int totalBookings;
 
   Vehicle({
@@ -37,6 +46,13 @@ class Vehicle {
     required this.imageUrl,
     this.assignedPartner = 'Direct Fleet',
     this.color = 'White',
+    this.year = '',
+    this.rcNumber,
+    this.rcExpiryDate,
+    this.rcImageUrl,
+    this.insuranceExpiryDate,
+    this.insurancePolicyNo,
+    this.insuranceImageUrl,
     this.totalBookings = 24,
   });
 
@@ -64,6 +80,15 @@ class Vehicle {
     }
 
     final daily = (json['daily_rate'] as num?)?.toDouble() ?? 2000.0;
+    final rawImg = json['image_url']?.toString();
+    final resolvedImg = ApiConfig.resolveImageUrl(rawImg);
+    final fallbackImg = resolvedImg.isNotEmpty
+        ? resolvedImg
+        : 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800';
+
+    final rawRcImg = json['rc_image_url']?.toString();
+    final rawInsImg = json['insurance_image_url']?.toString();
+
     return Vehicle(
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? 'Vehicle',
@@ -77,10 +102,16 @@ class Vehicle {
       odometerKm: (json['odometer'] as num?)?.toInt() ?? 0,
       fuelLevelPercent: (json['fuel_level_percent'] as num?)?.toDouble() ?? 100.0,
       status: mappedStatus,
-      imageUrl: json['image_url']?.toString() ??
-          'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800',
+      imageUrl: fallbackImg,
       assignedPartner: json['partner'] is Map ? (json['partner']['name']?.toString() ?? 'Direct Fleet') : 'Direct Fleet',
       color: json['color']?.toString() ?? 'White',
+      year: json['year']?.toString() ?? '',
+      rcNumber: json['rc_number']?.toString(),
+      rcExpiryDate: json['rc_expiry_date']?.toString(),
+      rcImageUrl: rawRcImg != null && rawRcImg.isNotEmpty ? ApiConfig.resolveImageUrl(rawRcImg) : null,
+      insuranceExpiryDate: json['insurance_expiry_date']?.toString(),
+      insurancePolicyNo: json['insurance_policy_no']?.toString(),
+      insuranceImageUrl: rawInsImg != null && rawInsImg.isNotEmpty ? ApiConfig.resolveImageUrl(rawInsImg) : null,
       totalBookings: (json['total_bookings'] as num?)?.toInt() ?? 0,
     );
   }

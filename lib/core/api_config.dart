@@ -94,4 +94,15 @@ class ApiConfig {
     }
     return headers;
   }
+
+  /// Resolves relative URLs (e.g. /storage/vehicles/...) to full absolute URLs
+  static String resolveImageUrl(String? url) {
+    if (url == null || url.trim().isEmpty) return '';
+    final trimmed = url.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    final clean = trimmed.startsWith('/') ? trimmed : '/$trimmed';
+    return 'https://$baseDomain$clean';
+  }
 }

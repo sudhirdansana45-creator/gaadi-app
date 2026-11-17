@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../core/api_config.dart';
 import '../../core/media/media_picker_service.dart';
 import '../../core/services/vehicle_draft_service.dart';
 import '../../models/mock_models.dart';
@@ -59,6 +60,12 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   Uint8List? _selectedImageBytes;
   String? _existingImageUrl;
   String? _imageBase64;
+
+  // RC Document states
+  Uint8List? _rcImageBytes;
+  String? _rcExistingUrl;
+  String? _rcImageBase64;
+  String? _rcFileName;
 
   @override
   void initState() {
@@ -121,6 +128,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       'year': _mfgYearController.text.trim(),
       'partner_name': _partnerNameCtrl.text.trim(),
       'image_base64': _imageBase64,
+      'rc_image_base64': _rcImageBase64,
+      'insurance_expiry_date': _expiryDateCtrl.text.trim(),
     };
 
     await VehicleDraftService.instance.saveDraft(draft);
@@ -347,6 +356,18 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
           _selectedImageBytes = base64Decode(b64Str);
         } catch (_) {}
       }
+      if (d['rc_image_base64'] != null) {
+        _rcImageBase64 = d['rc_image_base64'];
+        _rcFileName = 'RC_Draft_Document.jpg';
+        try {
+          final commaIdx = _rcImageBase64!.indexOf(',');
+          final b64Str = commaIdx >= 0 ? _rcImageBase64!.substring(commaIdx + 1) : _rcImageBase64!;
+          _rcImageBytes = base64Decode(b64Str);
+        } catch (_) {}
+      }
+      if (d['insurance_expiry_date'] != null) {
+        _expiryDateCtrl.text = d['insurance_expiry_date'];
+      }
       _dailyRateHasError = false;
     });
 
@@ -364,13 +385,23 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     _nameController.text = v.name;
     _regController.text = v.regNumber;
     _colorController.text = v.color;
+    if (v.year.isNotEmpty) {
+      _mfgYearController.text = v.year;
+    }
     _selectedCategory = (v.category.toLowerCase().contains('bike') || v.category.toLowerCase().contains('scooter')) ? 'bike' : 'car';
     _selectedFuel = v.fuelType.isNotEmpty ? v.fuelType : 'Petrol';
     _dailyRateCtrl.text = v.dailyRate > 0 ? v.dailyRate.toInt().toString() : '';
     _hourlyRateCtrl.text = v.hourlyRate > 0 ? v.hourlyRate.toInt().toString() : '';
     _depositCtrl.text = v.securityDeposit > 0 ? v.securityDeposit.toInt().toString() : '';
     _partnerNameCtrl.text = (v.assignedPartner != 'Direct Fleet' && v.assignedPartner.isNotEmpty) ? v.assignedPartner : '';
-    _existingImageUrl = v.imageUrl;
+    _existingImageUrl = v.imageUrl.isNotEmpty ? ApiConfig.resolveImageUrl(v.imageUrl) : null;
+    if (v.insuranceExpiryDate != null && v.insuranceExpiryDate!.isNotEmpty) {
+      _expiryDateCtrl.text = v.insuranceExpiryDate!;
+    }
+    if (v.rcImageUrl != null && v.rcImageUrl!.isNotEmpty) {
+      _rcExistingUrl = ApiConfig.resolveImageUrl(v.rcImageUrl);
+      _rcFileName = 'RC_Front_Document.jpg';
+    }
   }
 
   Future<void> _fetchVehicleDetail(String id) async {
@@ -542,6 +573,179 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     );
   }
 
+  Future<void> _showRcPickerOptions() async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.borderSubtle,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Upload RC Book / Smart Card',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Take photo or choose from gallery to upload vehicle registration card',
+                style: TextStyle(color: Color(0xFF869397), fontSize: 12),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF06B6D4).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.camera_alt_rounded, color: Color(0xFF06B6D4)),
+                ),
+                title: const Text('Take Photo with Camera', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+                subtitle: const Text('Capture clear photo of RC front / smart card', style: TextStyle(color: Color(0xFF869397), fontSize: 11)),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final file = await MediaPickerService.instance.captureImageWithCamera(
+                    context: context,
+                    title: 'Vehicle RC Document',
+                    rationale: 'Camera access is required to capture vehicle RC document.',
+                  );
+                  if (file != null && mounted) {
+                    final rawBytes = await file.readAsBytes();
+                    if (mounted) {
+                      final croppedBytes = await VehicleImageCropperDialog.show(context, rawBytes);
+                      if (croppedBytes != null && mounted) {
+                        final regClean = _regController.text.trim().replaceAll(' ', '_');
+                        setState(() {
+                          _rcImageBytes = croppedBytes;
+                          _rcImageBase64 = 'data:image/jpeg;base64,${base64Encode(croppedBytes)}';
+                          _rcFileName = regClean.isNotEmpty ? '${regClean}_RC_Front.jpg' : 'RC_Front_Document.jpg';
+                        });
+                      }
+                    }
+                  }
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4EDEAE).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.photo_library_rounded, color: Color(0xFF4EDEAE)),
+                ),
+                title: const Text('Choose from Gallery', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+                subtitle: const Text('Select RC document image from gallery', style: TextStyle(color: Color(0xFF869397), fontSize: 11)),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final file = await MediaPickerService.instance.pickImageFromGallery(
+                    context: context,
+                    title: 'Select RC Document',
+                    rationale: 'Photo library access is needed to select vehicle RC card.',
+                  );
+                  if (file != null && mounted) {
+                    final rawBytes = await file.readAsBytes();
+                    if (mounted) {
+                      final croppedBytes = await VehicleImageCropperDialog.show(context, rawBytes);
+                      if (croppedBytes != null && mounted) {
+                        final regClean = _regController.text.trim().replaceAll(' ', '_');
+                        setState(() {
+                          _rcImageBytes = croppedBytes;
+                          _rcImageBase64 = 'data:image/jpeg;base64,${base64Encode(croppedBytes)}';
+                          _rcFileName = regClean.isNotEmpty ? '${regClean}_RC_Front.jpg' : 'RC_Front_Document.jpg';
+                        });
+                      }
+                    }
+                  }
+                },
+              ),
+              if (_rcImageBytes != null || (_rcExistingUrl != null && _rcExistingUrl!.isNotEmpty))
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.criticalRed.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.delete_outline_rounded, color: AppColors.criticalRed),
+                  ),
+                  title: const Text('Remove RC Document', style: TextStyle(color: AppColors.criticalRed, fontWeight: FontWeight.w600)),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    setState(() {
+                      _rcImageBytes = null;
+                      _rcImageBase64 = null;
+                      _rcExistingUrl = null;
+                      _rcFileName = null;
+                    });
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectPolicyExpiryDate() async {
+    DateTime initial = DateTime.now().add(const Duration(days: 365));
+    if (_expiryDateCtrl.text.trim().isNotEmpty) {
+      final parsed = DateTime.tryParse(_expiryDateCtrl.text.trim());
+      if (parsed != null) {
+        initial = parsed;
+      }
+    }
+
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2045),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: Color(0xFF06B6D4),
+              onPrimary: Color(0xFF090E19),
+              surface: Color(0xFF171B27),
+              onSurface: AppColors.textPrimary,
+            ),
+            dialogTheme: const DialogThemeData(
+              backgroundColor: Color(0xFF171B27),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && mounted) {
+      final formatted = '${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      setState(() {
+        _expiryDateCtrl.text = formatted;
+      });
+    }
+  }
+
   Future<void> _handlePublish() async {
     final regNo = _regController.text.trim();
     final name = _nameController.text.trim();
@@ -613,11 +817,20 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         'extra_km_rate': _extraKmCtrl.text.trim().isNotEmpty ? (double.tryParse(_extraKmCtrl.text.trim()) ?? 0) : 0,
         'color': _colorController.text.trim().isNotEmpty ? _colorController.text.trim() : 'White',
         'year': _mfgYearController.text.trim(),
+        'rc_number': regNo,
       };
+      if (_expiryDateCtrl.text.trim().isNotEmpty) {
+        payload['insurance_expiry_date'] = _expiryDateCtrl.text.trim();
+      }
       if (_imageBase64 != null) {
         payload['image_base64'] = _imageBase64;
       } else if (_existingImageUrl != null && _existingImageUrl!.isNotEmpty) {
         payload['image_url'] = _existingImageUrl;
+      }
+      if (_rcImageBase64 != null) {
+        payload['rc_image_base64'] = _rcImageBase64;
+      } else if (_rcExistingUrl != null && _rcExistingUrl!.isNotEmpty) {
+        payload['rc_image_url'] = _rcExistingUrl;
       }
 
       if (_isEditing) {
@@ -968,7 +1181,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               )
             else if (hasExistingImage)
               Image.network(
-                _existingImageUrl!,
+                ApiConfig.resolveImageUrl(_existingImageUrl!),
                 fit: BoxFit.cover,
                 errorBuilder: (context, err, stack) => _buildImagePlaceholder(),
               )
@@ -1862,56 +2075,90 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
           const SizedBox(height: 14),
 
           // Upload Tile 1: RC Smart Card
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF171B27),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF252A36),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.contact_emergency_rounded, color: Color(0xFF4CD7F6), size: 22),
+          InkWell(
+            onTap: _showRcPickerOptions,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF171B27),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: (_rcImageBytes != null || (_rcExistingUrl != null && _rcExistingUrl!.isNotEmpty))
+                      ? const Color(0xFF4EDEAE).withValues(alpha: 0.4)
+                      : const Color(0x1AFFFFFF),
+                  width: 1,
                 ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF252A36),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: (_rcImageBytes != null)
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.memory(_rcImageBytes!, fit: BoxFit.cover),
+                          )
+                        : const Icon(Icons.contact_emergency_rounded, color: Color(0xFF4CD7F6), size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Text('RC Book / Smart Card', style: TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.bold)),
+                            const SizedBox(width: 4),
+                            CircleAvatar(
+                              radius: 3,
+                              backgroundColor: (_rcImageBytes != null || (_rcExistingUrl != null && _rcExistingUrl!.isNotEmpty))
+                                  ? const Color(0xFF4EDEAE)
+                                  : const Color(0xFF869397),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _rcFileName ?? (_rcExistingUrl != null && _rcExistingUrl!.isNotEmpty ? 'RC Document on File' : 'Tap to upload or take photo'),
+                          style: TextStyle(
+                            color: (_rcImageBytes != null || (_rcExistingUrl != null && _rcExistingUrl!.isNotEmpty))
+                                ? const Color(0xFF4EDEAE)
+                                : const Color(0xFF869397),
+                            fontSize: 11,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: _showRcPickerOptions,
+                    child: Container(
+                      height: 34,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF252A36),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0x334CD7F6)),
+                      ),
+                      child: const Row(
                         children: [
-                          Text('RC Book / Smart Card', style: TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.bold)),
+                          Icon(Icons.photo_camera_rounded, color: Color(0xFF4CD7F6), size: 14),
                           SizedBox(width: 4),
-                          CircleAvatar(radius: 3, backgroundColor: Color(0xFF4EDEAE)),
+                          Text('Retake', style: TextStyle(color: Color(0xFF4CD7F6), fontSize: 11, fontWeight: FontWeight.bold)),
                         ],
                       ),
-                      SizedBox(height: 2),
-                      Text('DL01AB7729_RC_Front.pdf', style: TextStyle(color: Color(0xFF869397), fontSize: 11)),
-                    ],
+                    ),
                   ),
-                ),
-                Container(
-                  height: 34,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF252A36),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.photo_camera_rounded, color: Color(0xFF4CD7F6), size: 14),
-                      SizedBox(width: 4),
-                      Text('Retake', style: TextStyle(color: Color(0xFF4CD7F6), fontSize: 11, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 10),
@@ -1964,9 +2211,17 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                 const SizedBox(height: 4),
                 TextField(
                   controller: _expiryDateCtrl,
+                  readOnly: true,
+                  onTap: _selectPolicyExpiryDate,
                   style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
                   decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.event_rounded, color: Color(0xFF869397), size: 18),
+                    prefixIcon: const Icon(Icons.event_rounded, color: Color(0xFF4CD7F6), size: 18),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.edit_calendar_rounded, color: Color(0xFF4CD7F6), size: 18),
+                      onPressed: _selectPolicyExpiryDate,
+                    ),
+                    hintText: 'YYYY-MM-DD (Tap to pick date)',
+                    hintStyle: const TextStyle(color: Color(0xFF869397), fontSize: 12),
                     filled: true,
                     fillColor: const Color(0xFF252A36),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
