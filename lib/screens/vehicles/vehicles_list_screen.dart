@@ -361,29 +361,7 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
                     ),
                   ),
                 ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    StatusChip.fromVehicleStatus(vehicle.status),
-                    const SizedBox(width: 6),
-                    InkWell(
-                      onTap: () async {
-                        await widget.onNavigate('edit_vehicle', args: vehicle);
-                        _loadVehicles();
-                      },
-                      borderRadius: BorderRadius.circular(6),
-                      child: Container(
-                        padding: const EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceHover,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppColors.borderSubtle),
-                        ),
-                        child: const Icon(Icons.edit_outlined, size: 14, color: AppColors.primaryCyan),
-                      ),
-                    ),
-                  ],
-                ),
+                StatusChip.fromVehicleStatus(vehicle.status),
               ],
             ),
             const SizedBox(height: 10),
@@ -476,6 +454,8 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
                   child: CustomButton(
                     text: isDisabled ? 'Disabled' : 'New Booking',
                     height: 36,
+                    fontSize: 12,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     variant: isDisabled ? ButtonVariant.ghost : ButtonVariant.primary,
                     onPressed: isDisabled ? () {} : () => widget.onNavigate('new_booking', args: vehicle),
                   ),
@@ -486,6 +466,8 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
                   variant: ButtonVariant.secondary,
                   width: 58,
                   height: 36,
+                  fontSize: 12,
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
                   onPressed: () async {
                     await widget.onNavigate('edit_vehicle', args: vehicle);
                     _loadVehicles();
@@ -497,6 +479,8 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
                   variant: ButtonVariant.secondary,
                   width: 68,
                   height: 36,
+                  fontSize: 12,
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
                   onPressed: () => widget.onNavigate('vehicle_wise_report', args: vehicle),
                 ),
               ],

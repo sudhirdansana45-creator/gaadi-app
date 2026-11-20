@@ -11,6 +11,8 @@ class CustomButton extends StatelessWidget {
   final bool isLoading;
   final double? width;
   final double height;
+  final EdgeInsetsGeometry? padding;
+  final double? fontSize;
 
   const CustomButton({
     super.key,
@@ -21,6 +23,8 @@ class CustomButton extends StatelessWidget {
     this.isLoading = false,
     this.width,
     this.height = 48,
+    this.padding,
+    this.fontSize,
   });
 
   @override
@@ -53,7 +57,7 @@ class CustomButton extends StatelessWidget {
                       child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textDark),
                     )
                     : Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        padding: padding ?? const EdgeInsets.symmetric(horizontal: 12),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           mainAxisSize: MainAxisSize.min,
@@ -67,9 +71,9 @@ class CustomButton extends StatelessWidget {
                                 text,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppColors.textDark,
-                                  fontSize: 14,
+                                  fontSize: fontSize ?? 14,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 0.2,
                                 ),
@@ -115,7 +119,9 @@ class CustomButton extends StatelessWidget {
           backgroundColor: bgColor,
           side: BorderSide(color: borderCol, width: 1),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: padding ?? const EdgeInsets.symmetric(horizontal: 16),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
         child: isLoading
             ? SizedBox(
@@ -123,30 +129,27 @@ class CustomButton extends StatelessWidget {
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2, color: textCol),
               )
-            : Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (icon != null) ...[
-                      Icon(icon, size: 18, color: textCol),
-                      const SizedBox(width: 8),
-                    ],
-                    Flexible(
-                      child: Text(
-                        text,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: textCol,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 18, color: textCol),
+                    const SizedBox(width: 8),
+                  ],
+                  Flexible(
+                    child: Text(
+                      text,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: textCol,
+                        fontSize: fontSize ?? 14,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
       ),
     );
