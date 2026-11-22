@@ -1,10 +1,25 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import '../../core/media/media_picker_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../utils/app_placeholders.dart';
 import '../../models/mock_models.dart';
 import '../../services/api_service.dart';
+
+class InspectionPhoto {
+  final Uint8List bytes;
+  final String base64;
+  final String name;
+
+  InspectionPhoto({
+    required this.bytes,
+    required this.base64,
+    required this.name,
+  });
+}
 
 class PickupChecklistScreen extends StatefulWidget {
   final String bookingId;
@@ -34,11 +49,18 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
   bool _scratchesNoted = false;
   bool _isLoading = false;
 
-  final Map<String, bool> _photoUploaded = {
-    'Front View': false,
-    'Rear View': false,
-    'Left Side': false,
-    'Right Side': false,
+  final Map<String, List<InspectionPhoto>> _photosByAngle = {
+    'Front View': [],
+    'Rear View': [],
+    'Left Side': [],
+    'Right Side': [],
+  };
+
+  final Map<String, IconData> _angleIcons = {
+    'Front View': Icons.directions_car_rounded,
+    'Rear View': Icons.rv_hookup_rounded,
+    'Left Side': Icons.turn_left_rounded,
+    'Right Side': Icons.turn_right_rounded,
   };
 
   final List<Offset?> _signaturePoints = [];
@@ -134,25 +156,18 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
                   const Divider(color: AppColors.borderHairline),
                   const SizedBox(height: 16),
 
-                  const Text('3. Inspection Photo Grid (4 Angle Check)', style: TextStyle(color: AppColors.primaryCyan, fontWeight: FontWeight.bold, fontSize: 14)),
+                  const Text('3. Inspection Photos (4 Angle Check - Multiple Photos)', style: TextStyle(color: AppColors.primaryCyan, fontWeight: FontWeight.bold, fontSize: 14)),
                   const SizedBox(height: 6),
-                  const Text('Capture or attach 4-side condition photos prior to handover', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                  const SizedBox(height: 12),
+                  const Text('Capture or upload multiple photos for Front, Rear, Left, and Right views (Camera & Files supported)', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                  const SizedBox(height: 14),
 
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 1.4,
-                    children: [
-                      _photoTile('Front View', _photoUploaded['Front View']!),
-                      _photoTile('Rear View', _photoUploaded['Rear View']!),
-                      _photoTile('Left Side', _photoUploaded['Left Side']!),
-                      _photoTile('Right Side', _photoUploaded['Right Side']!),
-                    ],
-                  ),
+                  _buildAngleSection('Front View'),
+                  const SizedBox(height: 10),
+                  _buildAngleSection('Rear View'),
+                  const SizedBox(height: 10),
+                  _buildAngleSection('Left Side'),
+                  const SizedBox(height: 10),
+                  _buildAngleSection('Right Side'),
                   const SizedBox(height: 20),
                   const Divider(color: AppColors.borderHairline),
                   const SizedBox(height: 16),
@@ -285,11 +300,20 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
                       setState(() => _isLoading = true);
                       final messenger = ScaffoldMessenger.of(context);
                       try {
+                        // Collect all photos from all 4 angles into base64 payload
+                        final Map<String, List<String>> photosPayload = {};
+                        for (final entry in _photosByAngle.entries) {
+                          if (entry.value.isNotEmpty) {
+                            photosPayload[entry.key] = entry.value.map((p) => p.base64).toList();
+                          }
+                        }
+
                         await ApiService().submitPickupInspection(
                           widget.bookingId,
                           startOdometer: odo,
                           fuelPercent: _fuelLevel,
                           notes: 'Verified accessories: spare wheel, tool kit, and registration documents checked.',
+                          photosBase64: photosPayload.isNotEmpty ? photosPayload : null,
                         );
                         if (mounted) {
                           messenger.showSnackBar(
@@ -328,54 +352,356 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
   );
   }
 
-  Widget _photoTile(String label, bool isUploaded) {
+  Future<void> _captureFromCamera(String angle) async {
+    try {
+      final file = await MediaPickerService.instance.captureImageWithCamera(
+        context: context,
+        title: '$angle Camera Photo',
+        rationale: 'Camera access is required to capture $angle vehicle condition photo.',
+      );
+
+      if (file != null && mounted) {
+        final bytes = await file.readAsBytes();
+        final b64 = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+        setState(() {
+          _photosByAngle[angle]?.add(
+            InspectionPhoto(bytes: bytes, base64: b64, name: file.name),
+          );
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('✓ Photo captured for $angle (Total: ${_photosByAngle[angle]?.length})'),
+              backgroundColor: AppColors.successGreen,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error capturing photo from camera: $e');
+    }
+  }
+
+  Future<void> _pickFromGallery(String angle) async {
+    try {
+      final files = await MediaPickerService.instance.pickMultipleImagesFromGallery(
+        context: context,
+        title: 'Select $angle Photos',
+        rationale: 'Photo library access is required to choose vehicle inspection photos.',
+      );
+
+      if (files.isNotEmpty && mounted) {
+        int added = 0;
+        for (final file in files) {
+          final bytes = await file.readAsBytes();
+          final b64 = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+          _photosByAngle[angle]?.add(
+            InspectionPhoto(bytes: bytes, base64: b64, name: file.name),
+          );
+          added++;
+        }
+        setState(() {});
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('✓ $added photo(s) added to $angle (Total: ${_photosByAngle[angle]?.length})'),
+              backgroundColor: AppColors.successGreen,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error picking photos from gallery: $e');
+    }
+  }
+
+  void _showAddPhotoSheet(String angle) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.borderSubtle,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryCyan.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(_angleIcons[angle] ?? Icons.camera_alt_rounded, color: AppColors.primaryCyan, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Upload $angle Photos',
+                          style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Capture live photo or upload multiple files from gallery',
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                tileColor: AppColors.canvasLow,
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryCyan.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.camera_alt_rounded, color: AppColors.primaryCyan),
+                ),
+                title: const Text('Take Photo with Camera', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 14)),
+                subtitle: const Text('Open camera to capture vehicle condition', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _captureFromCamera(angle);
+                },
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                tileColor: AppColors.canvasLow,
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.successGreen.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.photo_library_rounded, color: AppColors.successGreen),
+                ),
+                title: const Text('Choose from Files / Gallery', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 14)),
+                subtitle: const Text('Select multiple photos from device files or gallery', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickFromGallery(angle);
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAngleSection(String angle) {
+    final photos = _photosByAngle[angle] ?? [];
+    final hasPhotos = photos.isNotEmpty;
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.canvasLow,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isUploaded ? AppColors.successBorder : AppColors.borderSubtle),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: hasPhotos ? AppColors.primaryCyan.withValues(alpha: 0.4) : AppColors.borderSubtle),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            AppPlaceholders.showImagePickerPlaceholder(context, label: label);
-            setState(() {
-              _photoUploaded[label] = true;
-            });
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  isUploaded ? Icons.check_circle_rounded : Icons.add_a_photo_rounded,
-                  color: isUploaded ? AppColors.successGreen : AppColors.primaryCyan,
-                  size: 24,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: isUploaded ? AppColors.textPrimary : AppColors.textSecondary,
-                    fontSize: 12,
-                    fontWeight: isUploaded ? FontWeight.bold : FontWeight.w500,
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(_angleIcons[angle] ?? Icons.directions_car_rounded, size: 18, color: hasPhotos ? AppColors.primaryCyan : AppColors.textSecondary),
+                  const SizedBox(width: 8),
+                  Text(
+                    angle,
+                    style: TextStyle(
+                      color: hasPhotos ? AppColors.textPrimary : AppColors.textSecondary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: hasPhotos ? AppColors.successGreen.withValues(alpha: 0.15) : AppColors.surfaceHover,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: hasPhotos ? AppColors.successGreen.withValues(alpha: 0.3) : AppColors.borderSubtle),
+                    ),
+                    child: Text(
+                      '${photos.length} ${photos.length == 1 ? "Photo" : "Photos"}',
+                      style: TextStyle(
+                        color: hasPhotos ? AppColors.successGreen : AppColors.textMuted,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              InkWell(
+                onTap: () => _showAddPhotoSheet(angle),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryCyan.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.primaryCyan.withValues(alpha: 0.3)),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add_a_photo_rounded, size: 13, color: AppColors.primaryCyan),
+                      SizedBox(width: 4),
+                      Text('+ Add', style: TextStyle(color: AppColors.primaryCyan, fontSize: 11, fontWeight: FontWeight.bold)),
+                    ],
                   ),
                 ),
-                Text(
-                  isUploaded ? 'Photo Attached' : '+ Add Photo',
-                  style: TextStyle(
-                    color: isUploaded ? AppColors.successGreen : AppColors.primaryCyan,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ),
+          const SizedBox(height: 10),
+          if (photos.isEmpty)
+            InkWell(
+              onTap: () => _showAddPhotoSheet(angle),
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceHover.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.borderSubtle),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.add_photo_alternate_outlined, color: AppColors.textMuted, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Tap to add photos (Camera & File upload)',
+                      style: TextStyle(color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            SizedBox(
+              height: 84,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: photos.length + 1,
+                separatorBuilder: (context, index) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  if (index == photos.length) {
+                    return InkWell(
+                      onTap: () => _showAddPhotoSheet(angle),
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        width: 84,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceHover,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.primaryCyan.withValues(alpha: 0.3)),
+                        ),
+                        child: const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_circle_outline_rounded, color: AppColors.primaryCyan, size: 22),
+                            SizedBox(height: 4),
+                            Text('Add More', style: TextStyle(color: AppColors.primaryCyan, fontSize: 10, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  final photo = photos[index];
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          AppPlaceholders.showImageBytesViewer(
+                            context,
+                            bytes: photo.bytes,
+                            title: '$angle Photo #${index + 1}',
+                          );
+                        },
+                        child: Container(
+                          width: 84,
+                          height: 84,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.borderSubtle),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(9),
+                            child: Image.memory(
+                              photo.bytes,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: -4,
+                        right: -4,
+                        child: InkWell(
+                          onTap: () {
+                            setState(() {
+                              _photosByAngle[angle]?.removeAt(index);
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: const BoxDecoration(
+                              color: AppColors.criticalRed,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.close_rounded, size: 12, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+        ],
       ),
     );
   }

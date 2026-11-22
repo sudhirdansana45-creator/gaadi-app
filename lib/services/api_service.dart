@@ -132,8 +132,21 @@ class ApiService {
     required int startOdometer,
     required double fuelPercent,
     required String notes,
+    Map<String, List<String>>? photosBase64,
     Map<String, File>? photos,
   }) async {
+    if (photosBase64 != null && photosBase64.isNotEmpty) {
+      return await _client.post(
+        ApiConfig.bookingPickup(id),
+        body: {
+          'start_odometer': startOdometer,
+          'fuel_level_percent': fuelPercent,
+          'pickup_notes': notes,
+          'photos_base64': photosBase64,
+        },
+      );
+    }
+
     return await _client.postMultipart(
       ApiConfig.bookingPickup(id),
       fields: {

@@ -79,6 +79,35 @@ class MediaPickerService {
     }
   }
 
+  /// Picks multiple images from gallery or file system.
+  Future<List<XFile>> pickMultipleImagesFromGallery({
+    required BuildContext context,
+    String? title,
+    String? rationale,
+  }) async {
+    final granted = await PermissionService.instance.requestPhotos(
+      context: context,
+      title: title ?? 'Select Vehicle Inspection Photos',
+      message: rationale ??
+          'Choose saved inspection photos from your gallery or files.',
+    );
+
+    if (!granted) return [];
+
+    try {
+      final List<XFile> pickedFiles = await _picker.pickMultiImage(
+        maxWidth: 1600,
+        maxHeight: 1600,
+        imageQuality: 80,
+      );
+
+      return pickedFiles;
+    } catch (e) {
+      debugPrint('[MediaPickerService] Error picking multiple images: $e');
+      return [];
+    }
+  }
+
   /// In-app fallback prompt if camera is denied
   Future<bool> _askFallbackToGallery(BuildContext context) async {
     return await showDialog<bool>(

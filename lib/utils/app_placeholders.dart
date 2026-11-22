@@ -29,4 +29,11 @@ class AppPlaceholders {
       builder: (ctx) => ImageViewerDialog(imageUrl: imageUrl, title: title),
     );
   }
+
+  static void showImageBytesViewer(BuildContext context, {required dynamic bytes, required String title}) {
+    showDialog(
+      context: context,
+      builder: (ctx) => ImageViewerDialog(imageBytes: bytes, title: title),
+    );
+  }
 }
