@@ -373,10 +373,15 @@ final appRouter = GoRouter(
     // Vehicles Full Screen Routes
     GoRoute(
       path: AppRoutes.addVehicle,
-      builder: (context, state) => AddVehicleScreen(
-        onSaved: () => context.pop(),
-        onCancel: () => context.pop(),
-      ),
+      builder: (context, state) {
+        final category = state.uri.queryParameters['category'] ??
+            (state.extra is Map ? (state.extra as Map)['category']?.toString() : null);
+        return AddVehicleScreen(
+          initialCategory: category,
+          onSaved: () => context.pop(),
+          onCancel: () => context.pop(),
+        );
+      },
     ),
     GoRoute(
       path: '/vehicles/:id/edit',

@@ -9,6 +9,7 @@ class Vehicle {
   final String id;
   final String name;
   final String regNumber;
+  final String type; // car, bike
   final String category; // SUV, Sedan, Bike, Hatchback
   final String fuelType; // Petrol, Diesel, EV
   final String transmission; // Manual, Automatic
@@ -20,6 +21,8 @@ class Vehicle {
   final VehicleStatus status;
   final String imageUrl;
   final String assignedPartner;
+  final String? partnerId;
+  final double? partnerSharePercentage;
   final String color;
   final String year;
   final String? rcNumber;
@@ -30,10 +33,18 @@ class Vehicle {
   final String? insuranceImageUrl;
   final int totalBookings;
 
+  bool get isBike {
+    final t = type.toLowerCase();
+    final c = category.toLowerCase();
+    return t.contains('bike') || t.contains('two') || t.contains('scooter') ||
+           c.contains('bike') || c.contains('two') || c.contains('scooter');
+  }
+
   Vehicle({
     required this.id,
     required this.name,
     required this.regNumber,
+    this.type = 'car',
     required this.category,
     required this.fuelType,
     required this.transmission,
@@ -45,6 +56,8 @@ class Vehicle {
     required this.status,
     required this.imageUrl,
     this.assignedPartner = 'Direct Fleet',
+    this.partnerId,
+    this.partnerSharePercentage,
     this.color = 'White',
     this.year = '',
     this.rcNumber,
@@ -89,11 +102,19 @@ class Vehicle {
     final rawRcImg = json['rc_image_url']?.toString();
     final rawInsImg = json['insurance_image_url']?.toString();
 
+    final rawType = json['type']?.toString().toLowerCase() ?? 'car';
+    final rawCategory = json['category']?.toString() ?? (rawType.contains('bike') ? 'Bike' : 'Car');
+    final partnerObj = json['partner'] is Map ? json['partner'] as Map<String, dynamic> : null;
+    final partnerShare = (json['partner_share_percentage'] as num?)?.toDouble() ??
+        (partnerObj != null ? (partnerObj['share_percentage'] as num?)?.toDouble() : null);
+    final partnerId = json['partner_id']?.toString() ?? partnerObj?['id']?.toString();
+
     return Vehicle(
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? 'Vehicle',
       regNumber: json['number']?.toString() ?? json['regNumber']?.toString() ?? '',
-      category: json['category']?.toString() ?? (json['type']?.toString().toUpperCase() ?? 'Car'),
+      type: rawType,
+      category: rawCategory,
       fuelType: json['fuel_type']?.toString() ?? json['fuelType']?.toString() ?? 'Petrol',
       transmission: json['transmission']?.toString() ?? 'Manual',
       dailyRate: daily,
@@ -103,7 +124,9 @@ class Vehicle {
       fuelLevelPercent: (json['fuel_level_percent'] as num?)?.toDouble() ?? 100.0,
       status: mappedStatus,
       imageUrl: fallbackImg,
-      assignedPartner: json['partner'] is Map ? (json['partner']['name']?.toString() ?? 'Direct Fleet') : 'Direct Fleet',
+      assignedPartner: partnerObj != null ? (partnerObj['name']?.toString() ?? 'Direct Fleet') : 'Direct Fleet',
+      partnerId: partnerId,
+      partnerSharePercentage: partnerShare,
       color: json['color']?.toString() ?? 'White',
       year: json['year']?.toString() ?? '',
       rcNumber: json['rc_number']?.toString(),

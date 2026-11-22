@@ -59,13 +59,9 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
     final filteredVehicles = _vehicles.where((v) {
       // Category Tab Filter
       if (_selectedCategory == 'Cars') {
-        if (v.category.toLowerCase().contains('bike') || v.category.toLowerCase().contains('scooter')) {
-          return false;
-        }
+        if (v.isBike) return false;
       } else if (_selectedCategory == 'Bikes') {
-        if (!v.category.toLowerCase().contains('bike') && !v.category.toLowerCase().contains('scooter')) {
-          return false;
-        }
+        if (!v.isBike) return false;
       }
 
       // Status Chip Filter
@@ -91,7 +87,10 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
         backgroundColor: AppColors.primaryCyan,
         foregroundColor: AppColors.textDark,
         onPressed: () async {
-          await widget.onNavigate('add_vehicle');
+          await widget.onNavigate(
+            'add_vehicle',
+            args: {'category': _selectedCategory == 'Bikes' ? 'bike' : 'car'},
+          );
           _loadVehicles();
         },
         icon: const Icon(Icons.add_rounded),
@@ -146,7 +145,10 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
                   width: 90,
                   height: 48,
                   onPressed: () async {
-                    await widget.onNavigate('add_vehicle');
+                    await widget.onNavigate(
+                      'add_vehicle',
+                      args: {'category': _selectedCategory == 'Bikes' ? 'bike' : 'car'},
+                    );
                     _loadVehicles();
                   },
                 ),
@@ -413,7 +415,9 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          'Partner: ${vehicle.assignedPartner}',
+                          vehicle.assignedPartner != 'Direct Fleet'
+                              ? 'Partner: ${vehicle.assignedPartner}${vehicle.partnerSharePercentage != null ? ' (${vehicle.partnerSharePercentage!.toInt()}%)' : ''}'
+                              : 'Direct Fleet',
                           style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600),
                         ),
                       ),

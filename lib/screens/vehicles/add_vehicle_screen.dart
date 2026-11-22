@@ -14,6 +14,7 @@ class AddVehicleScreen extends StatefulWidget {
   final VoidCallback onCancel;
   final Vehicle? vehicleToEdit;
   final String? vehicleId;
+  final String? initialCategory;
 
   const AddVehicleScreen({
     super.key,
@@ -21,6 +22,7 @@ class AddVehicleScreen extends StatefulWidget {
     required this.onCancel,
     this.vehicleToEdit,
     this.vehicleId,
+    this.initialCategory,
   });
 
   @override
@@ -43,7 +45,13 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   final _extraKmCtrl = TextEditingController();
 
   final _partnerNameCtrl = TextEditingController();
+  final _partnerMobileCtrl = TextEditingController();
   final _expiryDateCtrl = TextEditingController();
+
+  List<Map<String, dynamic>> _partnersList = [];
+  bool _isLoadingPartners = false;
+  String? _selectedPartnerId;
+  double _partnerSharePercent = 70.0;
 
   final _scrollController = ScrollController();
 
@@ -70,7 +78,11 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialCategory != null && widget.initialCategory!.toLowerCase().contains('bike')) {
+      _selectedCategory = 'bike';
+    }
     _loadDraftsCount();
+    _loadPartners();
 
     _dailyRateCtrl.addListener(() {
       if (_dailyRateHasError && _dailyRateCtrl.text.trim().isNotEmpty) {
@@ -82,6 +94,24 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       _initFromVehicle(widget.vehicleToEdit!);
     } else if (widget.vehicleId != null && widget.vehicleId!.isNotEmpty) {
       _fetchVehicleDetail(widget.vehicleId!);
+    }
+  }
+
+  Future<void> _loadPartners() async {
+    setState(() => _isLoadingPartners = true);
+    try {
+      final res = await ApiService().getPartners();
+      if (res != null && res['data'] is List && mounted) {
+        setState(() {
+          _partnersList = List<Map<String, dynamic>>.from(res['data']);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading partners: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingPartners = false);
+      }
     }
   }
 
@@ -97,6 +127,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     _depositCtrl.dispose();
     _extraKmCtrl.dispose();
     _partnerNameCtrl.dispose();
+    _partnerMobileCtrl.dispose();
     _expiryDateCtrl.dispose();
     super.dispose();
   }
@@ -388,12 +419,22 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     if (v.year.isNotEmpty) {
       _mfgYearController.text = v.year;
     }
-    _selectedCategory = (v.category.toLowerCase().contains('bike') || v.category.toLowerCase().contains('scooter')) ? 'bike' : 'car';
+    _selectedCategory = v.isBike ? 'bike' : 'car';
     _selectedFuel = v.fuelType.isNotEmpty ? v.fuelType : 'Petrol';
     _dailyRateCtrl.text = v.dailyRate > 0 ? v.dailyRate.toInt().toString() : '';
     _hourlyRateCtrl.text = v.hourlyRate > 0 ? v.hourlyRate.toInt().toString() : '';
     _depositCtrl.text = v.securityDeposit > 0 ? v.securityDeposit.toInt().toString() : '';
-    _partnerNameCtrl.text = (v.assignedPartner != 'Direct Fleet' && v.assignedPartner.isNotEmpty) ? v.assignedPartner : '';
+    if (v.assignedPartner != 'Direct Fleet' && v.assignedPartner.isNotEmpty) {
+      _ownershipMode = 'partner';
+      _partnerNameCtrl.text = v.assignedPartner;
+      _selectedPartnerId = v.partnerId;
+      _partnerSharePercent = v.partnerSharePercentage ?? 70.0;
+    } else {
+      _ownershipMode = 'own';
+      _partnerNameCtrl.text = '';
+      _selectedPartnerId = null;
+      _partnerSharePercent = 70.0;
+    }
     _existingImageUrl = v.imageUrl.isNotEmpty ? ApiConfig.resolveImageUrl(v.imageUrl) : null;
     if (v.insuranceExpiryDate != null && v.insuranceExpiryDate!.isNotEmpty) {
       _expiryDateCtrl.text = v.insuranceExpiryDate!;
@@ -849,6 +890,24 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         'year': _mfgYearController.text.trim(),
         'rc_number': regNo,
       };
+
+      if (_ownershipMode == 'partner') {
+        if (_selectedPartnerId != null && _selectedPartnerId!.isNotEmpty) {
+          payload['partner_id'] = _selectedPartnerId;
+        }
+        if (_partnerNameCtrl.text.trim().isNotEmpty) {
+          payload['partner_name'] = _partnerNameCtrl.text.trim();
+        }
+        if (_partnerMobileCtrl.text.trim().isNotEmpty) {
+          payload['partner_mobile'] = _partnerMobileCtrl.text.trim();
+        }
+        payload['partner_share_percentage'] = _partnerSharePercent;
+      } else {
+        payload['partner_id'] = null;
+        payload['partner_name'] = null;
+        payload['partner_share_percentage'] = null;
+      }
+
       if (_expiryDateCtrl.text.trim().isNotEmpty) {
         payload['insurance_expiry_date'] = _expiryDateCtrl.text.trim();
       }
@@ -1980,64 +2039,341 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 
           if (isPartner) ...[
             const SizedBox(height: 14),
-            const Text('Partner / Investor Full Name', style: TextStyle(color: Color(0xFFBCC9CD), fontSize: 12, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 6),
-            TextField(
-              controller: _partnerNameCtrl,
-              style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.person_outline_rounded, color: Color(0xFF869397), size: 20),
-                filled: true,
-                fillColor: const Color(0xFF171B27),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-              ),
-            ),
-            const SizedBox(height: 14),
 
+            if (_isLoadingPartners)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  children: [
+                    SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF4CD7F6))),
+                    SizedBox(width: 8),
+                    Text('Loading registered partners...', style: TextStyle(color: Color(0xFFBCC9CD), fontSize: 12)),
+                  ],
+                ),
+              )
+            else if (_partnersList.isNotEmpty) ...[
+              const Text(
+                'Select Registered Partner',
+                style: TextStyle(color: Color(0xFFBCC9CD), fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF171B27),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0x334CD7F6)),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String?>(
+                    isExpanded: true,
+                    dropdownColor: const Color(0xFF1B1F2B),
+                    value: _selectedPartnerId,
+                    hint: const Text(
+                      'Choose an existing partner or create new',
+                      style: TextStyle(color: Color(0xFF869397), fontSize: 13),
+                    ),
+                    icon: const Icon(Icons.arrow_drop_down_rounded, color: Color(0xFF4CD7F6)),
+                    items: [
+                      const DropdownMenuItem<String?>(
+                        value: null,
+                        child: Row(
+                          children: [
+                            Icon(Icons.add_circle_outline_rounded, color: Color(0xFF4EDEAE), size: 16),
+                            SizedBox(width: 8),
+                            Text('+ Enter New Partner Details', style: TextStyle(color: Color(0xFF4EDEAE), fontSize: 13, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                      ..._partnersList.map((p) {
+                        final pid = p['id'].toString();
+                        final pname = p['name']?.toString() ?? 'Partner';
+                        final pshare = (p['share_value'] as num?)?.toInt() ?? 70;
+                        return DropdownMenuItem<String?>(
+                          value: pid,
+                          child: Text(
+                            '$pname (Default: $pshare% Share)',
+                            style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+                          ),
+                        );
+                      }),
+                    ],
+                    onChanged: (val) {
+                      setState(() {
+                        _selectedPartnerId = val;
+                        if (val != null) {
+                          final match = _partnersList.firstWhere(
+                            (item) => item['id'].toString() == val,
+                            orElse: () => <String, dynamic>{},
+                          );
+                          if (match.isNotEmpty) {
+                            _partnerNameCtrl.text = match['name']?.toString() ?? '';
+                            _partnerMobileCtrl.text = match['mobile']?.toString() ?? '';
+                            final sv = (match['share_value'] as num?)?.toDouble();
+                            if (sv != null && sv > 0 && sv <= 100) {
+                              _partnerSharePercent = sv;
+                            }
+                          }
+                        }
+                      });
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+
+            // Partner Name & Mobile
+            Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Partner / Investor Name',
+                        style: TextStyle(color: Color(0xFFBCC9CD), fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _partnerNameCtrl,
+                        style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+                        decoration: InputDecoration(
+                          hintText: 'e.g. Suresh Verma',
+                          hintStyle: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+                          prefixIcon: const Icon(Icons.person_outline_rounded, color: Color(0xFF869397), size: 18),
+                          filled: true,
+                          fillColor: const Color(0xFF171B27),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Mobile Number',
+                        style: TextStyle(color: Color(0xFFBCC9CD), fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _partnerMobileCtrl,
+                        keyboardType: TextInputType.phone,
+                        style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+                        decoration: InputDecoration(
+                          hintText: '9876543210',
+                          hintStyle: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+                          prefixIcon: const Icon(Icons.phone_outlined, color: Color(0xFF869397), size: 18),
+                          filled: true,
+                          fillColor: const Color(0xFF171B27),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Revenue Share Percentage Decider
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Revenue Share Split', style: TextStyle(color: Color(0xFFBCC9CD), fontSize: 12, fontWeight: FontWeight.w600)),
-                const Text('75% Owner / 25% Shop', style: TextStyle(color: Color(0xFF4CD7F6), fontSize: 11, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Partner Revenue Share (%)',
+                  style: TextStyle(color: Color(0xFFBCC9CD), fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF06B6D4).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0x3306B6D4)),
+                  ),
+                  child: Text(
+                    '${_partnerSharePercent.toInt()}% Partner / ${(100 - _partnerSharePercent).toInt()}% Shop',
+                    style: const TextStyle(color: Color(0xFF4CD7F6), fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
+
+            // Quick Preset Percentage Chips
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [50.0, 60.0, 70.0, 75.0, 80.0, 85.0].map((pct) {
+                  final isSelected = _partnerSharePercent.toInt() == pct.toInt();
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: ChoiceChip(
+                      label: Text('${pct.toInt()}% Share'),
+                      selected: isSelected,
+                      onSelected: (_) => setState(() => _partnerSharePercent = pct),
+                      selectedColor: const Color(0xFF06B6D4),
+                      backgroundColor: const Color(0xFF171B27),
+                      labelStyle: TextStyle(
+                        color: isSelected ? const Color(0xFF003640) : AppColors.textSecondary,
+                        fontSize: 11,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(
+                          color: isSelected ? const Color(0xFF06B6D4) : const Color(0x1AFFFFFF),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            // Slider & Split Visualizer Container
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: const Color(0xFF171B27),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0x1AFFFFFF)),
               ),
               child: Column(
                 children: [
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Car Owner Payout', style: TextStyle(color: AppColors.textPrimary, fontSize: 13)),
-                      Text('75%', style: TextStyle(color: Color(0xFF4CD7F6), fontSize: 18, fontWeight: FontWeight.w800)),
+                      Row(
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF06B6D4),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Text(
+                            'Partner Payout',
+                            style: TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        '${_partnerSharePercent.toInt()}%',
+                        style: const TextStyle(color: Color(0xFF4CD7F6), fontSize: 20, fontWeight: FontWeight.w900),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  // Progress Bar Split (75% Cyan / 25% Blue)
+                  const SizedBox(height: 6),
+
+                  // Slider for fine-tuning
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      activeTrackColor: const Color(0xFF06B6D4),
+                      inactiveTrackColor: const Color(0xFF0566D9),
+                      thumbColor: const Color(0xFF4CD7F6),
+                      overlayColor: const Color(0xFF06B6D4).withValues(alpha: 0.2),
+                      trackHeight: 6,
+                    ),
+                    child: Slider(
+                      value: _partnerSharePercent.clamp(10.0, 95.0),
+                      min: 10.0,
+                      max: 95.0,
+                      divisions: 85,
+                      onChanged: (val) => setState(() => _partnerSharePercent = val.roundToDouble()),
+                    ),
+                  ),
+
+                  // Proportional Split Bar
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(8),
                     child: SizedBox(
                       height: 8,
                       child: Row(
                         children: [
-                          Expanded(flex: 75, child: Container(color: const Color(0xFF06B6D4))),
-                          Expanded(flex: 25, child: Container(color: const Color(0xFF0566D9))),
+                          Expanded(
+                            flex: _partnerSharePercent.toInt(),
+                            child: Container(color: const Color(0xFF06B6D4)),
+                          ),
+                          Expanded(
+                            flex: (100 - _partnerSharePercent).toInt(),
+                            child: Container(color: const Color(0xFF0566D9)),
+                          ),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
+
+                  // Live Calculation Preview
+                  Builder(
+                    builder: (context) {
+                      final dailyRate = double.tryParse(_dailyRateCtrl.text.trim()) ?? 2000.0;
+                      final partnerAmt = (dailyRate * _partnerSharePercent / 100).round();
+                      final shopAmt = (dailyRate * (100 - _partnerSharePercent) / 100).round();
+
+                      return Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0E131E),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0x1AFFFFFF)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Partner gets / day',
+                                  style: TextStyle(color: Color(0xFF869397), fontSize: 10),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '₹$partnerAmt (${_partnerSharePercent.toInt()}%)',
+                                  style: const TextStyle(color: Color(0xFF4EDEAE), fontSize: 13, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                            Container(width: 1, height: 26, color: const Color(0x26FFFFFF)),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                const Text(
+                                  'Shop retains / day',
+                                  style: TextStyle(color: Color(0xFF869397), fontSize: 10),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '₹$shopAmt (${(100 - _partnerSharePercent).toInt()}%)',
+                                  style: const TextStyle(color: Color(0xFF4CD7F6), fontSize: 13, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 6),
                   const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Shop commission retention: 25%', style: TextStyle(color: Color(0xFF869397), fontSize: 10)),
-                      Text('Direct Ledger Sync', style: TextStyle(color: Color(0xFF869397), fontSize: 10)),
+                      Text('Direct Ledger Sync enabled', style: TextStyle(color: Color(0xFF869397), fontSize: 10)),
+                      Text('Auto-credited on booking return', style: TextStyle(color: Color(0xFF869397), fontSize: 10)),
                     ],
                   ),
                 ],
