@@ -60,7 +60,13 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         final list = (allRes['data'] as List)
             .map((item) => Booking.fromJson(item as Map<String, dynamic>))
             .toList();
-        final match = list.where((b) => b.id == widget.bookingId).firstOrNull;
+        final match = list.where((b) {
+          if (b.id == widget.bookingId) return true;
+          if (b.displayId.toLowerCase() == widget.bookingId.toLowerCase()) return true;
+          final cleanWidget = widget.bookingId.replaceAll(RegExp(r'[^0-9]'), '');
+          final cleanB = b.id.replaceAll(RegExp(r'[^0-9]'), '');
+          return cleanWidget.isNotEmpty && cleanWidget == cleanB;
+        }).firstOrNull;
         if (match != null && mounted) {
           setState(() {
             booking = match;
@@ -189,7 +195,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Booking ${currentBooking.id}'),
+        title: Text('Booking ${currentBooking.displayId}'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: widget.onBack,
@@ -210,7 +216,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        currentBooking.id,
+                        currentBooking.displayId,
                         style: const TextStyle(color: AppColors.primaryCyan, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 2),

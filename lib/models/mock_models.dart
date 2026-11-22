@@ -142,6 +142,7 @@ class Vehicle {
 
 class Booking {
   final String id;
+  final String? bookingNumber;
   final String customerName;
   final String customerPhone;
   final String vehicleName;
@@ -161,8 +162,13 @@ class Booking {
   final String? vehicleId;
   final String? customerId;
 
+  String get displayId => (bookingNumber != null && bookingNumber!.isNotEmpty)
+      ? bookingNumber!
+      : (id.startsWith('BK-') ? id : 'BK-${id.padLeft(5, '0')}');
+
   Booking({
     required this.id,
+    this.bookingNumber,
     required this.customerName,
     required this.customerPhone,
     required this.vehicleName,
@@ -289,16 +295,20 @@ class Booking {
         json['payment_mode']?.toString() ??
         'UPI';
 
-    final id = json['booking_id']?.toString() ??
+    final rawId = json['id']?.toString() ??
         json['order_no']?.toString() ??
-        json['id']?.toString() ??
+        json['booking_id']?.toString() ??
         '';
+
+    final bookingNumber = json['booking_id']?.toString() ??
+        (rawId.startsWith('BK-') ? rawId : 'BK-${rawId.padLeft(5, '0')}');
 
     final vehicleId = json['vehicle_id']?.toString() ?? vehicleObj?['id']?.toString();
     final customerId = json['customer_id']?.toString() ?? customerObj?['id']?.toString();
 
     return Booking(
-      id: id,
+      id: rawId,
+      bookingNumber: bookingNumber,
       customerName: customerName,
       customerPhone: customerMobile,
       vehicleName: vehicleName,

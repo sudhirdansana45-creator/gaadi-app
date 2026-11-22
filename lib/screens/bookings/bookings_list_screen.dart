@@ -268,7 +268,7 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    booking.id,
+                                    booking.displayId,
                                     style: const TextStyle(color: AppColors.primaryCyan, fontWeight: FontWeight.bold, fontSize: 13),
                                   ),
                                   StatusChip.fromBookingStatus(booking.status),
