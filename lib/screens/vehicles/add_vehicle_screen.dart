@@ -423,6 +423,31 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     }
   }
 
+  void _notifyPhotoSaved(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Color(0xFF003640), size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(color: Color(0xFF003640), fontWeight: FontWeight.w600, fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFF06B6D4),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
   Future<void> _showImagePickerOptions() async {
     showModalBottomSheet(
       context: context,
@@ -486,6 +511,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           _selectedImageBytes = croppedBytes;
                           _imageBase64 = 'data:image/jpeg;base64,${base64Encode(croppedBytes)}';
                         });
+                        _notifyPhotoSaved('Vehicle photo cropped and added!');
                       }
                     }
                   }
@@ -518,6 +544,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           _selectedImageBytes = croppedBytes;
                           _imageBase64 = 'data:image/jpeg;base64,${base64Encode(croppedBytes)}';
                         });
+                        _notifyPhotoSaved('Vehicle photo cropped and added!');
                       }
                     }
                   }
@@ -543,6 +570,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                         _selectedImageBytes = croppedBytes;
                         _imageBase64 = 'data:image/jpeg;base64,${base64Encode(croppedBytes)}';
                       });
+                      _notifyPhotoSaved('Vehicle photo adjusted and saved!');
                     }
                   },
                 ),
@@ -639,6 +667,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           _rcImageBase64 = 'data:image/jpeg;base64,${base64Encode(croppedBytes)}';
                           _rcFileName = regClean.isNotEmpty ? '${regClean}_RC_Front.jpg' : 'RC_Front_Document.jpg';
                         });
+                        _notifyPhotoSaved('RC document photo cropped and added!');
                       }
                     }
                   }
@@ -673,6 +702,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           _rcImageBase64 = 'data:image/jpeg;base64,${base64Encode(croppedBytes)}';
                           _rcFileName = regClean.isNotEmpty ? '${regClean}_RC_Front.jpg' : 'RC_Front_Document.jpg';
                         });
+                        _notifyPhotoSaved('RC document photo cropped and added!');
                       }
                     }
                   }
