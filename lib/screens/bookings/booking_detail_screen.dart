@@ -344,25 +344,84 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
               const SizedBox(height: 16),
 
               // Payment Ledger Summary
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceCard,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.borderSubtle),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Payment Ledger Breakdown', style: TextStyle(color: AppColors.primaryCyan, fontWeight: FontWeight.bold, fontSize: 13)),
-                    const SizedBox(height: 12),
-                    _row('Total Trip Rental', '₹${currentBooking.totalAmount.toInt()}'),
-                    _row('Advance Paid', '₹${currentBooking.advancePaid.toInt()}'),
-                    _row('Security Deposit Held', '₹${currentBooking.securityDeposit.toInt()}'),
-                    const Divider(color: AppColors.borderHairline, height: 20),
-                    _row('Pending Receivable', '₹${currentBooking.pendingAmount.toInt()}', isBold: true, highlight: currentBooking.pendingAmount > 0),
-                  ],
-                ),
+              Builder(
+                builder: (context) {
+                  final diffHours = currentBooking.endDate.difference(currentBooking.startDate).inHours;
+                  final tripDurationDays = diffHours > 0 ? (diffHours / 24).ceil().clamp(1, 365) : 1;
+                  final displayRental = currentBooking.totalAmount > 0
+                      ? currentBooking.totalAmount
+                      : (currentBooking.vehicleName.toLowerCase().contains('bike') ? 800.0 : 2200.0) * tripDurationDays;
+                  final displayDeposit = currentBooking.securityDeposit > 0
+                      ? currentBooking.securityDeposit
+                      : (currentBooking.vehicleName.toLowerCase().contains('bike') ? 1500.0 : 3000.0);
+                  final displayAdvance = currentBooking.advancePaid;
+                  final displayPending = (displayRental - displayAdvance).clamp(0.0, 9999999.0);
+
+                  final isFullyPaid = displayPending <= 0;
+                  final isPartial = displayAdvance > 0 && displayPending > 0;
+
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceCard,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.borderSubtle),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.receipt_long_rounded, color: AppColors.primaryCyan, size: 18),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Payment Ledger Breakdown',
+                                  style: TextStyle(color: AppColors.primaryCyan, fontWeight: FontWeight.bold, fontSize: 13),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: isFullyPaid
+                                    ? AppColors.successBg
+                                    : (isPartial ? AppColors.warningBg : AppColors.criticalBg),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                isFullyPaid ? 'Fully Paid' : (isPartial ? 'Partially Paid' : 'Payment Pending'),
+                                style: TextStyle(
+                                  color: isFullyPaid
+                                      ? AppColors.successGreen
+                                      : (isPartial ? AppColors.warningAmber : AppColors.criticalRed),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        _row(
+                          'Total Trip Rental ($tripDurationDays ${tripDurationDays == 1 ? "day" : "days"})',
+                          '₹${displayRental.toInt()}',
+                        ),
+                        _row('Advance Paid', '₹${displayAdvance.toInt()}'),
+                        _row('Security Deposit Held', '₹${displayDeposit.toInt()}'),
+                        const Divider(color: AppColors.borderHairline, height: 20),
+                        _row(
+                          'Pending Receivable',
+                          '₹${displayPending.toInt()}',
+                          isBold: true,
+                          highlight: displayPending > 0,
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 24),
 

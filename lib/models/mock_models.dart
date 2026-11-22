@@ -206,37 +206,117 @@ class Booking {
         mappedStatus = BookingStatus.pending;
     }
 
-    final amount = (json['amount'] as num?)?.toDouble() ?? 0.0;
-    final advance = (json['advance_paid'] as num?)?.toDouble() ?? 0.0;
+    // Vehicle extraction
+    final vehicleObj = json['vehicle'] is Map ? json['vehicle'] as Map<String, dynamic> : null;
+    final vehicleName = vehicleObj?['name']?.toString() ?? json['vehicle_name']?.toString() ?? 'Vehicle';
+    final vehicleReg = vehicleObj?['number']?.toString() ?? json['vehicle_number']?.toString() ?? '';
+    final vehicleDaily = (vehicleObj?['daily_rate'] as num?)?.toDouble() ?? 0.0;
+    final vehicleDeposit = (vehicleObj?['security_deposit'] as num?)?.toDouble() ?? 0.0;
+    final isBike = vehicleName.toLowerCase().contains('bike') ||
+        vehicleName.toLowerCase().contains('enfield') ||
+        vehicleName.toLowerCase().contains('hunter') ||
+        vehicleName.toLowerCase().contains('activa') ||
+        vehicleName.toLowerCase().contains('scooter');
+
+    // Customer extraction
+    final customerObj = json['customer'] is Map ? json['customer'] as Map<String, dynamic> : null;
+    final customerName = customerObj?['name']?.toString() ?? json['customer_name']?.toString() ?? 'Customer';
+    final customerMobile = customerObj?['mobile']?.toString() ?? json['customer_mobile']?.toString() ?? '';
+
+    // Dates extraction
+    final datesObj = json['dates'] is Map ? json['dates'] as Map<String, dynamic> : null;
+    final startRaw = datesObj?['start_at'] ?? json['start_at'];
+    final endRaw = datesObj?['end_at'] ?? json['end_at'];
+    final startDate = DateTime.tryParse(startRaw?.toString() ?? '') ?? DateTime.now();
+    final endDate = DateTime.tryParse(endRaw?.toString() ?? '') ?? DateTime.now().add(const Duration(days: 2));
+
+    // Calculate duration in days (minimum 1 day)
+    final diffHours = endDate.difference(startDate).inHours;
+    final tripDays = diffHours > 0 ? (diffHours / 24).ceil().clamp(1, 365) : 1;
+
+    // Financials extraction
+    final finObj = json['financials'] is Map ? json['financials'] as Map<String, dynamic> : null;
+
+    double amount = (finObj?['total_amount'] as num?)?.toDouble() ??
+        (json['total_amount'] as num?)?.toDouble() ??
+        (json['amount'] as num?)?.toDouble() ??
+        0.0;
+
+    double deposit = (finObj?['security_deposit'] as num?)?.toDouble() ??
+        (json['security_deposit'] as num?)?.toDouble() ??
+        0.0;
+
+    double advance = (finObj?['advance_paid'] as num?)?.toDouble() ??
+        (json['advance_paid'] as num?)?.toDouble() ??
+        0.0;
+
+    // Dynamic auto-calculate if amount is zero
+    if (amount <= 0) {
+      if (vehicleDaily > 0) {
+        amount = vehicleDaily * tripDays;
+      } else {
+        amount = (isBike ? 800.0 : 2200.0) * tripDays;
+      }
+    }
+
+    // Dynamic auto-calculate if security deposit is zero
+    if (deposit <= 0) {
+      if (vehicleDeposit > 0) {
+        deposit = vehicleDeposit;
+      } else {
+        deposit = isBike ? 1500.0 : 3000.0;
+      }
+    }
+
+    // Pending receivable calculation
+    double pending = (finObj?['balance_due'] as num?)?.toDouble() ??
+        (json['pending_amount'] as num?)?.toDouble() ??
+        (amount - advance);
+    if (pending < 0) pending = 0.0;
+
+    // Inspection extraction
+    final pickupObj = json['pickup_inspection'] is Map ? json['pickup_inspection'] as Map<String, dynamic> : null;
+    final returnObj = json['return_inspection'] is Map ? json['return_inspection'] as Map<String, dynamic> : null;
+
+    final startOdometer = (pickupObj?['odometer'] as num?)?.toInt() ??
+        (json['start_odometer'] as num?)?.toInt() ??
+        0;
+
+    final endOdometer = (returnObj?['odometer'] as num?)?.toInt() ??
+        (json['end_odometer'] as num?)?.toInt();
+
+    final paymentMode = finObj?['payment_mode']?.toString() ??
+        json['payment_mode']?.toString() ??
+        'UPI';
+
+    final id = json['booking_id']?.toString() ??
+        json['order_no']?.toString() ??
+        json['id']?.toString() ??
+        '';
+
+    final vehicleId = json['vehicle_id']?.toString() ?? vehicleObj?['id']?.toString();
+    final customerId = json['customer_id']?.toString() ?? customerObj?['id']?.toString();
 
     return Booking(
-      id: json['order_no']?.toString() ?? json['id']?.toString() ?? '',
-      customerName: json['customer'] is Map
-          ? (json['customer']['name']?.toString() ?? '')
-          : (json['customer_name']?.toString() ?? 'Customer'),
-      customerPhone: json['customer'] is Map
-          ? (json['customer']['mobile']?.toString() ?? '')
-          : (json['customer_mobile']?.toString() ?? ''),
-      vehicleName: json['vehicle'] is Map
-          ? (json['vehicle']['name']?.toString() ?? '')
-          : (json['vehicle_name']?.toString() ?? 'Vehicle'),
-      vehicleRegNumber: json['vehicle'] is Map
-          ? (json['vehicle']['number']?.toString() ?? '')
-          : (json['vehicle_number']?.toString() ?? ''),
-      startDate: DateTime.tryParse(json['start_at']?.toString() ?? '') ?? DateTime.now(),
-      endDate: DateTime.tryParse(json['end_at']?.toString() ?? '') ?? DateTime.now().add(const Duration(days: 2)),
+      id: id,
+      customerName: customerName,
+      customerPhone: customerMobile,
+      vehicleName: vehicleName,
+      vehicleRegNumber: vehicleReg,
+      startDate: startDate,
+      endDate: endDate,
       totalAmount: amount,
       advancePaid: advance,
-      pendingAmount: (json['pending_amount'] as num?)?.toDouble() ?? (amount - advance),
-      securityDeposit: (json['security_deposit'] as num?)?.toDouble() ?? 0.0,
+      pendingAmount: pending,
+      securityDeposit: deposit,
       status: mappedStatus,
-      startOdometer: (json['start_odometer'] as num?)?.toInt() ?? 0,
-      endOdometer: (json['end_odometer'] as num?)?.toInt(),
-      paymentMode: json['payment_mode']?.toString() ?? 'UPI',
+      startOdometer: startOdometer,
+      endOdometer: endOdometer,
+      paymentMode: paymentMode,
       kycDocType: 'Aadhar Card',
       kycDocNumber: 'Verified',
-      vehicleId: json['vehicle_id']?.toString() ?? (json['vehicle'] is Map ? json['vehicle']['id']?.toString() : null),
-      customerId: json['customer_id']?.toString() ?? (json['customer'] is Map ? json['customer']['id']?.toString() : null),
+      vehicleId: vehicleId,
+      customerId: customerId,
     );
   }
 }
