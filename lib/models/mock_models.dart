@@ -162,9 +162,33 @@ class Booking {
   final String? vehicleId;
   final String? customerId;
 
+  // Inspection and trip lifecycle data
+  final DateTime? pickupAt;
+  final DateTime? settledAt;
+  final double? fuelLevelPercent;
+  final String? pickupNotes;
+  final Map<String, List<String>> pickupPhotos;
+  final double? extraKmCharge;
+  final double? fuelCharge;
+  final double? damageDeduction;
+  final double? finalSettlementAmount;
+
   String get displayId => (bookingNumber != null && bookingNumber!.isNotEmpty)
       ? bookingNumber!
       : (id.startsWith('BK-') ? id : 'BK-${id.padLeft(5, '0')}');
+
+  int? get totalKmsDriven => (endOdometer != null && startOdometer > 0) ? (endOdometer! - startOdometer) : null;
+
+  List<String> get allPickupPhotos {
+    final list = <String>[];
+    for (final entry in pickupPhotos.values) {
+      list.addAll(entry);
+    }
+    return list;
+  }
+
+  bool get hasPickupInspection => startOdometer > 0 || allPickupPhotos.isNotEmpty || pickupAt != null;
+  bool get hasReturnInspection => endOdometer != null || settledAt != null;
 
   Booking({
     required this.id,
@@ -187,6 +211,15 @@ class Booking {
     required this.kycDocNumber,
     this.vehicleId,
     this.customerId,
+    this.pickupAt,
+    this.settledAt,
+    this.fuelLevelPercent,
+    this.pickupNotes,
+    this.pickupPhotos = const {},
+    this.extraKmCharge,
+    this.fuelCharge,
+    this.damageDeduction,
+    this.finalSettlementAmount,
   });
 
   factory Booking.fromJson(Map<String, dynamic> json) {
@@ -233,8 +266,13 @@ class Booking {
     final datesObj = json['dates'] is Map ? json['dates'] as Map<String, dynamic> : null;
     final startRaw = datesObj?['start_at'] ?? json['start_at'];
     final endRaw = datesObj?['end_at'] ?? json['end_at'];
+    final pickupRaw = datesObj?['pickup_at'] ?? json['pickup_at'];
+    final settledRaw = datesObj?['settled_at'] ?? json['settled_at'];
+
     final startDate = DateTime.tryParse(startRaw?.toString() ?? '') ?? DateTime.now();
     final endDate = DateTime.tryParse(endRaw?.toString() ?? '') ?? DateTime.now().add(const Duration(days: 2));
+    final pickupAt = DateTime.tryParse(pickupRaw?.toString() ?? '');
+    final settledAt = DateTime.tryParse(settledRaw?.toString() ?? '');
 
     // Calculate duration in days (minimum 1 day)
     final diffHours = endDate.difference(startDate).inHours;
@@ -291,6 +329,45 @@ class Booking {
     final endOdometer = (returnObj?['odometer'] as num?)?.toInt() ??
         (json['end_odometer'] as num?)?.toInt();
 
+    final fuelLevelPercent = (pickupObj?['fuel_percent'] as num?)?.toDouble() ??
+        (json['fuel_level_percent'] as num?)?.toDouble() ??
+        100.0;
+
+    final pickupNotes = pickupObj?['notes']?.toString() ?? json['pickup_notes']?.toString();
+
+    // Parse pickup photos (Map<String, List<String>> or flat list)
+    final Map<String, List<String>> parsedPhotos = {};
+    final rawPhotos = pickupObj?['photos'] ?? json['pickup_photos'];
+    if (rawPhotos is Map) {
+      rawPhotos.forEach((key, val) {
+        if (val is List) {
+          final list = val.map((e) => e.toString()).where((e) => e.isNotEmpty).toList();
+          if (list.isNotEmpty) parsedPhotos[key.toString()] = list;
+        } else if (val is String && val.isNotEmpty) {
+          parsedPhotos[key.toString()] = [val];
+        }
+      });
+    } else if (rawPhotos is List) {
+      final list = rawPhotos.map((e) => e.toString()).where((e) => e.isNotEmpty).toList();
+      if (list.isNotEmpty) parsedPhotos['Inspection Photos'] = list;
+    }
+
+    final extraKmCharge = (returnObj?['extra_km_charge'] as num?)?.toDouble() ??
+        (finObj?['extra_km_charge'] as num?)?.toDouble() ??
+        (json['extra_km_charge'] as num?)?.toDouble();
+
+    final fuelCharge = (returnObj?['fuel_charge'] as num?)?.toDouble() ??
+        (finObj?['fuel_charge'] as num?)?.toDouble() ??
+        (json['fuel_charge'] as num?)?.toDouble();
+
+    final damageDeduction = (returnObj?['damage_deduction'] as num?)?.toDouble() ??
+        (finObj?['damage_deduction'] as num?)?.toDouble() ??
+        (json['damage_deduction'] as num?)?.toDouble();
+
+    final finalSettlement = (returnObj?['final_settlement'] as num?)?.toDouble() ??
+        (finObj?['final_settlement'] as num?)?.toDouble() ??
+        (json['final_amount'] as num?)?.toDouble();
+
     final paymentMode = finObj?['payment_mode']?.toString() ??
         json['payment_mode']?.toString() ??
         'UPI';
@@ -327,6 +404,15 @@ class Booking {
       kycDocNumber: 'Verified',
       vehicleId: vehicleId,
       customerId: customerId,
+      pickupAt: pickupAt,
+      settledAt: settledAt,
+      fuelLevelPercent: fuelLevelPercent,
+      pickupNotes: pickupNotes,
+      pickupPhotos: parsedPhotos,
+      extraKmCharge: extraKmCharge,
+      fuelCharge: fuelCharge,
+      damageDeduction: damageDeduction,
+      finalSettlementAmount: finalSettlement,
     );
   }
 }

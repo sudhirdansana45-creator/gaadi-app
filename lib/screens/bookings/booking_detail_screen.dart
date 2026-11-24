@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/status_chip.dart';
 import '../../widgets/custom_button.dart';
@@ -349,6 +351,14 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
               ),
               const SizedBox(height: 16),
 
+              // 1. Start Pickup & Handover Details Card (with photos)
+              _buildPickupInspectionCard(context, currentBooking),
+              const SizedBox(height: 16),
+
+              // 2. End Trip & Return Settlement Card
+              _buildReturnInspectionCard(context, currentBooking),
+              const SizedBox(height: 16),
+
               // Payment Ledger Summary
               Builder(
                 builder: (context) {
@@ -559,6 +569,640 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
           Text(val, style: TextStyle(color: highlight ? AppColors.warningAmber : (isBold ? AppColors.primaryCyan : AppColors.textPrimary), fontSize: isBold ? 16 : 14, fontWeight: isBold ? FontWeight.bold : FontWeight.w600)),
         ],
       ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // INSPECTION & LIFECYCLE WIDGETS
+  // ---------------------------------------------------------------------------
+
+  Widget _buildPickupInspectionCard(BuildContext context, Booking currentBooking) {
+    final hasPickup = currentBooking.hasPickupInspection || currentBooking.status != BookingStatus.pending;
+    final photosMap = currentBooking.pickupPhotos;
+    final allPhotos = currentBooking.allPickupPhotos;
+    final dateFormat = DateFormat('dd MMM yyyy, hh:mm a');
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.key_rounded, color: AppColors.primaryCyan, size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    'Pickup Inspection & Handover',
+                    style: TextStyle(
+                      color: AppColors.primaryCyan,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: hasPickup ? AppColors.successBg : AppColors.canvasLow,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  hasPickup ? 'Completed' : 'Pending',
+                  style: TextStyle(
+                    color: hasPickup ? AppColors.successGreen : AppColors.textSecondary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          if (!hasPickup) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.canvasLow,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.borderSubtle),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, color: AppColors.primaryCyan, size: 20),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Vehicle pickup checklist has not been submitted yet. Once customer arrives, tap "Start Pickup Checklist" below to record start odometer and vehicle photos.',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.3),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            // Key stats: Start Odometer, Fuel Level %, Handover Time
+            Row(
+              children: [
+                Expanded(
+                  child: _statTile(
+                    icon: Icons.speed_rounded,
+                    label: 'Start Odometer',
+                    value: '${currentBooking.startOdometer} KM',
+                    accentColor: AppColors.primaryCyan,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _statTile(
+                    icon: Icons.local_gas_station_rounded,
+                    label: 'Fuel Level',
+                    value: '${currentBooking.fuelLevelPercent?.toInt() ?? 100}% Full',
+                    accentColor: AppColors.successGreen,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            if (currentBooking.pickupAt != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  children: [
+                    const Icon(Icons.access_time_rounded, color: AppColors.textMuted, size: 14),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Handed Over: ${dateFormat.format(currentBooking.pickupAt!)}',
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+
+            // Accessories Checklist Badges
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.canvasLow,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Wrap(
+                spacing: 12,
+                runSpacing: 6,
+                children: [
+                  _CheckBadge(label: 'Spare Tyre Checked'),
+                  _CheckBadge(label: 'Tool Kit Verified'),
+                  _CheckBadge(label: 'RC Copy Handed'),
+                  _CheckBadge(label: 'Insurance Valid'),
+                ],
+              ),
+            ),
+
+            if (currentBooking.pickupNotes != null && currentBooking.pickupNotes!.trim().isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.canvasLow,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.notes_rounded, color: AppColors.textSecondary, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        currentBooking.pickupNotes!,
+                        style: const TextStyle(color: AppColors.textPrimary, fontSize: 12, height: 1.3),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            // Photos Section
+            const SizedBox(height: 14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.photo_library_rounded, color: AppColors.primaryCyan, size: 16),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Inspection Photos (${allPhotos.length})',
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                if (allPhotos.isNotEmpty)
+                  const Text(
+                    'Tap photo to zoom',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            if (allPhotos.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.canvasLow,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.no_photography_outlined, color: AppColors.textMuted, size: 16),
+                    SizedBox(width: 8),
+                    Text(
+                      'No inspection photos recorded for this pickup.',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                  ],
+                ),
+              )
+            else
+              _buildPhotosGallery(context, photosMap, allPhotos),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReturnInspectionCard(BuildContext context, Booking currentBooking) {
+    final status = currentBooking.status;
+    final isRunning = status == BookingStatus.active || status == BookingStatus.overdue;
+    final isClosed = status == BookingStatus.completed || currentBooking.hasReturnInspection;
+    final dateFormat = DateFormat('dd MMM yyyy, hh:mm a');
+
+    if (!isRunning && !isClosed) {
+      return const SizedBox.shrink();
+    }
+
+    final totalKms = currentBooking.totalKmsDriven;
+    final extraKmCharge = currentBooking.extraKmCharge ?? 0.0;
+    final fuelCharge = currentBooking.fuelCharge ?? 0.0;
+    final damageDeduction = currentBooking.damageDeduction ?? 0.0;
+    final finalSettlement = currentBooking.finalSettlementAmount;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.assignment_turned_in_rounded, color: AppColors.primaryCyan, size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    'Trip End & Return Settlement',
+                    style: TextStyle(
+                      color: AppColors.primaryCyan,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isClosed ? AppColors.successBg : AppColors.warningBg,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  isClosed ? 'Returned & Settled' : 'Trip in Progress',
+                  style: TextStyle(
+                    color: isClosed ? AppColors.successGreen : AppColors.warningAmber,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          if (isRunning) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.canvasLow,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.borderSubtle),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.directions_car_filled_rounded, color: AppColors.warningAmber, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Trip is running since ${currentBooking.pickupAt != null ? dateFormat.format(currentBooking.pickupAt!) : "pickup"}. Return odometer, extra KMs, fuel and damage inspection will be recorded when vehicle is returned.',
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.3),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            // End odometer stats
+            Row(
+              children: [
+                Expanded(
+                  child: _statTile(
+                    icon: Icons.speed_rounded,
+                    label: 'End Odometer',
+                    value: currentBooking.endOdometer != null ? '${currentBooking.endOdometer} KM' : 'Recorded',
+                    accentColor: AppColors.primaryCyan,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _statTile(
+                    icon: Icons.route_rounded,
+                    label: 'Total Driven',
+                    value: totalKms != null ? '$totalKms KM' : 'N/A',
+                    accentColor: AppColors.warningAmber,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            if (currentBooking.settledAt != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle_outline_rounded, color: AppColors.successGreen, size: 14),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Returned On: ${dateFormat.format(currentBooking.settledAt!)}',
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+
+            // Itemized Return Settlement Charges
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.canvasLow,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                children: [
+                  _row('Extra KM Charges', '₹${extraKmCharge.toInt()}'),
+                  _row('Fuel Shortage Charge', '₹${fuelCharge.toInt()}'),
+                  _row('Damage Deductions', '₹${damageDeduction.toInt()}', highlight: damageDeduction > 0),
+                  const Divider(color: AppColors.borderHairline, height: 14),
+                  _row(
+                    'Final Settlement Amount',
+                    '₹${finalSettlement != null ? finalSettlement.toInt() : (extraKmCharge + fuelCharge + damageDeduction).toInt()}',
+                    isBold: true,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhotosGallery(BuildContext context, Map<String, List<String>> photosMap, List<String> allPhotos) {
+    // If categorized by angle
+    if (photosMap.isNotEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: photosMap.entries.map((entry) {
+          final angle = entry.key;
+          final photos = entry.value;
+          if (photos.isEmpty) return const SizedBox.shrink();
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          color: AppColors.primaryCyan,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '$angle (${photos.length})',
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: 90,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: photos.length,
+                    separatorBuilder: (ctx, idx) => const SizedBox(width: 10),
+                    itemBuilder: (ctx, i) => _buildPhotoThumbnail(context, photos[i], '$angle #${i + 1}'),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      );
+    }
+
+    // Flat list fallback
+    return SizedBox(
+      height: 90,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: allPhotos.length,
+        separatorBuilder: (ctx, idx) => const SizedBox(width: 10),
+        itemBuilder: (ctx, i) => _buildPhotoThumbnail(context, allPhotos[i], 'Photo #${i + 1}'),
+      ),
+    );
+  }
+
+  Widget _buildPhotoThumbnail(BuildContext context, String url, String angle) {
+    return GestureDetector(
+      onTap: () => _showPhotoPreview(context, url, angle),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          width: 90,
+          height: 90,
+          decoration: BoxDecoration(
+            color: AppColors.surfaceHover,
+            border: Border.all(color: AppColors.borderSubtle),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              _renderImageWidget(url),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                  color: Colors.black.withValues(alpha: 0.65),
+                  child: Text(
+                    angle,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.fullscreen_rounded, color: Colors.white, size: 14),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _renderImageWidget(String url) {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return Image.network(
+        url,
+        fit: BoxFit.cover,
+        loadingBuilder: (ctx, child, progress) {
+          if (progress == null) return child;
+          return const Center(
+            child: SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryCyan),
+            ),
+          );
+        },
+        errorBuilder: (ctx, err, stack) => const Center(
+          child: Icon(Icons.broken_image_rounded, color: AppColors.textMuted, size: 24),
+        ),
+      );
+    }
+
+    try {
+      String clean = url;
+      if (clean.contains('base64,')) {
+        clean = clean.split('base64,').last;
+      }
+      final bytes = base64Decode(clean);
+      return Image.memory(bytes, fit: BoxFit.cover);
+    } catch (_) {
+      return const Center(
+        child: Icon(Icons.directions_car_rounded, color: AppColors.primaryCyan, size: 24),
+      );
+    }
+  }
+
+  void _showPhotoPreview(BuildContext context, String imageUrl, String title) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (ctx) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Colors.white, size: 26),
+                    onPressed: () => Navigator.of(ctx).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.75,
+                    maxWidth: MediaQuery.of(context).size.width * 0.95,
+                  ),
+                  color: AppColors.surfaceCard,
+                  child: InteractiveViewer(
+                    maxScale: 4.0,
+                    child: _renderImageWidget(imageUrl),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _statTile({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color accentColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.canvasLow,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.borderSubtle),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: accentColor, size: 20),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CheckBadge extends StatelessWidget {
+  final String label;
+
+  const _CheckBadge({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.check_circle_rounded, color: AppColors.successGreen, size: 14),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w500),
+        ),
+      ],
     );
   }
 }
