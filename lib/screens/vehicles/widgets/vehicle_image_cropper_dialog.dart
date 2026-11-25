@@ -119,15 +119,15 @@ class _VehicleImageCropperDialogState extends State<VehicleImageCropperDialog> {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final dialogWidth = math.min(screenSize.width - 24, 620.0);
-    final maxCropHeight = math.min(screenSize.height * 0.45, 340.0);
+    final dialogWidth = math.min(screenSize.width - 20, 580.0);
+    final maxCropHeight = math.min(screenSize.height * 0.38, 280.0);
 
     return Dialog(
       backgroundColor: const Color(0xFF0E131E),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: Color(0x334CD7F6), width: 1),
+        side: const BorderSide(color: Color(0x334CD7F6), width: 1.5),
       ),
       child: Container(
         width: dialogWidth,
@@ -407,44 +407,86 @@ class _VehicleImageCropperDialogState extends State<VehicleImageCropperDialog> {
 
   Widget _buildControlsToolbar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        spacing: 8,
-        runSpacing: 6,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.textPrimary,
-              side: const BorderSide(color: Color(0x33FFFFFF)),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            onPressed: _rotateClockwise,
-            icon: const Icon(Icons.rotate_right_rounded, size: 16, color: Color(0xFF4CD7F6)),
-            label: const Text('Rotate 90°', style: TextStyle(fontSize: 12)),
+          // Adjustment buttons row: Rotate, Reset, Preview
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: const BorderSide(color: Color(0x33FFFFFF)),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: _rotateClockwise,
+                  icon: const Icon(Icons.rotate_right_rounded, size: 16, color: Color(0xFF4CD7F6)),
+                  label: const Text('Rotate 90°', style: TextStyle(fontSize: 12)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: const BorderSide(color: Color(0x33FFFFFF)),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: _resetTransform,
+                  icon: const Icon(Icons.restart_alt_rounded, size: 16, color: Color(0xFF869397)),
+                  label: const Text('Reset', style: TextStyle(fontSize: 12)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF4EDEAE),
+                    side: const BorderSide(color: Color(0x334EDEAE)),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: _isProcessing ? null : _previewCrop,
+                  icon: const Icon(Icons.remove_red_eye_rounded, size: 16, color: Color(0xFF4EDEAE)),
+                  label: const Text('Preview', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                ),
+              ),
+            ],
           ),
-          OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.textPrimary,
-              side: const BorderSide(color: Color(0x33FFFFFF)),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          const SizedBox(height: 10),
+          // Directly visible Primary Crop & Add Button right beneath controls
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF06B6D4),
+                foregroundColor: const Color(0xFF003640),
+                elevation: 3,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: _isProcessing ? null : _saveCroppedPhoto,
+              icon: _isProcessing
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF003640)),
+                    )
+                  : const Icon(Icons.check_circle_rounded, size: 18, color: Color(0xFF003640)),
+              label: Text(
+                _isProcessing ? 'Processing Crop...' : 'Crop & Add Photo',
+                style: const TextStyle(
+                  color: Color(0xFF003640),
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-            onPressed: _resetTransform,
-            icon: const Icon(Icons.restart_alt_rounded, size: 16, color: Color(0xFF869397)),
-            label: const Text('Reset', style: TextStyle(fontSize: 12)),
-          ),
-          OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF4EDEAE),
-              side: const BorderSide(color: Color(0x334EDEAE)),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            onPressed: _isProcessing ? null : _previewCrop,
-            icon: const Icon(Icons.crop_rounded, size: 16, color: Color(0xFF4EDEAE)),
-            label: const Text('Crop Preview', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -457,10 +499,10 @@ class _VehicleImageCropperDialogState extends State<VehicleImageCropperDialog> {
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: const Color(0xFF4EDEAE).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0x334EDEAE)),
             ),
             child: const Row(
@@ -469,7 +511,7 @@ class _VehicleImageCropperDialogState extends State<VehicleImageCropperDialog> {
                 Icon(Icons.check_circle_rounded, size: 14, color: Color(0xFF4EDEAE)),
                 SizedBox(width: 6),
                 Text(
-                  'Cropped Successfully — Ready to Save',
+                  'Crop Ready! Tap "Save & Add Photo" below',
                   style: TextStyle(color: Color(0xFF4EDEAE), fontSize: 11, fontWeight: FontWeight.bold),
                 ),
               ],
@@ -491,6 +533,45 @@ class _VehicleImageCropperDialogState extends State<VehicleImageCropperDialog> {
               ),
             ),
           ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF4CD7F6),
+                    side: const BorderSide(color: Color(0x334CD7F6)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: _isProcessing ? null : _adjustAgain,
+                  icon: const Icon(Icons.tune_rounded, size: 16, color: Color(0xFF4CD7F6)),
+                  label: const Text(
+                    'Re-adjust Crop',
+                    style: TextStyle(color: Color(0xFF4CD7F6), fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF06B6D4),
+                    foregroundColor: const Color(0xFF003640),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: _isProcessing ? null : _saveCroppedPhoto,
+                  icon: const Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF003640)),
+                  label: const Text(
+                    'Save & Add Photo',
+                    style: TextStyle(color: Color(0xFF003640), fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -499,75 +580,76 @@ class _VehicleImageCropperDialogState extends State<VehicleImageCropperDialog> {
   Widget _buildBottomBar(BuildContext context) {
     final bool isPreview = _previewCroppedBytes != null;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-      child: Row(
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+      color: const Color(0xFF0B101B),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Use Original Button
-          OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF94A3B8),
-              side: const BorderSide(color: Color(0x3394A3B8)),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            onPressed: _isProcessing
-                ? null
-                : () => Navigator.pop(context, widget.imageBytes), // Keep original without crop
-            icon: const Icon(Icons.image_outlined, size: 16, color: Color(0xFF94A3B8)),
-            label: const Text(
-              'Use Original',
-              style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12, fontWeight: FontWeight.w600),
+          // Primary full-width Crop/Save button
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF06B6D4),
+                foregroundColor: const Color(0xFF003640),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                elevation: 4,
+              ),
+              onPressed: _isProcessing ? null : _saveCroppedPhoto,
+              icon: _isProcessing
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF003640)),
+                    )
+                  : const Icon(Icons.check_circle_rounded, size: 18, color: Color(0xFF003640)),
+              label: Text(
+                _isProcessing
+                    ? 'Saving...'
+                    : (isPreview ? 'Save & Add Photo' : 'Crop & Add Photo'),
+                style: const TextStyle(
+                  color: Color(0xFF003640),
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
-
-          if (isPreview) ...[
-            const SizedBox(width: 8),
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF4CD7F6),
-                side: const BorderSide(color: Color(0x334CD7F6)),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          const SizedBox(height: 6),
+          // Secondary actions: Keep Original & Cancel/Adjust
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton.icon(
+                onPressed: _isProcessing
+                    ? null
+                    : () => Navigator.pop(context, widget.imageBytes), // Keep original without crop
+                icon: const Icon(Icons.image_outlined, size: 15, color: Color(0xFF94A3B8)),
+                label: const Text(
+                  'Use Original (No Crop)',
+                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.w600),
+                ),
               ),
-              onPressed: _isProcessing ? null : _adjustAgain,
-              icon: const Icon(Icons.tune_rounded, size: 16, color: Color(0xFF4CD7F6)),
-              label: const Text(
-                'Adjust Again',
-                style: TextStyle(color: Color(0xFF4CD7F6), fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-
-          const Spacer(),
-
-          // Primary Action: Crop & Save (or Save & Add Photo)
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF06B6D4),
-              foregroundColor: const Color(0xFF003640),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              elevation: 4,
-            ),
-            onPressed: _isProcessing ? null : _saveCroppedPhoto,
-            icon: _isProcessing
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF003640)),
-                  )
-                : const Icon(Icons.check_circle_rounded, size: 18, color: Color(0xFF003640)),
-            label: Text(
-              _isProcessing
-                  ? 'Saving...'
-                  : (isPreview ? 'Save & Add Photo' : 'Crop & Save'),
-              style: const TextStyle(
-                color: Color(0xFF003640),
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+              if (isPreview)
+                TextButton.icon(
+                  onPressed: _isProcessing ? null : _adjustAgain,
+                  icon: const Icon(Icons.tune_rounded, size: 15, color: Color(0xFF4CD7F6)),
+                  label: const Text(
+                    'Re-adjust',
+                    style: TextStyle(color: Color(0xFF4CD7F6), fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
+                )
+              else
+                TextButton(
+                  onPressed: () => Navigator.pop(context, null),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Color(0xFF64748B), fontSize: 11),
+                  ),
+                ),
+            ],
           ),
         ],
       ),
