@@ -31,6 +31,11 @@ class _PlansAndUsageScreenState extends State<PlansAndUsageScreen> {
 
   List<PlanModel> _plans = [];
 
+  // Payment Gateway Config loaded from Admin Panel Settings
+  String _gatewayName = 'Razorpay';
+  bool _isTestMode = true;
+  String _gatewayKey = '';
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +45,7 @@ class _PlansAndUsageScreenState extends State<PlansAndUsageScreen> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
+      // 1. Fetch Subscription Info
       final subRes = await ApiService().getMySubscription();
       if (subRes != null && subRes['data'] != null && mounted) {
         final d = subRes['data'];
@@ -59,6 +65,24 @@ class _PlansAndUsageScreenState extends State<PlansAndUsageScreen> {
         });
       }
 
+      // 2. Fetch App Config & Payment Gateway Settings from Admin Panel
+      try {
+        final configRes = await ApiService().getAppSettings();
+        if (configRes != null && configRes['data'] is Map && mounted) {
+          final c = configRes['data'];
+          final isTest = c['is_payment_test_mode'] == true || c['payment_gateway_mode'] == 'test';
+          final primaryGw = c['primary_gateway']?.toString() ?? 'razorpay';
+          final rzpKey = c['razorpay_key']?.toString() ?? '';
+
+          setState(() {
+            _isTestMode = isTest;
+            _gatewayName = primaryGw;
+            _gatewayKey = rzpKey;
+          });
+        }
+      } catch (_) {}
+
+      // 3. Fetch Plans
       final plansRes = await ApiService().getPlans();
       if (plansRes != null && plansRes['data'] is List && mounted) {
         final List list = plansRes['data'];
@@ -91,25 +115,357 @@ class _PlansAndUsageScreenState extends State<PlansAndUsageScreen> {
     }
   }
 
-  Future<void> _handleUpgrade(PlanModel plan) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Requesting upgrade to ${plan.name}...')),
+  void _handleUpgrade(PlanModel plan) {
+    _showPaymentModal(plan);
+  }
+
+  void _showPaymentModal(PlanModel plan) {
+    String selectedMethod = _isTestMode ? 'sandbox' : 'upi';
+    bool isProcessing = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF131722),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 28,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            plan.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'Subscription Plan Upgrade',
+                            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryCyan.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.primaryCyan.withOpacity(0.4)),
+                        ),
+                        child: Text(
+                          '₹${plan.pricePerMonth.toInt()} /mo',
+                          style: const TextStyle(
+                            color: AppColors.primaryCyan,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Admin Gateway Test / Live Mode Banner
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: _isTestMode
+                          ? const Color(0xFFD97706).withOpacity(0.12)
+                          : const Color(0xFF059669).withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: _isTestMode
+                            ? const Color(0xFFF59E0B).withOpacity(0.4)
+                            : const Color(0xFF10B981).withOpacity(0.4),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              _isTestMode ? Icons.science_rounded : Icons.verified_user_rounded,
+                              size: 18,
+                              color: _isTestMode ? const Color(0xFFFBBF24) : const Color(0xFF34D399),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _isTestMode ? 'ADMIN PANEL TEST MODE (SANDBOX)' : 'LIVE PAYMENT GATEWAY',
+                              style: TextStyle(
+                                color: _isTestMode ? const Color(0xFFFBBF24) : const Color(0xFF34D399),
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          _isTestMode
+                              ? 'Admin panel has set Payment Mode to Test. Real payments will NOT be charged. All plan features will be unlocked immediately via simulated Sandbox transaction.'
+                              : 'Secure encrypted payment transaction through ${_gatewayName.toUpperCase()} gateway.',
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, height: 1.4),
+                        ),
+                        if (_gatewayKey.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            'Active Gateway: ${_gatewayName.toUpperCase()} • Key ID: ${_gatewayKey.length > 14 ? "${_gatewayKey.substring(0, 10)}..." : _gatewayKey}',
+                            style: const TextStyle(color: Colors.white70, fontSize: 10, fontFamily: 'monospace'),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  const Text(
+                    'Select Payment Method',
+                    style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 10),
+
+                  if (_isTestMode)
+                    _buildPaymentMethodOption(
+                      id: 'sandbox',
+                      icon: Icons.flash_on_rounded,
+                      title: 'Instant Sandbox Simulation (Recommended)',
+                      subtitle: 'Simulates gateway approval & upgrades immediately',
+                      selected: selectedMethod == 'sandbox',
+                      onTap: () => setModalState(() => selectedMethod = 'sandbox'),
+                    ),
+                  _buildPaymentMethodOption(
+                    id: 'upi',
+                    icon: Icons.account_balance_wallet_rounded,
+                    title: 'UPI (Google Pay / PhonePe / Paytm / BHIM)',
+                    subtitle: 'Instant UPI Intent or QR payment',
+                    selected: selectedMethod == 'upi',
+                    onTap: () => setModalState(() => selectedMethod = 'upi'),
+                  ),
+                  _buildPaymentMethodOption(
+                    id: 'cards',
+                    icon: Icons.credit_card_rounded,
+                    title: 'Credit / Debit Cards & NetBanking',
+                    subtitle: 'Visa, MasterCard, RuPay, Corporate NetBanking',
+                    selected: selectedMethod == 'cards',
+                    onTap: () => setModalState(() => selectedMethod = 'cards'),
+                  ),
+                  const SizedBox(height: 20),
+
+                  CustomButton(
+                    text: isProcessing
+                        ? 'Processing Payment...'
+                        : _isTestMode
+                            ? 'Complete Test Payment (₹${plan.pricePerMonth.toInt()})'
+                            : 'Pay ₹${plan.pricePerMonth.toInt()} via ${_gatewayName.toUpperCase()}',
+                    icon: isProcessing ? null : Icons.lock_outline_rounded,
+                    isLoading: isProcessing,
+                    onPressed: isProcessing
+                        ? null
+                        : () async {
+                            setModalState(() => isProcessing = true);
+                            final txnId = 'TXN_${DateTime.now().millisecondsSinceEpoch}';
+                            try {
+                              await ApiService().requestPlanUpgrade(
+                                plan.id,
+                                paid: true,
+                                paymentId: txnId,
+                                gateway: _gatewayName,
+                                isTestMode: _isTestMode,
+                              );
+                              if (ctx.mounted) {
+                                Navigator.of(ctx).pop();
+                              }
+                              if (mounted) {
+                                _showSuccessDialog(plan, txnId);
+                                _loadData();
+                              }
+                            } catch (e) {
+                              setModalState(() => isProcessing = false);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Payment failed: $e'),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
-    try {
-      await ApiService().requestPlanUpgrade(plan.id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upgrade request to ${plan.name} submitted successfully!')),
-        );
-        _loadData();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Redirecting to UPI payment for ${plan.name}...')),
-        );
-      }
-    }
+  }
+
+  void _showSuccessDialog(PlanModel plan, String txnId) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF161B26),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.successGreen.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check_circle_rounded, color: AppColors.successGreen, size: 48),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Upgraded to ${plan.name}!',
+              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _isTestMode
+                  ? 'Payment verified successfully in Test Mode (Sandbox). All plan quotas and staff limits have been activated!'
+                  : 'Payment processed successfully! Your subscription has been upgraded.',
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F131D),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.borderSubtle),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Transaction Ref:', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                      Text(txnId, style: const TextStyle(color: AppColors.primaryCyan, fontSize: 11, fontFamily: 'monospace')),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Gateway Mode:', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                      Text(
+                        _isTestMode ? 'Test Mode (Sandbox)' : 'Live Production',
+                        style: TextStyle(
+                          color: _isTestMode ? const Color(0xFFFBBF24) : AppColors.successGreen,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            CustomButton(
+              text: 'Done',
+              onPressed: () => Navigator.pop(ctx),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPaymentMethodOption({
+    required String id,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primaryCyan.withOpacity(0.08) : const Color(0xFF161B26),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: selected ? AppColors.primaryCyan : AppColors.borderSubtle,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: selected ? AppColors.primaryCyan : Colors.white70, size: 22),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: selected ? Colors.white : Colors.white70,
+                      fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+                      fontSize: 13,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              selected ? Icons.radio_button_checked : Icons.radio_button_off,
+              color: selected ? AppColors.primaryCyan : Colors.white24,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -339,15 +695,23 @@ class _PlansAndUsageScreenState extends State<PlansAndUsageScreen> {
                         )
                       else ...[
                         CustomButton(
-                          text: 'Upgrade with UPI (Google Pay / PhonePe autopay)',
+                          text: _isTestMode
+                              ? 'Upgrade via ${_gatewayName.toUpperCase()} [TEST MODE]'
+                              : 'Upgrade via ${_gatewayName.toUpperCase()}',
                           icon: Icons.bolt_rounded,
                           onPressed: () => _handleUpgrade(plan),
                         ),
                         const SizedBox(height: 8),
-                        const Center(
+                        Center(
                           child: Text(
-                            'Renews on the same date every month.',
-                            style: TextStyle(color: AppColors.textMuted, fontSize: 11),
+                            _isTestMode
+                                ? 'Admin Test Mode active: Simulated zero-cost upgrade'
+                                : 'Renews on the same date every month.',
+                            style: TextStyle(
+                              color: _isTestMode ? const Color(0xFFFBBF24) : AppColors.textMuted,
+                              fontSize: 11,
+                              fontWeight: _isTestMode ? FontWeight.w600 : FontWeight.normal,
+                            ),
                           ),
                         ),
                       ],

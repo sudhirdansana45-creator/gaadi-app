@@ -302,9 +302,19 @@ class ApiService {
     return await _client.get(ApiConfig.mySubscription);
   }
 
-  Future<dynamic> requestPlanUpgrade(String planId) async {
+  Future<dynamic> requestPlanUpgrade(
+    String planId, {
+    bool? paid,
+    String? paymentId,
+    String? gateway,
+    bool? isTestMode,
+  }) async {
     return await _client.post(ApiConfig.upgradeRequest, body: {
       'plan_id': planId,
+      'paid': ?paid,
+      'payment_id': ?paymentId,
+      'gateway': ?gateway,
+      'is_test_mode': ?isTestMode,
     });
   }
 
@@ -317,11 +327,14 @@ class ApiService {
     required String name,
     required String phone,
     required String role,
+    String? email,
   }) async {
     return await _client.post(ApiConfig.staff, body: {
       'name': name,
       'phone': phone,
+      'mobile': phone,
       'role': role,
+      'email': ?email,
     });
   }
 

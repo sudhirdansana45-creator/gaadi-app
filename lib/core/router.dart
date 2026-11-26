@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
 import 'routes.dart';
@@ -37,6 +38,87 @@ import '../services/api_client.dart';
 import '../models/mock_models.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
+
+Future<bool?> _showExitConfirmationModal(BuildContext context) {
+  return showModalBottomSheet<bool>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        decoration: const BoxDecoration(
+          color: Color(0xFF161B26),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border(top: BorderSide(color: Color(0xFF2A3854), width: 1)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444).withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.power_settings_new_rounded, color: Color(0xFFEF4444), size: 32),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Exit Gaadi Manager?',
+              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Are you sure you want to close the application?',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white70,
+                      side: const BorderSide(color: Color(0xFF2A3854)),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEF4444),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                    ),
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: const Text('Exit App', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
@@ -89,33 +171,47 @@ final appRouter = GoRouter(
     // Shell Route for 5 Bottom-Nav Tabs
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          body: SafeArea(
-            top: true,
-            bottom: false,
-            child: navigationShell,
-          ),
-          bottomNavigationBar: AppBottomNav(
-            currentIndex: navigationShell.currentIndex,
-            onTap: (index) {
-              navigationShell.goBranch(
-                index,
-                initialLocation: index == navigationShell.currentIndex,
-              );
-            },
-            onQuickBooking: () {
-              if (!PlanGuard.canCreateBill()) {
-                DailyLimitModal.show(
-                  context: context,
-                  onUpgrade: () {
-                    context.push(AppRoutes.plans);
-                  },
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) async {
+            if (didPop) return;
+            if (navigationShell.currentIndex != 0) {
+              navigationShell.goBranch(0);
+              return;
+            }
+            final shouldExit = await _showExitConfirmationModal(context);
+            if (shouldExit == true) {
+              SystemNavigator.pop();
+            }
+          },
+          child: Scaffold(
+            backgroundColor: AppColors.background,
+            body: SafeArea(
+              top: true,
+              bottom: false,
+              child: navigationShell,
+            ),
+            bottomNavigationBar: AppBottomNav(
+              currentIndex: navigationShell.currentIndex,
+              onTap: (index) {
+                navigationShell.goBranch(
+                  index,
+                  initialLocation: index == navigationShell.currentIndex,
                 );
-              } else {
-                context.push(AppRoutes.newBooking);
-              }
-            },
+              },
+              onQuickBooking: () {
+                if (!PlanGuard.canCreateBill()) {
+                  DailyLimitModal.show(
+                    context: context,
+                    onUpgrade: () {
+                      context.push(AppRoutes.plans);
+                    },
+                  );
+                } else {
+                  context.push(AppRoutes.newBooking);
+                }
+              },
+            ),
           ),
         );
       },

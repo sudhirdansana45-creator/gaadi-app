@@ -1,5 +1,7 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../core/api_config.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../services/api_service.dart';
@@ -7,6 +9,7 @@ import '../../services/api_client.dart';
 import '../../models/mock_models.dart';
 import '../../core/utils/external_actions.dart';
 import '../modals/daily_limit_modal.dart';
+import '../maintenance/maintenance_screen.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
   final Function(String route, {dynamic args}) onNavigate;
@@ -33,6 +36,21 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   Future<void> _loadDashboardData() async {
     setState(() => _isLoading = true);
     try {
+      // Check server maintenance mode first
+      try {
+        final configRes = await ApiService().getAppSettings();
+        if (configRes != null && configRes['data'] != null && mounted) {
+          final config = configRes['data'] as Map<String, dynamic>;
+          if (config['maintenance_mode'] == true) {
+            _showMaintenanceScreen(
+              until: config['maintenance_until']?.toString(),
+              message: config['maintenance_message']?.toString(),
+            );
+            return;
+          }
+        }
+      } catch (_) {}
+
       final res = await ApiService().getDashboardStats();
       if (res != null && res['data'] != null) {
         final data = res['data'] as Map<String, dynamic>;
@@ -52,6 +70,288 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  void _showMaintenanceScreen({String? until, String? message}) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (ctx) => MaintenanceScreen(
+          maintenanceUntil: until,
+          maintenanceMessage: message,
+          onMaintenanceEnded: () {
+            Navigator.of(ctx).pop();
+            _loadDashboardData();
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showAddStaffSheet(BuildContext context) {
+    final nameCtrl = TextEditingController();
+    final mobileCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    String selectedRole = 'Staff';
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (modalContext, setModalState) {
+            return Container(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
+              ),
+              decoration: const BoxDecoration(
+                color: Color(0xFF131722),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 44,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.white24,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4EDEAE).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.person_add_alt_1_rounded, color: Color(0xFF4EDEAE), size: 22),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Add Staff Member',
+                                style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Register manager, driver, or staff access',
+                                style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Full Name
+                    TextField(
+                      controller: nameCtrl,
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      decoration: InputDecoration(
+                        labelText: 'Staff Full Name *',
+                        labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                        hintText: 'e.g. Amit Kumar',
+                        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                        prefixIcon: const Icon(Icons.person_outline_rounded, color: Color(0xFF4EDEAE), size: 20),
+                        filled: true,
+                        fillColor: const Color(0xFF1B2232),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF2A3854)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF4EDEAE), width: 1.5),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Mobile
+                    TextField(
+                      controller: mobileCtrl,
+                      keyboardType: TextInputType.phone,
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      decoration: InputDecoration(
+                        labelText: 'Mobile Number *',
+                        labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                        hintText: '10-digit mobile number',
+                        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                        prefixIcon: const Icon(Icons.phone_outlined, color: Colors.white70, size: 20),
+                        filled: true,
+                        fillColor: const Color(0xFF1B2232),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF2A3854)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF4EDEAE), width: 1.5),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Email (Optional)
+                    TextField(
+                      controller: emailCtrl,
+                      keyboardType: TextInputType.emailAddress,
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      decoration: InputDecoration(
+                        labelText: 'Email Address (Optional)',
+                        labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                        hintText: 'e.g. staff@example.com',
+                        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                        prefixIcon: const Icon(Icons.email_outlined, color: Colors.white70, size: 20),
+                        filled: true,
+                        fillColor: const Color(0xFF1B2232),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF2A3854)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF4EDEAE), width: 1.5),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Role Selector
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1B2232),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF2A3854)),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedRole,
+                          dropdownColor: const Color(0xFF1B2232),
+                          isExpanded: true,
+                          icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF4EDEAE)),
+                          style: const TextStyle(color: Colors.white, fontSize: 14),
+                          items: const [
+                            DropdownMenuItem(value: 'Staff', child: Text('Staff / Operations')),
+                            DropdownMenuItem(value: 'Manager', child: Text('Fleet Manager')),
+                            DropdownMenuItem(value: 'Driver', child: Text('Chauffeur / Driver')),
+                            DropdownMenuItem(value: 'Accountant', child: Text('Accountant')),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) setModalState(() => selectedRole = val);
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Save Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4EDEAE),
+                          foregroundColor: const Color(0xFF003828),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        onPressed: isSaving
+                            ? null
+                            : () async {
+                                final name = nameCtrl.text.trim();
+                                final mobile = mobileCtrl.text.trim();
+                                final email = emailCtrl.text.trim();
+
+                                if (name.isEmpty || mobile.length < 10) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Please enter staff name and valid 10-digit mobile number.'),
+                                      backgroundColor: Colors.redAccent,
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                setModalState(() => isSaving = true);
+                                try {
+                                  await ApiService().createStaffUser(
+                                    name: name,
+                                    phone: mobile,
+                                    email: email.isNotEmpty ? email : null,
+                                    role: selectedRole.toLowerCase(),
+                                  );
+                                  if (context.mounted) {
+                                    Navigator.pop(ctx);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Staff member "$name" added successfully!'),
+                                        backgroundColor: const Color(0xFF00C853),
+                                      ),
+                                    );
+                                    _loadDashboardData();
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    setModalState(() => isSaving = false);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Failed to add staff: $e'),
+                                        backgroundColor: Colors.redAccent,
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                        child: isSaving
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF003828)),
+                              )
+                            : const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.check_circle_rounded, size: 20),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Save Staff Member',
+                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   void _handleNewBookingTap(BuildContext context) {
@@ -136,7 +436,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     if (snapshot.hasData && snapshot.data != null && snapshot.data['data'] is List) {
                       ongoing = (snapshot.data['data'] as List)
                           .map((e) => Booking.fromJson(e as Map<String, dynamic>))
-                          .where((b) => b.status.toLowerCase() != 'returned' && b.status.toLowerCase() != 'completed' && b.status.toLowerCase() != 'cancelled')
+                          .where((b) => b.status != BookingStatus.completed && b.status != BookingStatus.cancelled)
                           .toList();
                     }
                     if (ongoing.isEmpty) {
@@ -171,7 +471,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     }
                     return ListView.separated(
                       itemCount: ongoing.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      separatorBuilder: (context, index) => const SizedBox(height: 8),
                       itemBuilder: (context, i) {
                         final b = ongoing[i];
                         return Container(
@@ -202,7 +502,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      '${b.vehicleNumber} • ${b.customerName}',
+                                      '${b.vehicleRegNumber} • ${b.customerName}',
                                       style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
                                     ),
                                   ],
@@ -867,10 +1167,10 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           children: [
             Expanded(
               child: _buildExpressButton(
-                icon: Icons.key_rounded,
-                iconColor: const Color(0xFF4CD7F6),
-                label: 'Quick Out',
-                onTap: () => _handleNewBookingTap(context),
+                icon: Icons.person_add_alt_1_rounded,
+                iconColor: const Color(0xFF4EDEAE),
+                label: '+ Staff',
+                onTap: () => _showAddStaffSheet(context),
               ),
             ),
             const SizedBox(width: 8),
@@ -1187,78 +1487,84 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         ),
         const SizedBox(height: 10),
 
-        // 3 Mini Cards Operations Fleet Status Row
+        // 3 Mini Cards Operations Fleet Status Row (All Clickable)
         Row(
           children: [
             // On Trip
             Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1B1F2B),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF2A3854).withValues(alpha: 0.3)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'ON TRIP',
-                      style: TextStyle(color: Color(0xFFBCC9CD), fontSize: 10, fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '$onTripCount',
-                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'Active on Road',
-                      style: TextStyle(color: Color(0xFF869397), fontSize: 10),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+              child: GestureDetector(
+                onTap: () => widget.onNavigate('bookings'),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1B1F2B),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFF2A3854).withValues(alpha: 0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'ON TRIP',
+                        style: TextStyle(color: Color(0xFFBCC9CD), fontSize: 10, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$onTripCount',
+                        style: const TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Active on Road',
+                        style: TextStyle(color: Color(0xFF869397), fontSize: 10),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 8),
 
-            // Returning
+            // Returning / Available
             Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1B1F2B),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF2A3854).withValues(alpha: 0.3)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'AVAILABLE',
-                          style: TextStyle(color: Color(0xFFBCC9CD), fontSize: 10, fontWeight: FontWeight.w600),
-                        ),
-                        CircleAvatar(radius: 3, backgroundColor: Color(0xFF4CD7F6)),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '$returningCount Ready',
-                      style: const TextStyle(color: Color(0xFF4CD7F6), fontSize: 20, fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'In Garage Depot',
-                      style: TextStyle(color: Color(0xFF869397), fontSize: 10),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+              child: GestureDetector(
+                onTap: () => widget.onNavigate('vehicles'),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1B1F2B),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFF2A3854).withValues(alpha: 0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'AVAILABLE',
+                            style: TextStyle(color: Color(0xFFBCC9CD), fontSize: 10, fontWeight: FontWeight.w600),
+                          ),
+                          CircleAvatar(radius: 3, backgroundColor: Color(0xFF4CD7F6)),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$returningCount Ready',
+                        style: const TextStyle(color: Color(0xFF4CD7F6), fontSize: 20, fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'In Garage Depot',
+                        style: TextStyle(color: Color(0xFF869397), fontSize: 10),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -1266,39 +1572,136 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
 
             // Overdue / Late
             Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF93000A).withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFFFB4AB).withValues(alpha: 0.3)),
+              child: GestureDetector(
+                onTap: () => widget.onNavigate('bookings'),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF93000A).withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFFB4AB).withValues(alpha: 0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'LATE',
+                            style: TextStyle(color: Color(0xFFFFB4AB), fontSize: 10, fontWeight: FontWeight.w700),
+                          ),
+                          Icon(Icons.warning_amber_rounded, color: Color(0xFFFFB4AB), size: 14),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$overdueCount Alert',
+                        style: const TextStyle(color: Color(0xFFFFB4AB), fontSize: 20, fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Action Req.',
+                        style: TextStyle(color: Color(0xFFFFB4AB), fontSize: 10, fontWeight: FontWeight.w600),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'LATE',
-                          style: TextStyle(color: Color(0xFFFFB4AB), fontSize: 10, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // Staff and Fleet count row (Clickable)
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => widget.onNavigate('users_and_roles'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1B1F2B),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFF4EDEAE).withValues(alpha: 0.35)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4EDEAE).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        Icon(Icons.warning_amber_rounded, color: Color(0xFFFFB4AB), size: 14),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '$overdueCount Alert',
-                      style: const TextStyle(color: Color(0xFFFFB4AB), fontSize: 20, fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'Action Req.',
-                      style: TextStyle(color: Color(0xFFFFB4AB), fontSize: 10, fontWeight: FontWeight.w600),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                        child: const Icon(Icons.people_alt_rounded, color: Color(0xFF4EDEAE), size: 18),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'TOTAL STAFF',
+                              style: TextStyle(color: Color(0xFFBCC9CD), fontSize: 10, fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${metrics?['total_staff'] ?? 0} Members',
+                              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFF4EDEAE), size: 12),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => widget.onNavigate('vehicles'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1B1F2B),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFF4CD7F6).withValues(alpha: 0.35)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4CD7F6).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.directions_car_filled_rounded, color: Color(0xFF4CD7F6), size: 18),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'TOTAL FLEET',
+                              style: TextStyle(color: Color(0xFFBCC9CD), fontSize: 10, fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${metrics?['total_vehicles'] ?? 0} Vehicles',
+                              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFF4CD7F6), size: 12),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -1571,11 +1974,16 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             final double amount = (b['amount'] as num?)?.toDouble() ?? 0.0;
             final String id = b['id']?.toString() ?? b['booking_id']?.toString() ?? '1';
 
+            final rawImg = b['vehicle_image_url'] ?? b['vehicle_image'] ?? b['image_url'] ?? (b['vehicle'] is Map ? (b['vehicle']['image_url'] ?? b['vehicle']['image']) : null);
+            final String vehicleImg = (rawImg != null && rawImg.toString().isNotEmpty)
+                ? ApiConfig.resolveImageUrl(rawImg.toString())
+                : '';
+
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: _buildPriorityReturnCard(
                 context,
-                imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=200',
+                imageUrl: vehicleImg,
                 title: vehicleName,
                 regPlate: regNumber,
                 renterName: customerName,
@@ -1657,18 +2065,25 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: Image.network(
-                      imageUrl,
-                      width: 44,
-                      height: 44,
-                      fit: BoxFit.cover,
-                      errorBuilder: (c, e, s) => Container(
-                        width: 44,
-                        height: 44,
-                        color: const Color(0xFF252A36),
-                        child: const Icon(Icons.two_wheeler, color: Color(0xFF4CD7F6), size: 20),
-                      ),
-                    ),
+                    child: imageUrl.isNotEmpty
+                        ? Image.network(
+                            imageUrl,
+                            width: 44,
+                            height: 44,
+                            fit: BoxFit.cover,
+                            errorBuilder: (c, e, s) => Container(
+                              width: 44,
+                              height: 44,
+                              color: const Color(0xFF252A36),
+                              child: const Icon(Icons.directions_car_rounded, color: Color(0xFF4CD7F6), size: 22),
+                            ),
+                          )
+                        : Container(
+                            width: 44,
+                            height: 44,
+                            color: const Color(0xFF252A36),
+                            child: const Icon(Icons.directions_car_rounded, color: Color(0xFF4CD7F6), size: 22),
+                          ),
                   ),
                   const SizedBox(width: 10),
                   Column(
