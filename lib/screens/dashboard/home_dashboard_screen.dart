@@ -937,6 +937,33 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             ],
           ),
         ),
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: () => ExternalActions.shareApk(),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1B2332),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF4EDEAE).withValues(alpha: 0.4)),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.share_rounded, color: Color(0xFF4EDEAE), size: 14),
+                SizedBox(width: 5),
+                Text(
+                  'Share APK',
+                  style: TextStyle(
+                    color: Color(0xFF4EDEAE),
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }

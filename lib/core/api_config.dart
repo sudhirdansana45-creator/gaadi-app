@@ -65,6 +65,7 @@ class ApiConfig {
 
   // --- Staff & Sub-Accounts ---
   static const String staff = '/staff';
+  static String staffItem(String id) => '/staff/$id';
   static String staffToggle(String id) => '/staff/$id/toggle-status';
 
   // --- Settings & WhatsApp ---

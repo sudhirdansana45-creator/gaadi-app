@@ -237,6 +237,8 @@ final appRouter = GoRouter(
                     context.push(AppRoutes.store);
                   } else if (route == 'plans' || route == 'plans_and_usage') {
                     context.push(AppRoutes.plans);
+                  } else if (route == 'users_and_roles' || route == 'staff' || route == 'users') {
+                    context.push(AppRoutes.usersAndRoles);
                   } else if (route == 'pickup_checklist') {
                     final bookingId = args is String ? args : (args is Booking ? args.id : '');
                     if (bookingId.isNotEmpty) {
@@ -641,6 +643,12 @@ final appRouter = GoRouter(
     // Settings Sub-Routes
     GoRoute(
       path: AppRoutes.usersAndRoles,
+      builder: (context, state) => UsersAndRolesScreen(
+        onBack: () => context.pop(),
+      ),
+    ),
+    GoRoute(
+      path: '/staff',
       builder: (context, state) => UsersAndRolesScreen(
         onBack: () => context.pop(),
       ),

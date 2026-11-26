@@ -153,6 +153,23 @@ class ExternalActions {
     );
   }
 
+  /// Shares Gaadi Manager APK / download link with invitation text
+  static Future<ShareResult> shareApk({String? downloadUrl, String? customMessage}) async {
+    final url = downloadUrl ?? 'https://gaadi.ersudhir.cloud/download/gaadi-manager.apk';
+    final text = customMessage ??
+        '🚗 *Gaadi Manager - Vehicle Rental & Fleet ERP App*\n\n'
+        'Manage fleet inventory, fast rental agreements, instant WhatsApp bills, customer KYC, and partner settlements in one place!\n\n'
+        '📥 Download & Install APK:\n$url\n\n'
+        'Fast & Secure ERP for vehicle rental businesses across India.';
+
+    return await SharePlus.instance.share(
+      ShareParams(
+        text: text,
+        subject: 'Gaadi Manager App APK Download',
+      ),
+    );
+  }
+
   /// Opens a PDF or document with the device's default viewer.
   static Future<OpenResult> openDocument(String filePath) async {
     return await OpenFilex.open(filePath);

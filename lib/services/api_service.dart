@@ -328,6 +328,8 @@ class ApiService {
     required String phone,
     required String role,
     String? email,
+    List<String>? permissions,
+    String? password,
   }) async {
     return await _client.post(ApiConfig.staff, body: {
       'name': name,
@@ -335,7 +337,35 @@ class ApiService {
       'mobile': phone,
       'role': role,
       'email': ?email,
+      'permissions': ?permissions,
+      'password': ?password,
     });
+  }
+
+  Future<dynamic> updateStaffUser(
+    String id, {
+    String? name,
+    String? phone,
+    String? email,
+    String? role,
+    List<String>? permissions,
+    String? password,
+    bool? isActive,
+  }) async {
+    return await _client.put(ApiConfig.staffItem(id), body: {
+      'name': ?name,
+      'phone': ?phone,
+      'mobile': ?phone,
+      'email': ?email,
+      'role': ?role,
+      'permissions': ?permissions,
+      'password': ?password,
+      'is_active': ?isActive,
+    });
+  }
+
+  Future<dynamic> deleteStaffUser(String id) async {
+    return await _client.delete(ApiConfig.staffItem(id));
   }
 
   Future<dynamic> toggleStaffStatus(String id, bool isActive) async {

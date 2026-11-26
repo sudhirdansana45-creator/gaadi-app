@@ -5,6 +5,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/lock_badge.dart';
 import '../../services/api_service.dart';
 import '../../services/api_client.dart';
+import '../../core/utils/external_actions.dart';
 import '../modals/locked_feature_sheet.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -218,6 +219,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             'Manage staff accounts & branch permissions',
             isFreePlan ? () => _showLockedSheet('Users and Roles') : () => widget.onNavigate('users_and_roles'),
             isLocked: isFreePlan,
+          ),
+
+          const SizedBox(height: 16),
+          _sectionTitle('App Distribution & Sharing'),
+          _tile(
+            Icons.android_rounded,
+            'Share Gaadi Manager APK',
+            'Send direct APK download link to staff & operators via WhatsApp or share sheet',
+            () => ExternalActions.shareApk(),
           ),
 
           const SizedBox(height: 16),
