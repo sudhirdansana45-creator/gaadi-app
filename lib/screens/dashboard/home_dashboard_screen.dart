@@ -1,9 +1,11 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../services/api_service.dart';
 import '../../services/api_client.dart';
+import '../../models/mock_models.dart';
+import '../../core/utils/external_actions.dart';
 import '../modals/daily_limit_modal.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
@@ -66,6 +68,339 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     } else {
       widget.onNavigate('new_booking');
     }
+  }
+
+  Future<void> _showInspectInSheet(BuildContext context) async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          padding: EdgeInsets.only(
+            top: 16,
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+          ),
+          decoration: const BoxDecoration(
+            color: Color(0xFF131722),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border(top: BorderSide(color: Color(0x334EDEAE), width: 1.5)),
+          ),
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.checklist_rtl_rounded, color: Color(0xFF4EDEAE), size: 22),
+                      SizedBox(width: 8),
+                      Text(
+                        'Inspect In / Return Vehicle',
+                        style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 20),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const Text(
+                'Select an ongoing trip to record return odometer, check telemetry & settle bill:',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              ),
+              const SizedBox(height: 14),
+              Expanded(
+                child: FutureBuilder(
+                  future: ApiService().getBookings(),
+                  builder: (ctx, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator(color: AppColors.primaryCyan));
+                    }
+                    List<Booking> ongoing = [];
+                    if (snapshot.hasData && snapshot.data != null && snapshot.data['data'] is List) {
+                      ongoing = (snapshot.data['data'] as List)
+                          .map((e) => Booking.fromJson(e as Map<String, dynamic>))
+                          .where((b) => b.status.toLowerCase() != 'returned' && b.status.toLowerCase() != 'completed' && b.status.toLowerCase() != 'cancelled')
+                          .toList();
+                    }
+                    if (ongoing.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.task_alt_rounded, color: AppColors.successGreen, size: 48),
+                            const SizedBox(height: 10),
+                            const Text(
+                              'No Active Trips Out Right Now',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'All dispatched vehicles are currently checked in.',
+                              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                            ),
+                            const SizedBox(height: 16),
+                            CustomButton(
+                              text: 'View All Bookings',
+                              width: 180,
+                              height: 38,
+                              onPressed: () {
+                                Navigator.pop(ctx);
+                                widget.onNavigate('bookings');
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return ListView.separated(
+                      itemCount: ongoing.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      itemBuilder: (context, i) {
+                        final b = ongoing[i];
+                        return Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.canvasLow,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.borderSubtle),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF4EDEAE).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.directions_car_rounded, color: Color(0xFF4EDEAE), size: 20),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      b.vehicleName,
+                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${b.vehicleNumber} • ${b.customerName}',
+                                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF4EDEAE),
+                                  foregroundColor: const Color(0xFF003828),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  widget.onNavigate('return_final_bill', args: b);
+                                },
+                                child: const Text('Return In', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showPayLinkSheet(BuildContext context) {
+    final mobileController = TextEditingController();
+    final amountController = TextEditingController();
+    final noteController = TextEditingController(text: 'Vehicle Rental Payment');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          padding: EdgeInsets.only(
+            top: 16,
+            left: 18,
+            right: 18,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+          ),
+          decoration: const BoxDecoration(
+            color: Color(0xFF131722),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border(top: BorderSide(color: Color(0x33ADC6FF), width: 1.5)),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.send_rounded, color: Color(0xFFADC6FF), size: 22),
+                        SizedBox(width: 8),
+                        Text(
+                          'Generate & Send Pay Link',
+                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 20),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const Text(
+                  'Send an instant online payment link via WhatsApp or SMS to collect rental advance or balance:',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: mobileController,
+                  keyboardType: TextInputType.phone,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  decoration: InputDecoration(
+                    labelText: 'Customer Mobile Number',
+                    labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    hintText: 'e.g. 9876543210',
+                    hintStyle: const TextStyle(color: Colors.white24),
+                    prefixIcon: const Icon(Icons.phone_iphone_rounded, color: Color(0xFFADC6FF), size: 20),
+                    filled: true,
+                    fillColor: AppColors.canvasLow,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: amountController,
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                  decoration: InputDecoration(
+                    labelText: 'Amount to Collect (₹)',
+                    labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    hintText: 'e.g. 2500',
+                    hintStyle: const TextStyle(color: Colors.white24),
+                    prefixIcon: const Icon(Icons.currency_rupee_rounded, color: AppColors.successGreen, size: 20),
+                    filled: true,
+                    fillColor: AppColors.canvasLow,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: noteController,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  decoration: InputDecoration(
+                    labelText: 'Purpose / Note',
+                    labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    hintText: 'e.g. Advance deposit for Swift rental',
+                    hintStyle: const TextStyle(color: Colors.white24),
+                    prefixIcon: const Icon(Icons.notes_rounded, color: AppColors.textSecondary, size: 20),
+                    filled: true,
+                    fillColor: AppColors.canvasLow,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF25D366),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        icon: const Icon(Icons.chat_bubble_rounded, size: 18),
+                        label: const Text('Share WhatsApp', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        onPressed: () {
+                          final mobile = mobileController.text.trim();
+                          final amt = amountController.text.trim();
+                          if (amt.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Please enter an amount to collect'), backgroundColor: AppColors.criticalRed),
+                            );
+                            return;
+                          }
+                          Navigator.pop(ctx);
+                          ExternalActions.openWhatsApp(
+                            phone: mobile,
+                            message: 'Dear Customer, your vehicle rental payment of ₹$amt is due (${noteController.text.trim()}). Please complete the payment using this link: https://pay.gaadimanager.com/pay?amount=$amt Thank you!',
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFADC6FF),
+                          side: const BorderSide(color: Color(0x33ADC6FF)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        icon: const Icon(Icons.copy_rounded, size: 18),
+                        label: const Text('Copy Link', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        onPressed: () {
+                          final amt = amountController.text.trim();
+                          final link = 'https://pay.gaadimanager.com/pay?amount=${amt.isEmpty ? "0" : amt}';
+                          Clipboard.setData(ClipboardData(text: link));
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Payment Link copied to clipboard!'), backgroundColor: AppColors.successGreen),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -544,7 +879,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 icon: Icons.checklist_rtl_rounded,
                 iconColor: const Color(0xFF4EDEAE),
                 label: 'Inspect In',
-                onTap: () => widget.onNavigate('pickup_checklist'),
+                onTap: () => _showInspectInSheet(context),
               ),
             ),
             const SizedBox(width: 8),
@@ -553,7 +888,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 icon: Icons.send_rounded,
                 iconColor: const Color(0xFFADC6FF),
                 label: 'Pay Link',
-                onTap: () => widget.onNavigate('collect_payment'),
+                onTap: () => _showPayLinkSheet(context),
               ),
             ),
             const SizedBox(width: 8),

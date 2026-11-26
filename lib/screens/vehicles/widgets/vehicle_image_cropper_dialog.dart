@@ -458,36 +458,6 @@ class _VehicleImageCropperDialogState extends State<VehicleImageCropperDialog> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          // Directly visible Primary Crop & Add Button right beneath controls
-          SizedBox(
-            width: double.infinity,
-            height: 44,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF06B6D4),
-                foregroundColor: const Color(0xFF003640),
-                elevation: 3,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              onPressed: _isProcessing ? null : _saveCroppedPhoto,
-              icon: _isProcessing
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF003640)),
-                    )
-                  : const Icon(Icons.check_circle_rounded, size: 18, color: Color(0xFF003640)),
-              label: Text(
-                _isProcessing ? 'Processing Crop...' : 'Crop & Add Photo',
-                style: const TextStyle(
-                  color: Color(0xFF003640),
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );

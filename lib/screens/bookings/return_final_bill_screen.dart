@@ -28,19 +28,33 @@ class _ReturnFinalBillScreenState extends State<ReturnFinalBillScreen> {
   final _endOdometerController = TextEditingController();
   final _damageAmountController = TextEditingController(text: '0');
   final _extraKmChargeController = TextEditingController(text: '0');
+  final _lateFeeController = TextEditingController(text: '0');
 
   Booking? _booking;
   bool _isLoadingBooking = false;
   bool _isDamaged = false;
   bool _isLoading = false;
+  bool _lateFeeInitialized = false;
 
   @override
   void initState() {
     super.initState();
     _booking = widget.booking;
-    if (_booking == null && widget.bookingId != null) {
+    if (_booking != null) {
+      _initLateFee(_booking!);
+    } else if (widget.bookingId != null) {
       _fetchBooking();
     }
+  }
+
+  void _initLateFee(Booking b) {
+    if (_lateFeeInitialized) return;
+    final now = DateTime.now();
+    final isOverdue = now.isAfter(b.endDate);
+    final hoursLate = isOverdue ? now.difference(b.endDate).inHours : 0;
+    final suggestedLateFee = hoursLate > 0 ? (hoursLate * 200.0) : 0.0;
+    _lateFeeController.text = suggestedLateFee > 0 ? suggestedLateFee.toInt().toString() : '0';
+    _lateFeeInitialized = true;
   }
 
   Future<void> _fetchBooking() async {
@@ -50,6 +64,9 @@ class _ReturnFinalBillScreenState extends State<ReturnFinalBillScreen> {
       if (res != null && res['data'] != null && mounted) {
         setState(() {
           _booking = Booking.fromJson(res['data'] as Map<String, dynamic>);
+          if (_booking != null) {
+            _initLateFee(_booking!);
+          }
         });
       }
     } catch (_) {}
@@ -63,6 +80,7 @@ class _ReturnFinalBillScreenState extends State<ReturnFinalBillScreen> {
     _endOdometerController.dispose();
     _damageAmountController.dispose();
     _extraKmChargeController.dispose();
+    _lateFeeController.dispose();
     super.dispose();
   }
 
@@ -140,11 +158,12 @@ class _ReturnFinalBillScreenState extends State<ReturnFinalBillScreen> {
     final double damageCharge = _isDamaged ? (double.tryParse(_damageAmountController.text.trim()) ?? 0.0) : 0.0;
     final double extraKmCharge = double.tryParse(_extraKmChargeController.text.trim()) ?? 0.0;
     
-    // Dynamic late fee calculation
+    // Dynamic late fee calculation & manual adjustable input
     final now = DateTime.now();
     final isOverdue = now.isAfter(currentBooking.endDate);
     final hoursLate = isOverdue ? now.difference(currentBooking.endDate).inHours : 0;
-    final double lateFee = hoursLate > 0 ? (hoursLate * 200.0) : 0.0;
+    final double suggestedLateFee = hoursLate > 0 ? (hoursLate * 200.0) : 0.0;
+    final double lateFee = double.tryParse(_lateFeeController.text.trim()) ?? 0.0;
 
     final securityDeposit = currentBooking.securityDeposit;
     final pendingRent = currentBooking.pendingAmount;
@@ -275,6 +294,64 @@ class _ReturnFinalBillScreenState extends State<ReturnFinalBillScreen> {
                     ),
                     const SizedBox(height: 14),
 
+                    // Manual Adjustable Late Return Fee (Can be edited or set to 0)
+                    CustomTextField(
+                      label: 'Late Return Fee (₹) — Manual Adjustable',
+                      hintText: '0',
+                      controller: _lateFeeController,
+                      keyboardType: TextInputType.number,
+                      prefixIcon: Icons.history_toggle_off_rounded,
+                      onChanged: (_) => setState(() {}),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            _lateFeeController.text = '0';
+                            setState(() {});
+                          },
+                          borderRadius: BorderRadius.circular(6),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: AppColors.successBg,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: AppColors.successBorder),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.check_circle_outline_rounded, size: 12, color: AppColors.successGreen),
+                                SizedBox(width: 4),
+                                Text('Waive Off (₹0)', style: TextStyle(color: AppColors.successGreen, fontSize: 11, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (suggestedLateFee > 0) ...[
+                          const SizedBox(width: 8),
+                          InkWell(
+                            onTap: () {
+                              _lateFeeController.text = suggestedLateFee.toInt().toString();
+                              setState(() {});
+                            },
+                            borderRadius: BorderRadius.circular(6),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: AppColors.canvasLow,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: AppColors.borderSubtle),
+                              ),
+                              child: Text('Suggested (₹${suggestedLateFee.toInt()})', style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+
                     CheckboxListTile(
                       value: _isDamaged,
                       onChanged: (val) => setState(() => _isDamaged = val ?? false),
@@ -307,7 +384,9 @@ class _ReturnFinalBillScreenState extends State<ReturnFinalBillScreen> {
                     if (extraKmCharge > 0)
                       _mathRow('Extra KM / Fuel Charges', '- ₹${extraKmCharge.toInt()}', isPositive: false),
                     if (lateFee > 0)
-                      _mathRow('Late Fee ($hoursLate h Overdue)', '- ₹${lateFee.toInt()}', isPositive: false),
+                      _mathRow('Late Return Fee', '- ₹${lateFee.toInt()}', isPositive: false)
+                    else
+                      _mathRow('Late Return Fee', '₹0 (Waived Off)', isPositive: true),
                     if (_isDamaged && damageCharge > 0)
                       _mathRow('Vehicle Damage Recovery', '- ₹${damageCharge.toInt()}', isPositive: false),
 
@@ -357,6 +436,7 @@ class _ReturnFinalBillScreenState extends State<ReturnFinalBillScreen> {
                             endOdometer: endReading,
                             extraKmCharge: extraKmCharge,
                             fuelCharge: 0.0,
+                            lateFee: lateFee,
                             damageDeduction: damageCharge,
                             finalSettlementAmount: netRefundToCustomer.abs(),
                             paymentMode: 'Cash',

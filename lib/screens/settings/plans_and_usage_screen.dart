@@ -114,55 +114,64 @@ class _PlansAndUsageScreenState extends State<PlansAndUsageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: true,
-      bottom: false,
-      child: RefreshIndicator(
-        onRefresh: _loadData,
-        color: AppColors.primaryCyan,
-        backgroundColor: AppColors.surfaceCard,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-          padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (_isLoading)
-              const Padding(
-                padding: EdgeInsets.only(bottom: 8),
-                child: LinearProgressIndicator(
-                  color: AppColors.primaryCyan,
-                  backgroundColor: AppColors.canvasLow,
-                  minHeight: 2,
-                ),
-              ),
-            Row(
+    return Scaffold(
+      backgroundColor: const Color(0xFF0F131D),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF161B26),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+          onPressed: widget.onBack,
+        ),
+        title: const Text(
+          'Subscription Plans & Quota',
+          style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
+            tooltip: 'Refresh',
+            onPressed: _loadData,
+          ),
+        ],
+      ),
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: RefreshIndicator(
+          onRefresh: _loadData,
+          color: AppColors.primaryCyan,
+          backgroundColor: AppColors.surfaceCard,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
-                  onPressed: widget.onBack,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Subscription Plans & Usage Quota',
-                        style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        'Manage tier limits, auto-renewal billing & quota meters',
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                      ),
-                    ],
+                if (_isLoading)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 8),
+                    child: LinearProgressIndicator(
+                      color: AppColors.primaryCyan,
+                      backgroundColor: AppColors.canvasLow,
+                      minHeight: 2,
+                    ),
                   ),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Fleet Quota & Plan Upgrades',
+                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Manage tier limits, auto-renewal billing & quota meters',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
             // Active Usage Quota Meters Card
             Container(
@@ -352,6 +361,7 @@ class _PlansAndUsageScreenState extends State<PlansAndUsageScreen> {
         ),
       ),
     ),
-  );
-  }
+  ),
+);
+}
 }
