@@ -161,6 +161,9 @@ class Booking {
   final String kycDocNumber;
   final String? vehicleId;
   final String? customerId;
+  final Map<String, String>? customerDocuments;
+  final String? customerDlNo;
+  final String? customerKycStatus;
 
   // Inspection and trip lifecycle data
   final DateTime? pickupAt;
@@ -211,6 +214,9 @@ class Booking {
     required this.kycDocNumber,
     this.vehicleId,
     this.customerId,
+    this.customerDocuments,
+    this.customerDlNo,
+    this.customerKycStatus,
     this.pickupAt,
     this.settledAt,
     this.fuelLevelPercent,
@@ -383,6 +389,24 @@ class Booking {
     final vehicleId = json['vehicle_id']?.toString() ?? vehicleObj?['id']?.toString();
     final customerId = json['customer_id']?.toString() ?? customerObj?['id']?.toString();
 
+    final customerDocsRaw = customerObj?['documents'] is Map ? customerObj!['documents'] as Map<String, dynamic> : null;
+    final Map<String, String> parsedCustomerDocs = {};
+    if (customerDocsRaw != null) {
+      customerDocsRaw.forEach((k, v) {
+        if (v != null && v.toString().isNotEmpty) {
+          parsedCustomerDocs[k.toString()] = v.toString();
+        }
+      });
+    }
+    final dlNo = customerObj?['dl_no']?.toString();
+    final aadharMasked = customerObj?['aadhar_masked']?.toString();
+    final kycDocType = (dlNo != null && dlNo.isNotEmpty)
+        ? 'Driving Licence'
+        : ((aadharMasked != null && aadharMasked.isNotEmpty) ? 'Aadhaar Card' : 'Document');
+    final kycDocNum = (dlNo != null && dlNo.isNotEmpty)
+        ? dlNo
+        : ((aadharMasked != null && aadharMasked.isNotEmpty) ? aadharMasked : 'Verified');
+
     return Booking(
       id: rawId,
       bookingNumber: bookingNumber,
@@ -400,10 +424,13 @@ class Booking {
       startOdometer: startOdometer,
       endOdometer: endOdometer,
       paymentMode: paymentMode,
-      kycDocType: 'Aadhar Card',
-      kycDocNumber: 'Verified',
+      kycDocType: kycDocType,
+      kycDocNumber: kycDocNum,
       vehicleId: vehicleId,
       customerId: customerId,
+      customerDocuments: parsedCustomerDocs.isNotEmpty ? parsedCustomerDocs : null,
+      customerDlNo: dlNo,
+      customerKycStatus: customerObj?['kyc_status']?.toString(),
       pickupAt: pickupAt,
       settledAt: settledAt,
       fuelLevelPercent: fuelLevelPercent,

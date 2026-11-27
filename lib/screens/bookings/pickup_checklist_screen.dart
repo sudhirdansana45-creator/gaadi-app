@@ -10,15 +10,20 @@ import '../../models/mock_models.dart';
 import '../../services/api_service.dart';
 
 class InspectionPhoto {
-  final Uint8List bytes;
-  final String base64;
+  final Uint8List? bytes;
+  final String? base64;
+  final String? url;
   final String name;
 
   InspectionPhoto({
-    required this.bytes,
-    required this.base64,
+    this.bytes,
+    this.base64,
+    this.url,
     required this.name,
   });
+
+  bool get isMemory => bytes != null;
+  bool get isNetwork => url != null && url!.isNotEmpty;
 }
 
 class PickupChecklistScreen extends StatefulWidget {
@@ -63,6 +68,26 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
     'Right Side': Icons.turn_right_rounded,
   };
 
+  final Map<String, List<InspectionPhoto>> _kycDocuments = {
+    'Driving Licence': [],
+    'Aadhaar Card': [],
+    'Additional Document': [],
+  };
+
+  final Map<String, IconData> _kycDocIcons = {
+    'Driving Licence': Icons.badge_rounded,
+    'Aadhaar Card': Icons.fingerprint_rounded,
+    'Additional Document': Icons.file_present_rounded,
+  };
+
+  int get _totalKycDocsCount {
+    int count = 0;
+    for (final list in _kycDocuments.values) {
+      count += list.length;
+    }
+    return count;
+  }
+
   final List<Offset?> _signaturePoints = [];
 
   @override
@@ -80,6 +105,44 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
           _booking = b;
           if (b.startOdometer > 0) {
             _odometerController.text = b.startOdometer.toString();
+          }
+
+          // Preload customer KYC documents from backend if present
+          if (b.customerDocuments != null && b.customerDocuments!.isNotEmpty) {
+            final docs = b.customerDocuments!;
+            if (docs['dl_front'] != null && docs['dl_front']!.isNotEmpty) {
+              if (!(_kycDocuments['Driving Licence']?.any((p) => p.url == docs['dl_front']) ?? false)) {
+                _kycDocuments['Driving Licence']?.add(InspectionPhoto(name: 'DL Front', url: docs['dl_front']));
+              }
+            }
+            if (docs['dl_back'] != null && docs['dl_back']!.isNotEmpty) {
+              if (!(_kycDocuments['Driving Licence']?.any((p) => p.url == docs['dl_back']) ?? false)) {
+                _kycDocuments['Driving Licence']?.add(InspectionPhoto(name: 'DL Back', url: docs['dl_back']));
+              }
+            }
+            if (docs['aadhar_front'] != null && docs['aadhar_front']!.isNotEmpty) {
+              if (!(_kycDocuments['Aadhaar Card']?.any((p) => p.url == docs['aadhar_front']) ?? false)) {
+                _kycDocuments['Aadhaar Card']?.add(InspectionPhoto(name: 'Aadhaar Front', url: docs['aadhar_front']));
+              }
+            }
+            if (docs['aadhar_back'] != null && docs['aadhar_back']!.isNotEmpty) {
+              if (!(_kycDocuments['Aadhaar Card']?.any((p) => p.url == docs['aadhar_back']) ?? false)) {
+                _kycDocuments['Aadhaar Card']?.add(InspectionPhoto(name: 'Aadhaar Back', url: docs['aadhar_back']));
+              }
+            }
+          }
+
+          // Also check if pickup inspection already has saved KYC photos
+          if (b.pickupPhotos.isNotEmpty) {
+            b.pickupPhotos.forEach((k, list) {
+              if (_kycDocuments.containsKey(k)) {
+                for (final url in list) {
+                  if (url.isNotEmpty && !(_kycDocuments[k]?.any((p) => p.url == url) ?? false)) {
+                    _kycDocuments[k]?.add(InspectionPhoto(name: '$k Photo', url: url));
+                  }
+                }
+              }
+            });
           }
         });
       }
@@ -172,54 +235,19 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
                   const Divider(color: AppColors.borderHairline),
                   const SizedBox(height: 16),
 
-                  const Text('4. Customer Driving Licence Verification', style: TextStyle(color: AppColors.primaryCyan, fontWeight: FontWeight.bold, fontSize: 14)),
+                  const Text('4. Customer Driving Licence & KYC Document Verification', style: TextStyle(color: AppColors.primaryCyan, fontWeight: FontWeight.bold, fontSize: 14)),
+                  const SizedBox(height: 6),
+                  const Text('Capture or upload multiple documents for Driving Licence, Aadhaar, and identity verification (Camera & Files supported)', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                  const SizedBox(height: 14),
+
+                  _buildCustomerKycHeader(),
                   const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppColors.canvasLow,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.borderSubtle),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: AppColors.surfaceHover,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.primaryCyan.withValues(alpha: 0.4)),
-                          ),
-                          child: const Icon(Icons.badge_rounded, color: AppColors.primaryCyan, size: 24),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _booking?.customerName ?? 'Customer',
-                                style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
-                              ),
-                              Text(
-                                'DL / ID: ${_booking?.kycDocNumber.isNotEmpty == true ? _booking!.kycDocNumber : "Verified on Booking"}',
-                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.preview_rounded, color: AppColors.primaryCyan, size: 22),
-                          onPressed: () => AppPlaceholders.showImageViewer(
-                            context,
-                            imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800',
-                            title: '${_booking?.kycDocType.isNotEmpty == true ? _booking!.kycDocType : "Document"} - ${_booking?.customerName ?? "Customer"}',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+
+                  _buildDocSection('Driving Licence'),
+                  const SizedBox(height: 10),
+                  _buildDocSection('Aadhaar Card'),
+                  const SizedBox(height: 10),
+                  _buildDocSection('Additional Document'),
                   const SizedBox(height: 20),
                   const Divider(color: AppColors.borderHairline),
                   const SizedBox(height: 16),
@@ -304,7 +332,20 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
                         final Map<String, List<String>> photosPayload = {};
                         for (final entry in _photosByAngle.entries) {
                           if (entry.value.isNotEmpty) {
-                            photosPayload[entry.key] = entry.value.map((p) => p.base64).toList();
+                            final list = entry.value.where((p) => p.base64 != null && p.base64!.isNotEmpty).map((p) => p.base64!).toList();
+                            if (list.isNotEmpty) {
+                              photosPayload[entry.key] = list;
+                            }
+                          }
+                        }
+
+                        // Also collect all uploaded KYC documents into base64 payload
+                        for (final entry in _kycDocuments.entries) {
+                          if (entry.value.isNotEmpty) {
+                            final list = entry.value.where((p) => p.base64 != null && p.base64!.isNotEmpty).map((p) => p.base64!).toList();
+                            if (list.isNotEmpty) {
+                              photosPayload[entry.key] = list;
+                            }
                           }
                         }
 
@@ -654,11 +695,19 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          AppPlaceholders.showImageBytesViewer(
-                            context,
-                            bytes: photo.bytes,
-                            title: '$angle Photo #${index + 1}',
-                          );
+                          if (photo.bytes != null) {
+                            AppPlaceholders.showImageBytesViewer(
+                              context,
+                              bytes: photo.bytes,
+                              title: '$angle Photo #${index + 1}',
+                            );
+                          } else if (photo.url != null && photo.url!.isNotEmpty) {
+                            AppPlaceholders.showImageViewer(
+                              context,
+                              imageUrl: photo.url!,
+                              title: '$angle Photo #${index + 1}',
+                            );
+                          }
                         },
                         child: Container(
                           width: 84,
@@ -669,10 +718,22 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(9),
-                            child: Image.memory(
-                              photo.bytes,
-                              fit: BoxFit.cover,
-                            ),
+                            child: photo.bytes != null
+                                ? Image.memory(
+                                    photo.bytes!,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.network(
+                                    photo.url!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, _, _) => const Center(
+                                      child: Icon(Icons.broken_image_rounded, color: AppColors.textMuted),
+                                    ),
+                                    loadingBuilder: (_, child, progress) {
+                                      if (progress == null) return child;
+                                      return const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryCyan)));
+                                    },
+                                  ),
                           ),
                         ),
                       ),
@@ -683,6 +744,474 @@ class _PickupChecklistScreenState extends State<PickupChecklistScreen> {
                           onTap: () {
                             setState(() {
                               _photosByAngle[angle]?.removeAt(index);
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: const BoxDecoration(
+                              color: AppColors.criticalRed,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.close_rounded, size: 12, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomerKycHeader() {
+    final hasDocs = _totalKycDocsCount > 0 || (_booking?.customerKycStatus == 'verified');
+    final dlNum = _booking?.customerDlNo ?? _booking?.kycDocNumber;
+    final isDlPresent = dlNum != null && dlNum.isNotEmpty && dlNum != 'Verified';
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.canvasLow,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: hasDocs ? AppColors.successGreen.withValues(alpha: 0.3) : AppColors.borderSubtle),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: hasDocs ? AppColors.successGreen.withValues(alpha: 0.15) : AppColors.surfaceHover,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: hasDocs ? AppColors.successGreen.withValues(alpha: 0.4) : AppColors.primaryCyan.withValues(alpha: 0.4)),
+            ),
+            child: Icon(
+              hasDocs ? Icons.verified_user_rounded : Icons.badge_rounded,
+              color: hasDocs ? AppColors.successGreen : AppColors.primaryCyan,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        _booking?.customerName ?? 'Customer',
+                        style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: hasDocs ? AppColors.successGreen.withValues(alpha: 0.15) : AppColors.warningAmber.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: hasDocs ? AppColors.successGreen.withValues(alpha: 0.3) : AppColors.warningAmber.withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        hasDocs ? 'Verified' : 'Upload Required',
+                        style: TextStyle(
+                          color: hasDocs ? AppColors.successGreen : AppColors.warningAmber,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  isDlPresent ? 'DL: $dlNum' : (_booking?.customerPhone.isNotEmpty == true ? 'Mobile: ${_booking!.customerPhone}' : 'Customer Verification'),
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceHover,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.borderSubtle),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.attach_file_rounded, size: 14, color: AppColors.primaryCyan),
+                const SizedBox(width: 4),
+                Text(
+                  '$_totalKycDocsCount ${_totalKycDocsCount == 1 ? "Doc" : "Docs"}',
+                  style: const TextStyle(color: AppColors.primaryCyan, fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _captureDocFromCamera(String docType) async {
+    try {
+      final file = await MediaPickerService.instance.captureImageWithCamera(
+        context: context,
+        title: '$docType Camera Photo',
+        rationale: 'Camera access is required to capture customer $docType verification photo.',
+      );
+
+      if (file != null && mounted) {
+        final bytes = await file.readAsBytes();
+        final b64 = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+        setState(() {
+          _kycDocuments[docType]?.add(
+            InspectionPhoto(bytes: bytes, base64: b64, name: file.name),
+          );
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('✓ $docType photo captured (Total: ${_kycDocuments[docType]?.length})'),
+              backgroundColor: AppColors.successGreen,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error capturing $docType photo: $e');
+    }
+  }
+
+  Future<void> _pickDocFromGallery(String docType) async {
+    try {
+      final files = await MediaPickerService.instance.pickMultipleImagesFromGallery(
+        context: context,
+        title: 'Select $docType Photos',
+        rationale: 'Photo library access is required to choose $docType verification photos.',
+      );
+
+      if (files.isNotEmpty && mounted) {
+        int added = 0;
+        for (final file in files) {
+          final bytes = await file.readAsBytes();
+          final b64 = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+          _kycDocuments[docType]?.add(
+            InspectionPhoto(bytes: bytes, base64: b64, name: file.name),
+          );
+          added++;
+        }
+        setState(() {});
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('✓ $added document photo(s) added to $docType (Total: ${_kycDocuments[docType]?.length})'),
+              backgroundColor: AppColors.successGreen,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error picking $docType photos from gallery: $e');
+    }
+  }
+
+  void _showAddDocSheet(String docType) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.borderSubtle,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryCyan.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(_kycDocIcons[docType] ?? Icons.badge_rounded, color: AppColors.primaryCyan, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Upload $docType',
+                          style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Capture live photo or upload multiple files from gallery',
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                tileColor: AppColors.canvasLow,
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryCyan.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.camera_alt_rounded, color: AppColors.primaryCyan),
+                ),
+                title: const Text('Take Photo with Camera', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 14)),
+                subtitle: Text('Open camera to capture $docType (Front/Back)', style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _captureDocFromCamera(docType);
+                },
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                tileColor: AppColors.canvasLow,
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.successGreen.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.photo_library_rounded, color: AppColors.successGreen),
+                ),
+                title: const Text('Choose from Files / Gallery', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 14)),
+                subtitle: const Text('Select multiple documents from device gallery or files', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickDocFromGallery(docType);
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDocSection(String docType) {
+    final photos = _kycDocuments[docType] ?? [];
+    final hasPhotos = photos.isNotEmpty;
+    final icon = _kycDocIcons[docType] ?? Icons.badge_rounded;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.canvasLow,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: hasPhotos ? AppColors.primaryCyan.withValues(alpha: 0.4) : AppColors.borderSubtle),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, size: 18, color: hasPhotos ? AppColors.primaryCyan : AppColors.textSecondary),
+                  const SizedBox(width: 8),
+                  Text(
+                    docType,
+                    style: TextStyle(
+                      color: hasPhotos ? AppColors.textPrimary : AppColors.textSecondary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: hasPhotos ? AppColors.successGreen.withValues(alpha: 0.15) : AppColors.surfaceHover,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: hasPhotos ? AppColors.successGreen.withValues(alpha: 0.3) : AppColors.borderSubtle),
+                    ),
+                    child: Text(
+                      '${photos.length} ${photos.length == 1 ? "Doc" : "Docs"}',
+                      style: TextStyle(
+                        color: hasPhotos ? AppColors.successGreen : AppColors.textMuted,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              InkWell(
+                onTap: () => _showAddDocSheet(docType),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryCyan.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.primaryCyan.withValues(alpha: 0.3)),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add_a_photo_rounded, size: 13, color: AppColors.primaryCyan),
+                      SizedBox(width: 4),
+                      Text('+ Add', style: TextStyle(color: AppColors.primaryCyan, fontSize: 11, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (photos.isEmpty)
+            InkWell(
+              onTap: () => _showAddDocSheet(docType),
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceHover.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.borderSubtle),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.add_photo_alternate_outlined, color: AppColors.textMuted, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Tap to upload $docType (Camera & Files supported)',
+                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            SizedBox(
+              height: 84,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: photos.length + 1,
+                separatorBuilder: (context, index) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  if (index == photos.length) {
+                    return InkWell(
+                      onTap: () => _showAddDocSheet(docType),
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        width: 84,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceHover,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.primaryCyan.withValues(alpha: 0.3)),
+                        ),
+                        child: const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_circle_outline_rounded, color: AppColors.primaryCyan, size: 22),
+                            SizedBox(height: 4),
+                            Text('Add More', style: TextStyle(color: AppColors.primaryCyan, fontSize: 10, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  final photo = photos[index];
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          if (photo.bytes != null) {
+                            AppPlaceholders.showImageBytesViewer(
+                              context,
+                              bytes: photo.bytes,
+                              title: '$docType Doc #${index + 1}',
+                            );
+                          } else if (photo.url != null && photo.url!.isNotEmpty) {
+                            AppPlaceholders.showImageViewer(
+                              context,
+                              imageUrl: photo.url!,
+                              title: '$docType Doc #${index + 1}',
+                            );
+                          }
+                        },
+                        child: Container(
+                          width: 84,
+                          height: 84,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.borderSubtle),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(9),
+                            child: photo.bytes != null
+                                ? Image.memory(
+                                    photo.bytes!,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.network(
+                                    photo.url!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, _, _) => const Center(
+                                      child: Icon(Icons.broken_image_rounded, color: AppColors.textMuted),
+                                    ),
+                                    loadingBuilder: (_, child, progress) {
+                                      if (progress == null) return child;
+                                      return const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryCyan)));
+                                    },
+                                  ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: -4,
+                        right: -4,
+                        child: InkWell(
+                          onTap: () {
+                            setState(() {
+                              _kycDocuments[docType]?.removeAt(index);
                             });
                           },
                           borderRadius: BorderRadius.circular(12),
